@@ -1,0 +1,340 @@
+/**
+ * src/components/ChessBoard.tsx
+ *
+ * 前端棋盤 UI 元件
+ * ------------------------------------------------------------
+ * 職責：
+ *   1. 將 10x9 的 BoardGrid 渲染成可互動的棋盤。
+ *   2. 採用「點選式」走棋：先點起點（高亮顯示），再點終點，
+ *      組合成四字元走法記號（例如 "h2e2"）後呼叫 onMove。
+ *   3. 當 isLocked 為 true（小雞生病中）時，蓋上毛玻璃半透明遮罩，
+ *      阻擋棋盤互動，並提供「返回主頁」按鈕。
+ *
+ * 【這一版的關鍵修正：棋子畫在「線條交叉點」上，不是塞進方格裡】
+ *   真正的象棋棋盤是「9 條直線 x 10 條橫線」交織出的格線，棋子放在
+ *   線與線的交叉點上（跟圍棋盤一樣），不是像西洋棋/跳棋那樣放在
+ *   一格一格的方塊裡。上一版用 CSS Grid 畫出 9x10 個方塊、棋子置中
+ *   填滿在方塊裡，視覺上看起來完全不對。這一版改用 SVG 直接畫線：
+ *     - 10 條橫線：每條都是貫通整個寬度的直線（橫線不會被楚河中斷）。
+ *     - 9 條直線：最左、最右兩條直線貫通全高；中間 7 條直線在楚河
+ *       （row 4 與 row 5 之間）斷開，留出「楚河漢界」的視覺空白帶，
+ *       這正是象棋棋盤的標誌性外觀。
+ *     - 上下各一個九宮格（將/帥所在區域）有 X 形斜線。
+ *     - 棋子是畫在交叉點正中心的圓形 + 文字，而不是填滿某個方格。
+ *   點擊判定範圍是以交叉點為圓心的隱藏熱區（比視覺上的棋子圓圈再大
+ *   一些，方便手指點擊），語意完全沒變：點起點、點終點、送出記號。
+ *
+ * 設計說明：
+ *   - 本元件是純展示 + 互動收集層，不做任何象棋規則驗證
+ *     （不檢查棋子能不能那樣走），完全對應後端 Hook 的策略：
+ *     「比對是否等於正解序列當前步」由 usePuzzleSolver 負責，
+ *     ChessBoard 只負責把「玩家點了哪兩個交叉點」轉成記號丟出去。
+ *   - 棋子視覺採用圓形文字標籤（將/帥/車/馬/炮/相/仕/兵 等中文字），
+ *     紅黑配色對比清楚，符合手遊風格的可愛感。
+ *   - 點起點後再點同一格＝取消選取；點起點後點任意其他格＝視為終點並送出。
+ *   - 對外的 props 介面（ChessBoardProps）完全沒變，呼叫端
+ *     （puzzle/[id]/page.tsx 的 PuzzleSolverSection）不需要修改。
+ */
+
+"use client";
+
+import { useState, type KeyboardEvent } from "react";
+import type { BoardGrid, PieceType } from "@/types/xiangqi";
+import { formatSquare } from "@/lib/xiangqi/move";
+
+// ============================================================
+// 1. 棋子顯示文字對照表
+// ============================================================
+
+const PIECE_LABEL: Record<PieceType, { red: string; black: string }> = {
+  k: { red: "帥", black: "將" },
+  a: { red: "仕", black: "士" },
+  e: { red: "相", black: "象" },
+  h: { red: "馬", black: "馬" },
+  r: { red: "車", black: "車" },
+  c: { red: "炮", black: "炮" },
+  p: { red: "兵", black: "卒" },
+};
+
+// ============================================================
+// 2. 棋盤幾何常數
+// ------------------------------------------------------------
+// CELL：交叉點之間的間距；MARGIN：棋盤四周留白。
+// 9 條直線 = 8 個欄間距；10 條橫線 = 9 個列間距。
+// ============================================================
+
+const CELL = 50;
+const MARGIN = 32;
+const BOARD_WIDTH = MARGIN * 2 + CELL * 8;
+const BOARD_HEIGHT = MARGIN * 2 + CELL * 9;
+const LINE_COLOR = "#5C3D0A";
+const RIVER_ROW_TOP = 4; // 楚河上緣（row 4 這條橫線之下開始是河面）
+const RIVER_ROW_BOTTOM = 5; // 楚河下緣
+
+function pointOf(row: number, col: number): { x: number; y: number } {
+  return { x: MARGIN + col * CELL, y: MARGIN + row * CELL };
+}
+
+// ============================================================
+// 3. Props 定義
+// ============================================================
+
+export interface ChessBoardProps {
+  /** 目前棋盤狀態（10x9，grid[row][col]） */
+  board: BoardGrid;
+  /** 是否因小雞生病而鎖定棋盤（鎖定時蓋上遮罩、停用互動） */
+  isLocked: boolean;
+  /** 學生完成一次「起點+終點」點選後呼叫，傳入四字元走法記號（例如 "h2e2"） */
+  onMove: (moveNotation: string) => void;
+  /** 遮罩上「返回主頁」按鈕被點擊時呼叫 */
+  onBackToHome: () => void;
+}
+
+// ============================================================
+// 4. 主體元件
+// ============================================================
+
+export default function ChessBoard({ board, isLocked, onMove, onBackToHome }: ChessBoardProps) {
+  const [selectedFrom, setSelectedFrom] = useState<{ row: number; col: number } | null>(null);
+
+  function handleCellClick(row: number, col: number) {
+    if (isLocked) return;
+
+    const cellPiece = board[row]?.[col];
+
+    if (!selectedFrom) {
+      if (cellPiece) {
+        setSelectedFrom({ row, col });
+      }
+      return;
+    }
+
+    const isSameCell = selectedFrom.row === row && selectedFrom.col === col;
+
+    if (isSameCell) {
+      setSelectedFrom(null);
+      return;
+    }
+
+    const fromNotation = formatSquare(selectedFrom);
+    const toNotation = formatSquare({ row, col });
+    onMove(`${fromNotation}${toNotation}`);
+
+    setSelectedFrom(null);
+  }
+
+  function handleCellKeyDown(event: KeyboardEvent<SVGGElement>, row: number, col: number) {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      handleCellClick(row, col);
+    }
+  }
+
+  return (
+    <div className="relative w-full max-w-md mx-auto">
+      <svg
+        viewBox={`0 0 ${BOARD_WIDTH} ${BOARD_HEIGHT}`}
+        className="h-auto w-full rounded-2xl border-4 border-[#A9764C] bg-[#E8D5B5] p-1 shadow-inner"
+        role="group"
+        aria-label="象棋棋盤"
+      >
+        {/* ---- 橫線：10 條，每條都貫通整個寬度 ---- */}
+        {Array.from({ length: 10 }, (_, row) => {
+          const y = MARGIN + row * CELL;
+          return (
+            <line
+              key={`h-${row}`}
+              x1={MARGIN}
+              y1={y}
+              x2={MARGIN + CELL * 8}
+              y2={y}
+              stroke={LINE_COLOR}
+              strokeWidth={1.5}
+            />
+          );
+        })}
+
+        {/* ---- 直線：9 條。最左/最右貫通全高；中間 7 條在楚河斷開 ---- */}
+        {Array.from({ length: 9 }, (_, col) => {
+          const x = MARGIN + col * CELL;
+          const isOuterEdge = col === 0 || col === 8;
+
+          if (isOuterEdge) {
+            return (
+              <line
+                key={`v-${col}`}
+                x1={x}
+                y1={MARGIN}
+                x2={x}
+                y2={MARGIN + CELL * 9}
+                stroke={LINE_COLOR}
+                strokeWidth={1.5}
+              />
+            );
+          }
+
+          return (
+            <g key={`v-${col}`}>
+              <line
+                x1={x}
+                y1={MARGIN}
+                x2={x}
+                y2={MARGIN + CELL * RIVER_ROW_TOP}
+                stroke={LINE_COLOR}
+                strokeWidth={1.5}
+              />
+              <line
+                x1={x}
+                y1={MARGIN + CELL * RIVER_ROW_BOTTOM}
+                x2={x}
+                y2={MARGIN + CELL * 9}
+                stroke={LINE_COLOR}
+                strokeWidth={1.5}
+              />
+            </g>
+          );
+        })}
+
+        {/* ---- 上方九宮格斜線（黑方將的保護區，row 0~2、col 3~5） ---- */}
+        <line
+          x1={MARGIN + 3 * CELL}
+          y1={MARGIN}
+          x2={MARGIN + 5 * CELL}
+          y2={MARGIN + 2 * CELL}
+          stroke={LINE_COLOR}
+          strokeWidth={1.5}
+        />
+        <line
+          x1={MARGIN + 5 * CELL}
+          y1={MARGIN}
+          x2={MARGIN + 3 * CELL}
+          y2={MARGIN + 2 * CELL}
+          stroke={LINE_COLOR}
+          strokeWidth={1.5}
+        />
+
+        {/* ---- 下方九宮格斜線（紅方帥的保護區，row 7~9、col 3~5） ---- */}
+        <line
+          x1={MARGIN + 3 * CELL}
+          y1={MARGIN + 7 * CELL}
+          x2={MARGIN + 5 * CELL}
+          y2={MARGIN + 9 * CELL}
+          stroke={LINE_COLOR}
+          strokeWidth={1.5}
+        />
+        <line
+          x1={MARGIN + 5 * CELL}
+          y1={MARGIN + 7 * CELL}
+          x2={MARGIN + 3 * CELL}
+          y2={MARGIN + 9 * CELL}
+          stroke={LINE_COLOR}
+          strokeWidth={1.5}
+        />
+
+        {/* ---- 楚河漢界文字 ---- */}
+        <text
+          x={MARGIN + 1.5 * CELL}
+          y={MARGIN + 4.5 * CELL + 7}
+          fontSize={20}
+          fill="#A9764C"
+          fontWeight="bold"
+          textAnchor="middle"
+          style={{ userSelect: "none" }}
+        >
+          楚河
+        </text>
+        <text
+          x={MARGIN + 6.5 * CELL}
+          y={MARGIN + 4.5 * CELL + 7}
+          fontSize={20}
+          fill="#A9764C"
+          fontWeight="bold"
+          textAnchor="middle"
+          style={{ userSelect: "none" }}
+        >
+          漢界
+        </text>
+
+        {/* ---- 交叉點：點擊熱區 + 選取高光 + 棋子 ---- */}
+        {board.map((rowCells, rowIndex) =>
+          rowCells.map((cell, colIndex) => {
+            const { x, y } = pointOf(rowIndex, colIndex);
+            const isSelected =
+              selectedFrom?.row === rowIndex && selectedFrom?.col === colIndex;
+            const squareLabel = formatSquare({ row: rowIndex, col: colIndex });
+
+            return (
+              <g
+                key={`${rowIndex}-${colIndex}`}
+                role="button"
+                tabIndex={isLocked ? -1 : 0}
+                aria-label={`座標 ${squareLabel}${cell ? `，${cell.color === "r" ? "紅方" : "黑方"}${PIECE_LABEL[cell.type][cell.color === "r" ? "red" : "black"]}` : ""}`}
+                onClick={() => handleCellClick(rowIndex, colIndex)}
+                onKeyDown={(event) => handleCellKeyDown(event, rowIndex, colIndex)}
+                style={{ cursor: isLocked ? "not-allowed" : "pointer", outline: "none" }}
+              >
+                {/* 隱藏點擊熱區：比實際棋子稍大，方便手指點擊交叉點 */}
+                <circle cx={x} cy={y} r={CELL * 0.48} fill="transparent" />
+
+                {isSelected ? (
+                  <circle
+                    cx={x}
+                    cy={y}
+                    r={CELL * 0.42}
+                    fill="none"
+                    stroke="#E8B84B"
+                    strokeWidth={3}
+                  />
+                ) : null}
+
+                {cell ? (
+                  <>
+                    <circle
+                      cx={x}
+                      cy={y}
+                      r={CELL * 0.38}
+                      fill={cell.color === "r" ? "#C0392B" : "#1A1A2E"}
+                      stroke={cell.color === "r" ? "#8E2A1F" : "#0F0F1A"}
+                      strokeWidth={2}
+                    />
+                    <text
+                      x={x}
+                      y={y}
+                      fontSize={CELL * 0.38}
+                      fill="#FDF6E8"
+                      fontWeight="bold"
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                      style={{ pointerEvents: "none", userSelect: "none" }}
+                    >
+                      {PIECE_LABEL[cell.type][cell.color === "r" ? "red" : "black"]}
+                    </text>
+                  </>
+                ) : null}
+              </g>
+            );
+          })
+        )}
+      </svg>
+
+      {/* ---- 生病鎖定遮罩（毛玻璃半透明） ---- */}
+      {isLocked ? (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 rounded-2xl bg-[#1A1A2E]/55 backdrop-blur-sm">
+          <div className="text-5xl" role="img" aria-label="生病的小雞">
+            🤒
+          </div>
+          <p className="px-6 text-center text-base font-semibold text-white">
+            小雞生病了，沒辦法繼續挑戰殘局
+          </p>
+          <button
+            type="button"
+            onClick={onBackToHome}
+            className="rounded-full bg-[#E8B84B] px-6 py-2 text-sm font-bold text-[#1A1A2E] shadow-md transition-transform active:scale-95"
+          >
+            返回主頁照顧小雞
+          </button>
+        </div>
+      ) : null}
+    </div>
+  );
+}
