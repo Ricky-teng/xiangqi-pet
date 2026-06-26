@@ -29,14 +29,17 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 import { useGameStore } from "@/stores/useGameStore";
 import { signOutUser } from "@/hooks/useAuth";
 import RequireAuth from "@/components/RequireAuth";
 import { STAGE_XP_THRESHOLDS } from "@/lib/pet/petGrowth";
 import { SICKNESS_ESCALATION_HOURS } from "@/lib/pet/petDecay";
-import type { UserDoc } from "@/types/database";
+import { hasUnclaimedDailyTask } from "@/lib/tasks/dailyTasks";
+import type { DailyTaskDoc, UserDoc } from "@/types/database";
 
 // ============================================================
 // 1. 小雞外觀對照（依階段 + 健康狀態）
@@ -175,6 +178,16 @@ function TeacherHomeContent({ user }: { user: UserDoc }) {
             <span className="text-base font-extrabold text-[#1A1A2E]">學生答題監控後台</span>
             <span className="text-xs font-medium text-[#1A1A2E]/60">查看所有學生的解題狀況</span>
           </button>
+
+          <button
+            type="button"
+            onClick={() => router.push("/admin/tasks")}
+            className="flex flex-col items-center gap-1 rounded-3xl bg-white/70 px-4 py-6 shadow-sm transition-transform active:scale-95"
+          >
+            <span className="text-3xl" aria-hidden="true">📋</span>
+            <span className="text-base font-extrabold text-[#1A1A2E]">每日任務管理</span>
+            <span className="text-xs font-medium text-[#1A1A2E]/60">新增、編輯、停用每日任務</span>
+          </button>
         </div>
       </div>
     </main>
@@ -193,6 +206,24 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
   const buyMedicine = useGameStore((s) => s.buyMedicine);
   const rebirthPet = useGameStore((s) => s.rebirthPet);
   const resurrectPet = useGameStore((s) => s.resurrectPet);
+
+  // ---- 每日任務：只為了首頁的「有未領取任務」紅點提示，抓一次啟用中
+  // 的任務列表就好，不需要任務的完整內容（那是 /tasks 頁面的事）。
+  const [activeDailyTasks, setActiveDailyTasks] = useState<DailyTaskDoc[]>([]);
+  useEffect(() => {
+    let isCancelled = false;
+    getDocs(query(collection(db, "dailyTasks"), where("isActive", "==", true)))
+      .then((snapshot) => {
+        if (isCancelled) return;
+        setActiveDailyTasks(snapshot.docs.map((docSnapshot) => docSnapshot.data() as DailyTaskDoc));
+      })
+      .catch((error) => {
+        console.error("[home] 讀取每日任務列表失敗（不影響其他功能，只是紅點提示不會顯示）：", error);
+      });
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
 
   // ---- 登出狀態 ----
   const [isSigningOut, setIsSigningOut] = useState(false);
@@ -285,6 +316,19 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
             👋 {user.displayName}（學生）
           </p>
           <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => router.push("/tasks")}
+              className="relative text-xs font-bold text-[#1A1A2E]/70 hover:underline"
+            >
+              📋 任務
+              {hasUnclaimedDailyTask(user, activeDailyTasks) ? (
+                <span
+                  aria-label="有未領取的任務"
+                  className="absolute -right-1.5 -top-1.5 h-2 w-2 rounded-full bg-[#C0392B]"
+                />
+              ) : null}
+            </button>
             <button
               type="button"
               onClick={() => router.push("/leaderboard")}

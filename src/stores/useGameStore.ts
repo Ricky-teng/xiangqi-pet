@@ -2,9 +2,10 @@
 import { create } from "zustand";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { UserDoc, PetDoc } from "@/types/database";
+import { UserDoc, PetDoc, DailyTaskDoc } from "@/types/database";
 import { resolveStageForXp } from "@/lib/pet/petGrowth";
 import { getCatalogEntryForRebirthCount } from "@/lib/pet/catalog";
+import { getTodayDateString, getTodaysCompletedTaskIds } from "@/lib/tasks/dailyTasks";
 
 // 定義我們遊戲總機裡面有哪些資料與開關
 interface GameStoreState {
@@ -53,6 +54,14 @@ interface GameStoreState {
    * 不會解鎖圖鑑款式、不會增加 rebirthCount。需要花費飼料。
    */
   resurrectPet: () => { success: boolean; message: string };
+
+  /**
+   * 領取每日任務獎勵。任務定義現在存在 Firestore（DailyTaskDoc），
+   * 由呼叫端（tasks/page.tsx）先用 getDocs 抓到完整任務物件後傳進來，
+   * 這裡不再自己查表，只負責「能不能領、領了之後怎麼更新資料」這層邏輯。
+   * 同一個任務同一天只能領一次，跨天后會重置。
+   */
+  claimDailyTask: (task: DailyTaskDoc) => { success: boolean; message: string };
 }
 
 export const useGameStore = create<GameStoreState>((set, get) => ({
@@ -372,5 +381,46 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     });
 
     return { success: true, message: "小雞復活了！要重新從蛋開始好好照顧牠喔。" };
+  },
+
+  // 6. 每日任務領取
+  claimDailyTask: (task) => {
+    const { user } = get();
+    if (!user) return { success: false, message: "找不到資料" };
+
+    const today = getTodayDateString();
+    const completedToday = getTodaysCompletedTaskIds(user);
+
+    if (completedToday.includes(task.id)) {
+      return { success: false, message: "今天已經完成這個任務了，明天再來！" };
+    }
+
+    const now = Date.now();
+    const updatedDailyTaskProgress = {
+      date: today,
+      completedTaskIds: [...completedToday, task.id],
+    };
+
+    const updatedUser: UserDoc = {
+      ...user,
+      foodCount: user.foodCount + task.rewardFood,
+      dailyTaskProgress: updatedDailyTaskProgress,
+      updatedAt: now,
+    };
+
+    set({ user: updatedUser });
+
+    updateDoc(doc(db, "users", user.uid), {
+      foodCount: updatedUser.foodCount,
+      dailyTaskProgress: updatedDailyTaskProgress,
+      updatedAt: now,
+    }).catch((error) => {
+      console.error("[useGameStore] claimDailyTask 同步寫回 Firestore 失敗：", error);
+    });
+
+    return {
+      success: true,
+      message: `完成「${task.title}」，獲得 ${task.rewardFood} 飼料！`,
+    };
   },
 }));

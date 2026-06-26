@@ -37,7 +37,19 @@ export interface UserDoc {
   
   // 行動裝置推播用的 FCM Token 陣列（可能登入多台裝置）
   fcmTokens: string[];
-  
+
+  /**
+   * 每日任務完成進度（可選欄位：舊帳號沒有這個欄位時，視為「今天還沒
+   * 完成任何任務」，見 @/lib/tasks/dailyTasks.ts 的 getTodaysCompletedTaskIds）。
+   * date 用本地（瀏覽器所在時區）的 YYYY-MM-DD 字串記錄「上次更新是哪一天」，
+   * 跟目前日期不同就代表跨天了，當天的任務全部視為尚未完成，不需要另外
+   * 跑排程把舊資料清掉——每次讀取時用日期字串比對即可。
+   */
+  dailyTaskProgress?: {
+    date: string;
+    completedTaskIds: string[];
+  };
+
   createdAt: number; // 帳號建立時間
   updatedAt: number; // 資料更新時間
 }
@@ -138,6 +150,28 @@ export interface PuzzleDoc {
   createdBy: string;    // 出題老師的 uid
   isPublished: boolean; // 是否公開發充給學生
   
+  createdAt: number;
+  updatedAt: number;
+}
+
+/**
+ * 4. 每日任務文件 (路徑: dailyTasks/{taskId})
+ * ------------------------------------------------------------
+ * 之前是寫死在程式碼裡的 DAILY_TASK_DEFINITIONS 固定陣列，老師沒辦法
+ * 自己新增/編輯/刪除任務。現在改成跟 PuzzleDoc 一樣存在 Firestore，
+ * 老師透過 /admin/tasks 後台管理，學生端從這個 collection 動態讀取。
+ */
+export interface DailyTaskDoc {
+  id: string;
+  title: string;       // 任務名稱（例如：每日簽到）
+  description: string; // 任務說明文字
+  icon: string;        // 顯示用 emoji（直接打字輸入，不是圖片檔案）
+  rewardFood: number;  // 完成後獲得的飼料數量
+
+  /** 是否啟用：停用的任務不會出現在學生的任務頁面，但保留資料方便老師之後重新啟用 */
+  isActive: boolean;
+
+  createdBy: string; // 建立任務的老師 uid
   createdAt: number;
   updatedAt: number;
 }
