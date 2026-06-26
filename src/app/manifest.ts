@@ -7,14 +7,10 @@
  * 在 /manifest.webmanifest 提供這份資料，並自動在 <head> 加上對應的
  * <link rel="manifest">，不需要在 layout.tsx 手動加這個 link。
  *
- * 【需要美術提供的圖片】
- * icons 陣列指向兩張還不存在的圖片：
- *   public/icons/icon-192.png（192x192px）
- *   public/icons/icon-512.png（512x512px）
- * 規格建議：正方形、PNG，建議無透明背景（純色或滿版插圖），因為
- * Android 安裝後的主畫面圖示是裁切成圓形/圓角方形顯示，透明區域在
- * 某些桌布上可能不好看。圖片不存在時不會讓網站壞掉，只是「加到主
- * 畫面」後圖示會顯示瀏覽器預設的破圖示，不影響其他功能。
+ * icons 指向 public/icons/icon-192.png、icon-512.png，這兩張是從你
+ * 提供的「將軍小雞」圖示（原始 1254x1254）縮放生成的，跟瀏覽器分頁
+ * 用的 app/favicon.ico、iOS 主畫面用的 app/apple-icon.png 是同一張圖，
+ * 整個 App 的圖示現在統一。
  */
 
 import type { MetadataRoute } from "next";
