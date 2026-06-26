@@ -8,8 +8,9 @@
  *       與健康狀態（依 pet.healthStatus 顯示對應去背圖片）、返回大廳按鈕。
  *   (B) 中央核心解題區：<ChessBoard /> + 控制面板
  *       （顯示提示／重新開始／目前進度 X/Y 步）。
- *   (C) 底部回饋與互動區：答錯提示、過關慶祝、以及小雞生病時的
- *       醒目鎖定提示（含生病去背圖片與返回大廳治療的導引）。
+ *   (C) 底部回饋與互動區：答錯提示、過關慶祝（生病/死亡不會鎖定這個區塊，
+ *       小雞的健康狀態只會顯示在 A 區的狀態徽章，提醒學生記得照顧牠，
+ *       不會阻擋解題本身——理由見 usePuzzleSolver.ts 檔案頂部說明）。
  *
  * 資料來源：
  *   - 透過 getDoc(doc(db, "puzzles", id)) 從 Firestore 讀取真實 PuzzleDoc，
@@ -33,8 +34,10 @@
  *      建議直接在 Hook 內新增一個 resetPuzzle() 函式取代這個 key trick。
  *   2. usePuzzleSolver 也沒有「提示」邏輯（SolverState.hintUsed 目前永遠是
  *      false，Hook 內部沒有任何地方會更新它）。本頁面的「顯示提示」純粹是
- *      頁面層級的唯讀功能：直接讀 puzzle.moves[solverState.currentStep]
- *      （正解序列當前步的記號）顯示給學生看，不會、也不需要去更動 Hook 內部
+ *      頁面層級的唯讀功能：直接讀 leadLine[solverState.currentStep]
+ *      （leadLine 是 usePuzzleSolver 回傳的「目前還跟得上的正解線中
+ *      排第一的那條」，題目若有多條正解線，提示會自動對應到正確的線，
+ *      不會、也不需要去更動 Hook 內部
  *      狀態，因此不會影響 Hook 既有的答對/答錯比對邏輯。
  *   3. usePuzzleSolver.ts 的 grantSolveReward 現在已經會做防刷檢查
  *      （查 users/{uid}/solvedPuzzles/{puzzleId}）並同步寫回 Firestore，
@@ -79,6 +82,15 @@ const PET_HEALTH_IMAGE: Record<PetHealthStatus, string> = {
   dead: "/image/died.png",
 };
 
+/** 預設備援圖片：理論上 PET_HEALTH_IMAGE 已經涵蓋所有 PetHealthStatus，
+ * 但用一個明確的 fallback 函式取代直接索引，確保不管什麼原因（例如
+ * pet 資料在過渡瞬間還沒完全就位）都絕對不會把空字串或 undefined
+ * 傳進 next/image 的 src（那樣會讓 Next.js 噴錯：少了必填的 src）。 */
+function getPetHealthImageSrc(healthStatus: PetHealthStatus | undefined | null): string {
+  if (!healthStatus) return PET_HEALTH_IMAGE.normal;
+  return PET_HEALTH_IMAGE[healthStatus] ?? PET_HEALTH_IMAGE.normal;
+}
+
 const HEALTH_STATUS_LABEL: Record<PetHealthStatus, string> = {
   normal: "健康",
   slightly_sick: "生小病",
@@ -112,6 +124,14 @@ function mapFirestoreDocToPuzzle(puzzleId: string, data: Record<string, unknown>
     throw new Error(`題目資料格式錯誤：moves 應為字串陣列（題目 ID: ${puzzleId}）。`);
   }
 
+  // 修正：這個函式是在「多解法」功能存在之前寫的，後來 PuzzleDoc 加了
+  // alternativeLines 欄位，但這裡忘了同步更新，導致即使 Firestore 裡
+  // 真的存了替代解法，組出來的 PuzzleDoc 物件這個欄位永遠是 undefined，
+  // usePuzzleSolver 因此只看得到主線——這正是「只接受其中一種解法」的根因。
+  // 格式不對時不直接拋錯（這個欄位本來就是可選的），只記錄警告、當作沒有
+  // 替代解法處理，主線仍然可以正常解題。
+  const alternativeLines = parseAlternativeLines(data.alternativeLines, puzzleId);
+
   return {
     id: puzzleId,
     level: level as PuzzleLevel,
@@ -119,12 +139,48 @@ function mapFirestoreDocToPuzzle(puzzleId: string, data: Record<string, unknown>
     description: typeof data.description === "string" ? data.description : "",
     initialFen,
     moves: moves as string[],
+    alternativeLines,
     totalSteps: typeof data.totalSteps === "number" ? data.totalSteps : moves.length,
     createdBy: typeof data.createdBy === "string" ? data.createdBy : "unknown",
     isPublished: typeof data.isPublished === "boolean" ? data.isPublished : false,
     createdAt: toEpochMillis(data.createdAt),
     updatedAt: toEpochMillis(data.updatedAt),
   };
+}
+
+/**
+ * 驗證並解析 Firestore 文件裡的 alternativeLines 欄位。
+ * 格式應為 { moves: string[] }[]（每條替代線包一層物件，理由見
+ * database.ts 裡 alternativeLines 欄位的註解：Firestore 不支援巢狀陣列）。
+ * 沒有這個欄位、或格式不正確時，回傳 undefined（視為沒有替代解法，
+ * 不影響主線正常解題），並在格式不正確時記錄警告方便除錯。
+ */
+function parseAlternativeLines(
+  rawValue: unknown,
+  puzzleId: string
+): { moves: string[] }[] | undefined {
+  if (rawValue === undefined) {
+    return undefined;
+  }
+
+  const isValidShape =
+    Array.isArray(rawValue) &&
+    rawValue.every(
+      (line) =>
+        typeof line === "object" &&
+        line !== null &&
+        Array.isArray((line as { moves?: unknown }).moves) &&
+        (line as { moves: unknown[] }).moves.every((step) => typeof step === "string")
+    );
+
+  if (!isValidShape) {
+    console.warn(
+      `[puzzle/[id]] alternativeLines 格式不正確，已忽略替代解法（題目 ID: ${puzzleId}）。`
+    );
+    return undefined;
+  }
+
+  return rawValue as { moves: string[] }[];
 }
 
 /**
@@ -264,7 +320,6 @@ function PuzzleChallengePageContent({ params }: PuzzlePageProps) {
           key={resetSignal}
           puzzle={puzzle}
           onRequestReset={() => setResetSignal((value) => value + 1)}
-          onBackToLobby={handleBackToLobby}
         />
       </div>
     </main>
@@ -309,7 +364,7 @@ function PuzzleHeader({
       <div className="mt-3 flex items-center gap-3">
         <div className="relative h-12 w-12 flex-shrink-0 overflow-hidden rounded-full border-2 border-[#E8B84B] bg-[#FDF6E8]">
           <Image
-            src={PET_HEALTH_IMAGE[healthStatus]}
+            src={getPetHealthImageSrc(healthStatus)}
             alt={`小雞目前狀態：${HEALTH_STATUS_LABEL[healthStatus]}`}
             fill
             sizes="48px"
@@ -343,18 +398,16 @@ function PuzzleHeader({
 function PuzzleSolverSection({
   puzzle,
   onRequestReset,
-  onBackToLobby,
 }: {
   puzzle: PuzzleDoc;
   onRequestReset: () => void;
-  onBackToLobby: () => void;
 }) {
   // 獨立 selector，與 usePuzzleSolver.ts / 首頁 page.tsx 風格一致
   const user = useGameStore((s) => s.user);
   const pet = useGameStore((s) => s.pet);
   const setUser = useGameStore((s) => s.setUser);
 
-  const { currentBoard, solverState, handleStudentMove, lastErrorMessage, rewardOutcome } =
+  const { currentBoard, solverState, handleStudentMove, lastErrorMessage, rewardOutcome, leadLine } =
     usePuzzleSolver(puzzle);
 
   const [showHint, setShowHint] = useState(false);
@@ -370,10 +423,13 @@ function PuzzleSolverSection({
     setHintError(null);
   }, [solverState.currentStep]);
 
-  const totalSteps = puzzle.moves.length;
+  // 用 leadLine（目前還跟得上的正解線之中排第一的那條）而不是 puzzle.moves，
+  // 因為題目可能有多條正解線，學生可能正走在某條替代線上，這時候
+  // puzzle.moves（永遠是主線）不一定是目前該顯示的提示內容。
+  const totalSteps = leadLine.length;
   const clampedStep = Math.min(solverState.currentStep, totalSteps);
-  const canShowHint = !solverState.isLocked && !solverState.isCompleted && clampedStep < totalSteps;
-  const hintNotation = canShowHint ? puzzle.moves[solverState.currentStep] : null;
+  const canShowHint = !solverState.isCompleted && clampedStep < totalSteps;
+  const hintNotation = canShowHint ? leadLine[solverState.currentStep] : null;
   const hasAlreadyPurchasedThisHint = hintPurchasedStep === solverState.currentStep;
 
   /**
@@ -431,9 +487,7 @@ function PuzzleSolverSection({
         <div className="md:flex-1">
           <ChessBoard
             board={currentBoard}
-            isLocked={solverState.isLocked}
             onMove={handleStudentMove}
-            onBackToHome={onBackToLobby}
           />
         </div>
 
@@ -501,32 +555,7 @@ function PuzzleSolverSection({
           C 區：底部回饋與互動區
          ============================================================ */}
       <div className="mt-4">
-        {solverState.isLocked ? (
-          <div className="flex flex-col items-center gap-3 rounded-2xl bg-[#1A1A2E]/5 px-4 py-5 text-center">
-            <div className="relative h-20 w-20">
-              <Image
-                src={PET_HEALTH_IMAGE[pet.healthStatus]}
-                alt={`小雞生病了：${HEALTH_STATUS_LABEL[pet.healthStatus]}`}
-                fill
-                sizes="80px"
-                className="object-contain"
-              />
-            </div>
-            <p className="text-sm font-bold text-[#C0392B]">
-              小雞{HEALTH_STATUS_LABEL[pet.healthStatus]}了，沒辦法繼續挑戰殘局
-            </p>
-            <p className="text-xs text-[#1A1A2E]/60">
-              請先回到大廳的商店買藥水治療小雞，治好後就能再次挑戰！
-            </p>
-            <button
-              type="button"
-              onClick={onBackToLobby}
-              className="rounded-full bg-[#E8B84B] px-6 py-2 text-sm font-bold text-[#1A1A2E] shadow-md transition-transform active:scale-95"
-            >
-              返回大廳照顧小雞
-            </button>
-          </div>
-        ) : solverState.isCompleted ? (
+        {solverState.isCompleted ? (
           <p className="rounded-2xl bg-[#5B8C5A]/10 px-4 py-3 text-center text-sm font-bold text-[#5B8C5A]">
             🎉 恭喜過關！
             {rewardOutcome?.status === "granted"

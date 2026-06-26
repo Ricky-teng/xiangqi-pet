@@ -45,6 +45,14 @@ interface GameStoreState {
    * 解鎖對應的圖鑑款式（見 @/lib/pet/catalog.ts）。
    */
   rebirthPet: () => { success: boolean; message: string };
+
+  /**
+   * 復活：小雞必須在 dead（死亡）狀態才能呼叫，跟「轉生」是兩個不同的
+   * 機制——轉生是「養到大師雞、主動選擇重來」的成就型獎勵（會解鎖圖鑑）；
+   * 復活是「沒照顧好、小雞死掉了」的補救措施，純粹讓小雞重新從蛋開始，
+   * 不會解鎖圖鑑款式、不會增加 rebirthCount。需要花費飼料。
+   */
+  resurrectPet: () => { success: boolean; message: string };
 }
 
 export const useGameStore = create<GameStoreState>((set, get) => ({
@@ -295,5 +303,74 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         ? `轉生成功！解鎖了新圖鑑款式：${unlockedEntry.name}！`
         : "轉生成功！你已經蒐集完所有圖鑑款式了，太強了！",
     };
+  },
+
+  // 5. 復活（跟轉生不同：理由見 GameStoreState 介面裡 resurrectPet 的註解）
+  resurrectPet: () => {
+    const { user, pet } = get();
+    if (!user || !pet) return { success: false, message: "找不到資料" };
+    if (pet.healthStatus !== "dead") {
+      return { success: false, message: "小雞還活著，不需要復活。" };
+    }
+
+    // 復活費用：介於小病藥水（20）跟大病藥水（40）之間，反映「死亡」
+    // 比生病更嚴重，但又不能貴到讓人完全付不起（尤其死亡後還能繼續
+    // 解題賺飼料，理由見 usePuzzleSolver.ts 頂部說明：生病/死亡不會
+    // 鎖定解題功能，所以這裡收費不會造成「沒錢復活、又賺不到錢」的死循環）。
+    const cost = 30;
+    if (user.foodCount < cost) {
+      return { success: false, message: `復活需要 ${cost} 飼料，飼料不夠喔！` };
+    }
+
+    const now = Date.now();
+
+    const updatedUser: UserDoc = {
+      ...user,
+      foodCount: user.foodCount - cost,
+      updatedAt: now,
+    };
+
+    // 復活後重新從蛋開始（跟死亡前養到哪個階段無關），不增加
+    // rebirthCount、不解鎖圖鑑款式——這是補救措施，不是成就獎勵。
+    const updatedPet: PetDoc = {
+      ...pet,
+      stage: "egg",
+      xp: 0,
+      fullness: 100,
+      healthStatus: "normal",
+      currentWrongPuzzleId: null,
+      consecutiveWrongCount: 0,
+      sickStartTime: null,
+      severeSickStartTime: null,
+      lastFedTime: now,
+      notifiedFlags: { lowFullness: false, slightlySick: false, severelySick: false, dead: false },
+      updatedAt: now,
+    };
+
+    set({ user: updatedUser, pet: updatedPet });
+
+    Promise.all([
+      updateDoc(doc(db, "users", user.uid), {
+        foodCount: updatedUser.foodCount,
+        updatedAt: now,
+      }),
+      updateDoc(doc(db, "pets", user.uid), {
+        stage: "egg",
+        xp: 0,
+        fullness: 100,
+        healthStatus: "normal",
+        currentWrongPuzzleId: null,
+        consecutiveWrongCount: 0,
+        sickStartTime: null,
+        severeSickStartTime: null,
+        lastFedTime: now,
+        notifiedFlags: updatedPet.notifiedFlags,
+        updatedAt: now,
+      }),
+    ]).catch((error) => {
+      console.error("[useGameStore] resurrectPet 同步寫回 Firestore 失敗：", error);
+    });
+
+    return { success: true, message: "小雞復活了！要重新從蛋開始好好照顧牠喔。" };
   },
 }));

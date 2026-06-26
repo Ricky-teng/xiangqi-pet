@@ -192,6 +192,7 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
   const feedPet = useGameStore((s) => s.feedPet);
   const buyMedicine = useGameStore((s) => s.buyMedicine);
   const rebirthPet = useGameStore((s) => s.rebirthPet);
+  const resurrectPet = useGameStore((s) => s.resurrectPet);
 
   // ---- 登出狀態 ----
   const [isSigningOut, setIsSigningOut] = useState(false);
@@ -230,6 +231,17 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
     setIsRebirthing(false);
   }
 
+  // ---- 復活（死亡後的補救措施，跟轉生是兩個不同機制）相關狀態 ----
+  const [resurrectMessage, setResurrectMessage] = useState<string | null>(null);
+  const [isResurrecting, setIsResurrecting] = useState(false);
+
+  function handleResurrect() {
+    setIsResurrecting(true);
+    const result = resurrectPet();
+    setResurrectMessage(result.message);
+    setIsResurrecting(false);
+  }
+
   // ---- 寵物資料尚未載入完成的保護性渲染 ----
   if (!pet) {
     return (
@@ -241,6 +253,11 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
 
   // ---- 計算飽食度、XP 進度條所需數值 ----
   const fullnessPercent = Math.max(0, Math.min(100, pet.fullness));
+  // 畫面顯示用：只取到小數點後兩位。fullnessPercent 本身維持完整精度
+  // （拿去算進度條寬度用），因為 petDecay.ts 是用「每小時 -2%」連續計算，
+  // 數值天生就會帶一長串小數，只在「顯示給人看」這一層四捨五入即可，
+  // 不需要、也不應該動到底層儲存/計算邏輯的精度。
+  const fullnessDisplay = fullnessPercent.toFixed(2);
 
   const threshold = STAGE_XP_THRESHOLDS[pet.stage] ?? { from: 0, to: 100 };
   const stageRange = threshold.to - threshold.from;
@@ -348,7 +365,7 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
                 ❤️
               </div>
               <div className="text-xs font-semibold text-[#1A1A2E]">
-                {Number(pet.fullness).toFixed(2)}/100
+                {fullnessDisplay}/100
               </div>
             </div>
             <div className="rounded-xl bg-white/80 px-2 py-2">
@@ -368,17 +385,18 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
           </div>
 
           {/* 飽食度進度條 */}
-          <div className="mt-4 w-full"> 
-  <div className="mb-1 flex justify-between text-xs font-medium text-[#1A1A2E]/70"> 
-    <span>飽食度</span> 
-    {/* 使用 toFixed(2) 確保顯示兩位小數 */}
-    <span className="tabular-nums">{Number(pet.fullness).toFixed(2)}/100</span> 
-  </div> 
-  <div className="h-2.5 w-full overflow-hidden rounded-full bg-[#E5DFCB]"> 
-    <div className="h-full rounded-full bg-[#5B8C5A] transition-all duration-300" style={{ width: `${fullnessPercent}%` }} /> 
-  </div> 
-</div>
-
+          <div className="mt-4 w-full">
+            <div className="mb-1 flex justify-between text-xs font-medium text-[#1A1A2E]/70">
+              <span>飽食度</span>
+              <span className="tabular-nums">{fullnessDisplay}/100</span>
+            </div>
+            <div className="h-2.5 w-full overflow-hidden rounded-full bg-[#E5DFCB]">
+              <div
+                className="h-full rounded-full bg-[#5B8C5A] transition-all duration-300"
+                style={{ width: `${fullnessPercent}%` }}
+              />
+            </div>
+          </div>
 
           {/* XP 進度條（依目前階段顯示階段內進度，門檻來自共用的 petGrowth.ts） */}
           <div className="mt-3 w-full">
@@ -414,6 +432,26 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
             </div>
           ) : null}
 
+          {/* 復活入口：小雞死亡時出現。跟轉生是兩個不同機制（見 store 裡
+              resurrectPet 的註解），死亡是沒照顧好的後果，復活是付費補救，
+              不會解鎖圖鑑、不會增加轉生次數。 */}
+          {pet.healthStatus === "dead" ? (
+            <div className="mt-4 w-full rounded-2xl bg-[#1A1A2E]/5 px-4 py-3 text-center shadow-md">
+              <p className="text-sm font-bold text-[#1A1A2E]">💔 小雞沒有得到及時醫治，已經死掉了……</p>
+              <p className="mt-0.5 text-xs text-[#1A1A2E]/60">
+                花費 30 飼料復活小雞，會重新從蛋開始養（不會解鎖圖鑑、不計入轉生次數）。
+              </p>
+              <button
+                type="button"
+                onClick={handleResurrect}
+                disabled={isResurrecting || user.foodCount < 30}
+                className="mt-2 w-full rounded-xl bg-[#8B5FBF] px-4 py-2 text-sm font-bold text-white shadow-sm transition-transform active:scale-95 disabled:opacity-60"
+              >
+                {isResurrecting ? "復活中…" : "💔 復活（30 飼料）"}
+              </button>
+            </div>
+          ) : null}
+
           {/* 轉生結果訊息：刻意放在 master 判斷區塊「外面」，
               因為轉生成功的瞬間 pet.stage 會立刻變成 egg，
               如果訊息放在上面那個 master-only 區塊裡，
@@ -421,6 +459,14 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
           {rebirthMessage ? (
             <p className="mt-3 w-full rounded-xl bg-white/80 px-3 py-2 text-center text-xs font-medium text-[#5C3D0A]">
               {rebirthMessage}
+            </p>
+          ) : null}
+
+          {/* 復活結果訊息：同樣理由，放在 dead 判斷區塊「外面」，
+              復活成功後 pet.healthStatus 會變回 normal，banner 會立刻消失。 */}
+          {resurrectMessage ? (
+            <p className="mt-3 w-full rounded-xl bg-white/80 px-3 py-2 text-center text-xs font-medium text-[#8B5FBF]">
+              {resurrectMessage}
             </p>
           ) : null}
         </section>

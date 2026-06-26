@@ -32,10 +32,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { collection, collectionGroup, getDocs, query, where } from "firebase/firestore";
+import { collection, collectionGroup, doc, getDocs, query, updateDoc, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import RequireAuth from "@/components/RequireAuth";
 import type { PetDoc, PuzzleDoc, SolvedPuzzleRecord, UserDoc } from "@/types/database";
+import type { PuzzleLevel } from "@/types/xiangqi";
 import { CATALOG_ENTRIES } from "@/lib/pet/catalog";
 
 type FetchStatus = "loading" | "success" | "error";
@@ -83,6 +84,44 @@ function DashboardContent() {
   const [puzzlesById, setPuzzlesById] = useState<Map<string, PuzzleDoc>>(new Map());
 
   const [expandedUid, setExpandedUid] = useState<string | null>(null);
+
+  // ---- 老師調整學生棋藝等級 ----
+  // 只有「目前展開的那位學生」會用到這幾個狀態，不需要用 uid 當 key
+  // 個別記錄每個人，切換展開對象時順手清空即可。
+  const [pendingLevel, setPendingLevel] = useState<PuzzleLevel | null>(null);
+  const [isSavingLevel, setIsSavingLevel] = useState(false);
+  const [levelSaveMessage, setLevelSaveMessage] = useState<string | null>(null);
+
+  function handleToggleExpand(uid: string) {
+    setExpandedUid((prev) => (prev === uid ? null : uid));
+    setPendingLevel(null);
+    setLevelSaveMessage(null);
+  }
+
+  async function handleUpdateLevel(student: UserDoc) {
+    if (pendingLevel === null || pendingLevel === student.chessLevel) return;
+
+    setIsSavingLevel(true);
+    setLevelSaveMessage(null);
+    try {
+      await updateDoc(doc(db, "users", student.uid), {
+        chessLevel: pendingLevel,
+        updatedAt: Date.now(),
+      });
+      // 同步更新本地列表，不用重新整理整個頁面才會看到新等級
+      setStudents((prev) =>
+        prev.map((existing) =>
+          existing.uid === student.uid ? { ...existing, chessLevel: pendingLevel } : existing
+        )
+      );
+      setLevelSaveMessage(`已將「${student.displayName}」的等級更新為 ${pendingLevel} 級！`);
+    } catch (error) {
+      console.error("[admin/dashboard] 更新學生等級失敗：", error);
+      setLevelSaveMessage("更新失敗，請稍後再試。");
+    } finally {
+      setIsSavingLevel(false);
+    }
+  }
 
   useEffect(() => {
     let isCancelled = false;
@@ -199,7 +238,7 @@ function DashboardContent() {
                   <li key={student.uid} className="rounded-2xl bg-white/70 shadow-sm">
                     <button
                       type="button"
-                      onClick={() => setExpandedUid(isExpanded ? null : student.uid)}
+                      onClick={() => handleToggleExpand(student.uid)}
                       className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
                     >
                       <div className="flex items-center gap-2">
@@ -228,9 +267,45 @@ function DashboardContent() {
 
                     {isExpanded ? (
                       <div className="border-t border-[#1A1A2E]/10 px-4 py-3">
+                        {/* 老師調整棋藝等級：現在所有學生註冊後都是 1 級，
+                            需要老師手動依實際棋力調整。 */}
+                        <p className="text-xs font-semibold text-[#1A1A2E]/70">🎓 棋藝等級</p>
+                        <div className="mt-1.5 flex items-center gap-2">
+                          <select
+                            value={pendingLevel ?? student.chessLevel}
+                            onChange={(event) =>
+                              setPendingLevel(Number(event.target.value) as PuzzleLevel)
+                            }
+                            className="rounded-lg bg-[#FDF6E8] px-2 py-1.5 text-xs font-semibold text-[#1A1A2E] ring-1 ring-inset ring-[#A9764C]/30"
+                          >
+                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((levelOption) => (
+                              <option key={levelOption} value={levelOption}>
+                                {levelOption} 級
+                              </option>
+                            ))}
+                          </select>
+                          <button
+                            type="button"
+                            onClick={() => handleUpdateLevel(student)}
+                            disabled={
+                              isSavingLevel ||
+                              pendingLevel === null ||
+                              pendingLevel === student.chessLevel
+                            }
+                            className="rounded-lg bg-[#E8B84B] px-3 py-1.5 text-xs font-bold text-[#1A1A2E] transition-transform active:scale-95 disabled:cursor-not-allowed disabled:opacity-40"
+                          >
+                            {isSavingLevel ? "更新中…" : "更新等級"}
+                          </button>
+                        </div>
+                        {levelSaveMessage ? (
+                          <p className="mt-1.5 text-[11px] font-medium text-[#5B8C5A]">
+                            {levelSaveMessage}
+                          </p>
+                        ) : null}
+
                         {/* 圖鑑收藏狀況：資料其實已經包含在 student（UserDoc）裡，
                             不需要額外查詢，純粹是補上顯示。 */}
-                        <p className="text-xs font-semibold text-[#1A1A2E]/70">
+                        <p className="mt-3 text-xs font-semibold text-[#1A1A2E]/70">
                           📖 圖鑑收藏（{student.unlockedCatalogIds.length}/{CATALOG_ENTRIES.length}
                           ・轉生 {student.rebirthCount} 次）
                         </p>

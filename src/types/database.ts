@@ -115,10 +115,25 @@ export interface PuzzleDoc {
   // 初始盤面：採用業界標準 FEN 字串儲存（Firestore不適合存二維陣列）
   initialFen: string;
   
-  // 多步殺正解走法序列
+  // 多步殺正解走法序列（主線）
   moves: SolutionSequence;
-  
-  totalSteps: number; // 總步數 (等於 moves.length)
+
+  /**
+   * 替代正解線（可選）：同一個殘局有時不只一種獲勝走法，這裡存其他
+   * 同樣能獲勝的完整走法序列。沒有這個欄位、或是空陣列時，視為
+   * 只有 moves 這一條正解（完全相容舊資料，不會讓既有題目壞掉）。
+   *
+   * 【重要】型別是 { moves: SolutionSequence }[]，不是 SolutionSequence[]
+   * （也就是不是直接的 string[][]）。原因：Firestore 不支援「陣列裡面
+   * 直接放陣列」（nested arrays），如果直接存 string[][]，setDoc() 會
+   * 直接拋出執行期錯誤「Nested arrays are not supported」，整個發布
+   * 會失敗。把每條替代線包進一個物件（{ moves: [...] }）就能避開這個
+   * 限制——Firestore 允許「陣列裡面放物件，物件裡面放陣列」，只是不能
+   * 「陣列裡面直接放陣列」。
+   */
+  alternativeLines?: { moves: SolutionSequence }[];
+
+  totalSteps: number; // 總步數 (等於 moves.length，替代線長度可以不同)
   
   createdBy: string;    // 出題老師的 uid
   isPublished: boolean; // 是否公開發充給學生

@@ -17,53 +17,36 @@
  * ------------------------------------------------------------
  * 這一版相對上一版的關鍵改動（請先讀過再修改本檔案）：
  *
- *   1.【棋盤狀態改用「歷史堆疊」，不再用「重播推導」】
- *      上一版是維護一個固定的 initialBoard，每次要顯示「目前棋盤」
- *      時，都用 rebuildBoardFromMoves() 從 initialBoard 重新依序套用
- *      所有 recordedMoves 重新計算一次。這一版改成維護一個
- *      boardHistory: BoardGrid[] 陣列，index 0 是初始擺位、
- *      最後一個元素永遠是「目前畫面該顯示的棋盤」，且恒等式
- *      boardHistory.length === recordedMoves.length + 1 永遠成立：
- *        - 錄製一步：直接把「這一步执行後的新棋盤」push 進陣列尾端。
- *        - 清除最後一步／清空所有步驟：直接從陣列尾端 pop／截斷回
- *          只剩 boardHistory[0]。
- *      這樣「目前棋盤」永遠是陣列最後一項，純粹陣列存取，不需要
- *      任何 useMemo 重新計算或 try/catch 防呆，邏輯更直接、更不容易
- *      因為某個邊界情況而讓畫面顯示不出東西。
+ *   1.【支援多條正解線】
+ *      同一道殘局有時不只一種能獲勝的走法。B 區現在用「線」的概念
+ *      取代單一的 recordedMoves：lines[0] 是主線，lines[1] 之後是
+ *      可選的替代解法，每一條都是從同一個 initialBoard 開始的完整
+ *      走法陣列。可以用頁籤切換目前在編輯哪一條線，每條線各自獨立
+ *      錄製/清除最後一步；發布時主線寫進 PuzzleDoc.moves，其餘的線
+ *      寫進 PuzzleDoc.alternativeLines（學生端 usePuzzleSolver.ts
+ *      已經改成會同時比對所有線，符合任何一條都算解開）。
+ *      棋盤不再用 boardHistory 陣列快取每一步，改成「需要時才從
+ *      initialBoard 重播目前選中的線」（見 replayMoves），因為線
+ *      可能隨時切換，快取反而容易對不上。
  *
- *   2.【棋子置物箱改成圓形帶框按鈕，視覺對齊棋盤上的棋子】
- *      依需求把棋子置物箱的按鈕改成跟棋盤上棋子一樣的「圓形 + 雙層
- *      邊框」造型（紅方深紅底、黑方深黑底），而不是上一版的圓角矩形，
- *      視覺上更接近「棋子實體」的質感。
+ *   2.【新增「編輯既有題目」功能】
+ *      之前「現有題目管理」只能刪除，現在每一題多了「✏️ 編輯」
+ *      按鈕，點下去會把該題的初始盤面、所有正解線、後設資料整個
+ *      載入回上面的編輯區，關卡 ID 欄位會鎖定（避免不小心改成
+ *      建立新文件），發布按鈕文字會變成「💾 更新題目」，且會保留
+ *      原本的 createdBy/createdAt，不會被這次編輯覆蓋掉。
  *
- *   3.【完全移除「獎勵金幣」欄位】
- *      表單、狀態、寫入 Firestore 的 payload 都已徹底移除
- *      rewardCoins／獎勵金幣相關的所有程式碼，因為目前的解題機制
- *      （usePuzzleSolver.ts 的 calculateFoodReward）完全不會用到這個
- *      固定欄位。
+ *   3.【棋子置物箱維持圓形帶框按鈕，視覺對齊棋盤上的棋子】
+ *      （延續上一版的設計，沒有改動。）
  *
- *   4.【難度等級改成 1~10 級下拉選單，直接對應 PuzzleLevel】
- *      不再用「簡單/中等/困難」三段式 + 對照表映射，下拉選單直接
- *      列出 1 級 ~ 10 級，選了哪個數字，寫進 Firestore 的
- *      PuzzleDoc.level 欄位就是那個數字，型別 100% 直接契合
- *      （不需要任何中間映射層）。
+ *   4.【沒有「獎勵金幣」欄位、難度等級維持 1~10 級下拉選單】
+ *      （延續上一版的設計，沒有改動。）
  *
- *   5.【其餘高水準邏輯全部保留】
- *      開始錄製解法開關、已錄製步驟列表（畫面顯示用破折號格式，
- *      實際存檔仍是 lib/xiangqi/move.ts 要求的四字元記號，理由同上一版：
- *      parseMoveNotation() 要求剛好四個字元，存成帶破折號的字串會讓
- *      學生端解題 Hook 直接解析失敗）、清除最後一步、清空所有步驟、
- *      一旦開始錄製就鎖定擺子工具與 FEN 貼上、setDoc 寫入 puzzles/{id}，
- *      全部維持不變。
- *
- *   6.【不修改既有檔案】
- *      依需求，本頁不匯入也不修改 usePuzzleSolver.ts、database.ts、
- *      ChessBoard.tsx。象棋型別與 parseFen/toFen/applyMove/
- *      formatMoveNotation 等工具函式直接從專案既有的 lib/types 匯入
- *      重用；棋盤渲染與擺子/錄製邏輯則是本檔案內自己實作的
- *      <AdminChessBoard />，因為這裡的點擊語意（擺子 vs. 錄製走法）
- *      跟學生端「選起點→選終點直接送出」不同，硬塞進同一個元件的
- *      props 介面會很彆扭。
+ *   5.【不修改既有檔案】
+ *      依需求，本頁不匯入也不修改 database.ts、ChessBoard.tsx；
+ *      usePuzzleSolver.ts 這次因為要支援多條正解線而調整過比對邏輯，
+ *      但那是另一個檔案的修改，本檔案這邊維持「象棋型別與工具函式
+ *      直接從既有 lib/types 匯入重用」的原則不變。
  */
 
 "use client";
@@ -75,7 +58,7 @@ import { db } from "@/lib/firebase";
 import { useGameStore } from "@/stores/useGameStore";
 import RequireAuth from "@/components/RequireAuth";
 import { createStandardStartBoard, parseFen, toFen } from "@/lib/xiangqi/fen";
-import { applyMove, formatMoveNotation, formatSquare } from "@/lib/xiangqi/move";
+import { applyMove, applyMoveNotation, formatMoveNotation, formatSquare } from "@/lib/xiangqi/move";
 import type {
   BoardGrid,
   Move,
@@ -134,6 +117,20 @@ function createEmptyBoard(): BoardGrid {
   return Array.from({ length: 10 }, () => Array<Piece | null>(9).fill(null));
 }
 
+/**
+ * 從 startBoard 開始，依序套用 moves 陣列的每一步，回傳重播後的棋盤。
+ * 多線錄製版本不快取每一步的棋盤（跟上一版的 boardHistory 不同），
+ * 因為線可能隨時切換，重播一條短短幾步的象棋殘局走法開銷很小，
+ * 用「需要時重播」換取邏輯簡單、不會有快取對不上的風險。
+ */
+function replayMoves(startBoard: BoardGrid, moves: string[]): BoardGrid {
+  let board = startBoard;
+  for (const notation of moves) {
+    board = applyMoveNotation(board, notation).board;
+  }
+  return board;
+}
+
 // ============================================================
 // 4. 共用樣式
 // ============================================================
@@ -152,20 +149,18 @@ function AdminPuzzleEditorPageContent() {
   const router = useRouter();
   const user = useGameStore((s) => s.user);
 
-  // ---- A 區：棋盤歷史堆疊 ----
-  // boardHistory[0]＝初始擺位（將寫入 initialFen）
-  // boardHistory[boardHistory.length-1]＝目前畫面顯示的棋盤
-  // 恆等式：boardHistory.length === recordedMoves.length + 1
-  const [boardHistory, setBoardHistory] = useState<BoardGrid[]>(() => [
-    createStandardStartBoard(),
-  ]);
+  // ---- A 區：初始擺位 ----
+  const [initialBoard, setInitialBoard] = useState<BoardGrid>(() => createStandardStartBoard());
   const [selectedTrayTool, setSelectedTrayTool] = useState<TrayTool | null>(null);
   const [fenInputValue, setFenInputValue] = useState("");
   const [fenApplyError, setFenApplyError] = useState<string | null>(null);
 
-  // ---- B 區：走法錄製 ----
+  // ---- B 區：走法錄製（支援多條正解線） ----
+  // lines[0] 永遠是主線；lines[1] 之後是替代解法。每一條都是獨立的
+  // 完整走法陣列，從同一個 initialBoard 開始重播（見 replayMoves）。
   const [isRecording, setIsRecording] = useState(false);
-  const [recordedMoves, setRecordedMoves] = useState<string[]>([]);
+  const [lines, setLines] = useState<string[][]>([[]]);
+  const [activeLineIndex, setActiveLineIndex] = useState(0);
   const [selectedFromForRecording, setSelectedFromForRecording] = useState<Position | null>(
     null
   );
@@ -176,17 +171,27 @@ function AdminPuzzleEditorPageContent() {
   const [description, setDescription] = useState("");
   const [level, setLevel] = useState<PuzzleLevel>(5);
 
+  // ---- 編輯模式：載入既有題目時記住「正在編輯哪一題」跟它原本的
+  // createdBy/createdAt，更新時要保留這兩個欄位、不要被覆蓋成
+  // 目前操作者跟現在時間。null 代表目前是「建立新題目」模式。
+  const [editingPuzzleId, setEditingPuzzleId] = useState<string | null>(null);
+  const [editingOriginalMeta, setEditingOriginalMeta] = useState<{
+    createdBy: string;
+    createdAt: number;
+  } | null>(null);
+
   // ---- 上架狀態 ----
   const [isPublishing, setIsPublishing] = useState(false);
   const [publishError, setPublishError] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // 已有錄製步驟時，鎖定 A 區的初始擺位編輯（理由見檔案頂部說明）
-  const isSetupLocked = recordedMoves.length > 0;
+  // 已有任何一條線錄了步驟時，鎖定 A 區的初始擺位編輯（理由見檔案頂部說明）
+  const isSetupLocked = lines.some((line) => line.length > 0);
 
-  // 目前畫面該顯示的棋盤／初始擺位：都只是陣列存取，不需要任何重新計算
-  const liveBoard = boardHistory[boardHistory.length - 1];
-  const initialBoard = boardHistory[0];
+  // 目前畫面該顯示的棋盤：從 initialBoard 重播「目前選中的那一條線」的所有步驟。
+  // 多線版本不再用 boardHistory 陣列快取每一步，因為線可能中途切換，
+  // 改成「需要時才重播」更簡單、不容易因為切換線而讓快取對不上。
+  const liveBoard = replayMoves(initialBoard, lines[activeLineIndex] ?? []);
 
   // 成功提示 Toast：3 秒後自動消失，不擋住 UI
   useEffect(() => {
@@ -194,6 +199,75 @@ function AdminPuzzleEditorPageContent() {
     const timer = setTimeout(() => setToastMessage(null), 3000);
     return () => clearTimeout(timer);
   }, [toastMessage]);
+
+  /** 把編輯器整個重置回「建立新題目」的空白狀態 */
+  function resetEditorToBlankState() {
+    setInitialBoard(createStandardStartBoard());
+    setSelectedTrayTool(null);
+    setFenInputValue("");
+    setFenApplyError(null);
+    setIsRecording(false);
+    setLines([[]]);
+    setActiveLineIndex(0);
+    setSelectedFromForRecording(null);
+    setPuzzleId("");
+    setTitle("");
+    setDescription("");
+    setLevel(5);
+    setEditingPuzzleId(null);
+    setEditingOriginalMeta(null);
+    setPublishError(null);
+  }
+
+  /**
+   * 載入一道既有題目進編輯器（從 ExistingPuzzlesSection 的「✏️ 編輯」按鈕呼叫）。
+   * 載入後：initialBoard/lines 會立刻讓 isSetupLocked 變 true
+   * （因為主線一定有內容），跟「建立新題目時錄完步驟會鎖定」是同一條規則，
+   * 不需要為編輯模式另外寫一套鎖定邏輯。
+   */
+  function handleEditPuzzle(puzzleToEdit: PuzzleDoc) {
+    let parsedBoard: BoardGrid;
+    try {
+      parsedBoard = parseFen(puzzleToEdit.initialFen);
+    } catch (error) {
+      console.error("[admin] 載入題目的 initialFen 解析失敗：", error);
+      setPublishError("這道題目的 initialFen 格式有誤，無法載入編輯。");
+      return;
+    }
+
+    setInitialBoard(parsedBoard);
+    // alternativeLines 存的是 { moves: string[] }[]（每條線包了一層物件，
+    // 理由見 database.ts 裡 alternativeLines 欄位的註解：Firestore 不支援
+    // 巢狀陣列），這裡要把每個物件的 .moves 取出來，還原成 lines 需要的
+    // string[][] 形狀。
+    setLines([
+      puzzleToEdit.moves,
+      ...(puzzleToEdit.alternativeLines ?? []).map((line) => line.moves),
+    ]);
+    setActiveLineIndex(0);
+    setSelectedFromForRecording(null);
+    setSelectedTrayTool(null);
+    setFenInputValue("");
+    setFenApplyError(null);
+    setIsRecording(false);
+
+    setPuzzleId(puzzleToEdit.id);
+    setTitle(puzzleToEdit.title);
+    setDescription(puzzleToEdit.description);
+    setLevel(puzzleToEdit.level);
+
+    setEditingPuzzleId(puzzleToEdit.id);
+    setEditingOriginalMeta({
+      createdBy: puzzleToEdit.createdBy,
+      createdAt: puzzleToEdit.createdAt,
+    });
+    setPublishError(null);
+
+    // 捲到頂部，讓老師立刻看到載入後的編輯區，不用自己往下滑找
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  }
 
   // ============================================================
   // A 區操作
@@ -206,13 +280,13 @@ function AdminPuzzleEditorPageContent() {
 
   function handleClearBoard() {
     if (isSetupLocked) return;
-    setBoardHistory([createEmptyBoard()]);
+    setInitialBoard(createEmptyBoard());
     setFenApplyError(null);
   }
 
   function handleResetToStandardStart() {
     if (isSetupLocked) return;
-    setBoardHistory([createStandardStartBoard()]);
+    setInitialBoard(createStandardStartBoard());
     setFenApplyError(null);
   }
 
@@ -221,7 +295,7 @@ function AdminPuzzleEditorPageContent() {
     setFenApplyError(null);
     try {
       const parsedBoard = parseFen(fenInputValue.trim());
-      setBoardHistory([parsedBoard]);
+      setInitialBoard(parsedBoard);
     } catch (error) {
       setFenApplyError(error instanceof Error ? error.message : "FEN 解析失敗，請確認格式。");
     }
@@ -244,18 +318,17 @@ function AdminPuzzleEditorPageContent() {
   function handlePlacementClick(row: number, col: number) {
     if (!selectedTrayTool) return;
 
-    setBoardHistory((prev) => {
-      const current = prev[0];
-      const next = current.map((rowCells) => rowCells.slice());
+    setInitialBoard((prev) => {
+      const next = prev.map((rowCells) => rowCells.slice());
       next[row][col] =
         selectedTrayTool.kind === "eraser"
           ? null
           : { type: selectedTrayTool.type, color: selectedTrayTool.color };
-      return [next];
+      return next;
     });
   }
 
-  /** 錄製模式：第一次點擊選起點（必須有棋子），第二次點擊選終點並記錄一步 */
+  /** 錄製模式：第一次點擊選起點（必須有棋子），第二次點擊選終點並記錄一步到目前選中的線 */
   function handleRecordingClick(row: number, col: number) {
     if (!selectedFromForRecording) {
       const piece = liveBoard[row]?.[col];
@@ -276,10 +349,13 @@ function AdminPuzzleEditorPageContent() {
     const move: Move = { from: selectedFromForRecording, to: { row, col } };
 
     try {
-      const { board: nextBoard } = applyMove(liveBoard, move);
+      applyMove(liveBoard, move); // 純粹驗證「起點確實有棋子」，盡早攔截異常
       const notation = formatMoveNotation(move);
-      setBoardHistory((prev) => [...prev, nextBoard]);
-      setRecordedMoves((prev) => [...prev, notation]);
+      setLines((prev) => {
+        const next = prev.map((line) => line.slice());
+        next[activeLineIndex] = [...next[activeLineIndex], notation];
+        return next;
+      });
     } catch (error) {
       console.error("[admin] 錄製走法失敗：", error);
     }
@@ -297,14 +373,41 @@ function AdminPuzzleEditorPageContent() {
   }
 
   function handleClearLastMove() {
-    setBoardHistory((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev));
-    setRecordedMoves((prev) => prev.slice(0, -1));
+    setLines((prev) => {
+      const next = prev.map((line) => line.slice());
+      next[activeLineIndex] = next[activeLineIndex].slice(0, -1);
+      return next;
+    });
     setSelectedFromForRecording(null);
   }
 
   function handleClearAllMoves() {
-    setBoardHistory((prev) => [prev[0]]);
-    setRecordedMoves([]);
+    setLines([[]]);
+    setActiveLineIndex(0);
+    setSelectedFromForRecording(null);
+  }
+
+  /** 新增一條替代解法：從同一個 initialBoard 開始錄製另一條完整路線 */
+  function handleAddAlternativeLine() {
+    setLines((prev) => [...prev, []]);
+    setActiveLineIndex(lines.length);
+    setSelectedFromForRecording(null);
+  }
+
+  /** 刪除指定的替代解法（index 0 是主線，不能刪） */
+  function handleRemoveLine(indexToRemove: number) {
+    if (indexToRemove === 0) return;
+    setLines((prev) => prev.filter((_, index) => index !== indexToRemove));
+    setActiveLineIndex((prev) => {
+      if (prev === indexToRemove) return indexToRemove - 1;
+      if (prev > indexToRemove) return prev - 1;
+      return prev;
+    });
+    setSelectedFromForRecording(null);
+  }
+
+  function handleSwitchActiveLine(index: number) {
+    setActiveLineIndex(index);
     setSelectedFromForRecording(null);
   }
 
@@ -317,6 +420,13 @@ function AdminPuzzleEditorPageContent() {
 
     const trimmedId = puzzleId.trim();
     const trimmedTitle = title.trim();
+    const mainLine = lines[0];
+    // 包成 { moves: [...] }[]，不能直接存 string[][]，理由見
+    // database.ts 裡 alternativeLines 欄位的註解（Firestore 不支援巢狀陣列）。
+    const alternativeLinesToSave = lines
+      .slice(1)
+      .filter((line) => line.length > 0)
+      .map((line) => ({ moves: line }));
 
     if (!trimmedId) {
       setPublishError("請輸入關卡 ID。");
@@ -330,8 +440,8 @@ function AdminPuzzleEditorPageContent() {
       setPublishError("請輸入關卡名稱。");
       return;
     }
-    if (recordedMoves.length === 0) {
-      setPublishError("請先在 B 區錄製至少一步正解走法，才能上架題目。");
+    if (mainLine.length === 0) {
+      setPublishError("請先在 B 區的「主線」錄製至少一步正解走法，才能上架題目。");
       return;
     }
     if (!user) {
@@ -350,6 +460,10 @@ function AdminPuzzleEditorPageContent() {
     }
 
     const now = Date.now();
+    // 編輯既有題目時，保留原本的 createdBy/createdAt，不要被這次操作覆蓋掉；
+    // 建立全新題目時，才用目前登入的老師 + 現在時間。
+    const createdBy = editingOriginalMeta?.createdBy ?? user.uid;
+    const createdAt = editingOriginalMeta?.createdAt ?? now;
 
     const puzzlePayload: PuzzleDoc = {
       id: trimmedId,
@@ -357,18 +471,29 @@ function AdminPuzzleEditorPageContent() {
       title: trimmedTitle,
       description: description.trim(),
       initialFen: fenString,
-      moves: recordedMoves,
-      totalSteps: recordedMoves.length,
-      createdBy: user.uid,
+      moves: mainLine,
+      alternativeLines: alternativeLinesToSave,
+      totalSteps: mainLine.length,
+      createdBy,
       isPublished: true,
-      createdAt: now,
+      createdAt,
       updatedAt: now,
     };
 
     setIsPublishing(true);
     try {
       await setDoc(doc(db, "puzzles", trimmedId), puzzlePayload);
-      setToastMessage(`題目「${trimmedTitle}」已成功上架！`);
+      setToastMessage(
+        editingPuzzleId
+          ? `題目「${trimmedTitle}」已成功更新！`
+          : `題目「${trimmedTitle}」已成功上架！`
+      );
+      if (editingPuzzleId) {
+        // 更新成功後，記住「目前編輯的就是這一題」的狀態繼續保留
+        // （不強制跳回空白狀態），老師可以繼續微調、或自己按
+        // 「➕ 開始新題目」離開編輯模式。
+        setEditingOriginalMeta({ createdBy, createdAt });
+      }
     } catch (error) {
       console.error("[admin] 發布題目失敗：", error);
       setPublishError(
@@ -407,7 +532,7 @@ function AdminPuzzleEditorPageContent() {
         </header>
 
         {/* ---- 現有題目管理（issue：老師之前無法刪除題目） ---- */}
-        <ExistingPuzzlesSection />
+        <ExistingPuzzlesSection onEditPuzzle={handleEditPuzzle} />
 
         <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)]">
           {/* ============================================================
@@ -593,8 +718,8 @@ function AdminPuzzleEditorPageContent() {
 
               {isSetupLocked ? (
                 <p className="text-xs font-medium text-[#C0392B]">
-                  已錄製 {recordedMoves.length} 個步驟，初始擺位已鎖定。若要修改初始擺位，
-                  請先到右側「清空所有步驟」。
+                  已錄製 {lines.reduce((sum, line) => sum + line.length, 0)} 個步驟（含所有線），
+                  初始擺位已鎖定。若要修改初始擺位，請先到右側「清空所有線」。
                 </p>
               ) : null}
             </div>
@@ -604,7 +729,7 @@ function AdminPuzzleEditorPageContent() {
               B 區 + C 區
              ============================================================ */}
           <div className="flex flex-col gap-4">
-            {/* ---- B 區：走法錄製系統 ---- */}
+            {/* ---- B 區：走法錄製系統（支援多條正解線） ---- */}
             <section className="rounded-3xl bg-white/60 px-4 py-5 shadow-sm">
               <div className="flex items-center justify-between">
                 <h2 className="text-sm font-bold text-[#1A1A2E]">📝 走法錄製系統</h2>
@@ -623,14 +748,62 @@ function AdminPuzzleEditorPageContent() {
               <p className="mt-2 text-xs text-[#1A1A2E]/60">
                 {isRecording
                   ? "錄製中：點擊棋盤上的棋子作為起點，再點擊任意目標格子即可記錄一步（不檢查是否合法）。"
-                  : "尚未開始錄製。開啟錄製後，在上方棋盤上走的每一步都會依序加入正解序列。"}
+                  : "尚未開始錄製。開啟錄製後，在上方棋盤上走的每一步都會依序加入目前選中的這條線。"}
+              </p>
+
+              {/* 多條線切換頁籤：同一道殘局如果有兩種以上獲勝走法，
+                  可以錄製成多條「替代解法」，學生走任何一條都算對。 */}
+              <p className="mt-3 text-xs font-semibold text-[#1A1A2E]/70">正解線</p>
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                {lines.map((line, index) => (
+                  <div key={index} className="flex items-center">
+                    <button
+                      type="button"
+                      onClick={() => handleSwitchActiveLine(index)}
+                      className={[
+                        "rounded-l-full px-3 py-1.5 text-xs font-bold transition-transform",
+                        index === lines.length - 1 || index !== activeLineIndex ? "rounded-r-full" : "",
+                        activeLineIndex === index
+                          ? "bg-[#E8B84B] text-[#1A1A2E]"
+                          : "bg-white/70 text-[#1A1A2E]/60",
+                      ].join(" ")}
+                    >
+                      {index === 0 ? "主線" : `替代解法 ${index}`}（{line.length} 步）
+                    </button>
+                    {index > 0 ? (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveLine(index)}
+                        aria-label={`刪除替代解法 ${index}`}
+                        className={[
+                          "rounded-r-full px-2 py-1.5 text-xs font-bold transition-transform",
+                          activeLineIndex === index
+                            ? "bg-[#E8B84B] text-[#C0392B]"
+                            : "bg-white/70 text-[#C0392B]/70",
+                        ].join(" ")}
+                      >
+                        ✕
+                      </button>
+                    ) : null}
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={handleAddAlternativeLine}
+                  className="rounded-full bg-white/70 px-3 py-1.5 text-xs font-bold text-[#1A1A2E]/70 ring-1 ring-inset ring-[#A9764C]/30 transition-transform active:scale-95"
+                >
+                  ➕ 新增替代解法
+                </button>
+              </div>
+              <p className="mt-1 text-[11px] text-[#1A1A2E]/40">
+                替代解法跟主線都是從同一個初始擺位開始，學生走主線或任何一條替代解法都算解開這道題。
               </p>
 
               <div className="mt-3 flex gap-2">
                 <button
                   type="button"
                   onClick={handleClearLastMove}
-                  disabled={recordedMoves.length === 0}
+                  disabled={(lines[activeLineIndex]?.length ?? 0) === 0}
                   className={SECONDARY_BUTTON_CLASS_NAME}
                 >
                   ↩️ 清除最後一步
@@ -638,22 +811,23 @@ function AdminPuzzleEditorPageContent() {
                 <button
                   type="button"
                   onClick={handleClearAllMoves}
-                  disabled={recordedMoves.length === 0}
+                  disabled={!isSetupLocked}
                   className={SECONDARY_BUTTON_CLASS_NAME}
                 >
-                  🗑️ 清空所有步驟
+                  🗑️ 清空所有線
                 </button>
               </div>
 
               <div className="mt-3 rounded-2xl bg-white/80 px-3 py-3">
                 <p className="text-xs font-semibold text-[#1A1A2E]/70">
-                  已錄製步驟（{recordedMoves.length} 步）
+                  {activeLineIndex === 0 ? "主線" : `替代解法 ${activeLineIndex}`}已錄製步驟（
+                  {(lines[activeLineIndex] ?? []).length} 步）
                 </p>
-                {recordedMoves.length === 0 ? (
-                  <p className="mt-1 text-xs text-[#1A1A2E]/50">目前還沒有錄製任何步驟。</p>
+                {(lines[activeLineIndex]?.length ?? 0) === 0 ? (
+                  <p className="mt-1 text-xs text-[#1A1A2E]/50">目前這條線還沒有錄製任何步驟。</p>
                 ) : (
                   <ol className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs font-medium text-[#1A1A2E]">
-                    {recordedMoves.map((notation, index) => (
+                    {(lines[activeLineIndex] ?? []).map((notation, index) => (
                       <li key={`${index}-${notation}`} className="tabular-nums">
                         {index + 1}. {notation.slice(0, 2)}-{notation.slice(2, 4)}
                       </li>
@@ -665,7 +839,25 @@ function AdminPuzzleEditorPageContent() {
 
             {/* ---- C 區：關卡後設資料與上架 ---- */}
             <section className="rounded-3xl bg-white/60 px-4 py-5 shadow-sm">
-              <h2 className="text-sm font-bold text-[#1A1A2E]">🏷️ 關卡後設資料與上架</h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-bold text-[#1A1A2E]">🏷️ 關卡後設資料與上架</h2>
+                {editingPuzzleId ? (
+                  <button
+                    type="button"
+                    onClick={resetEditorToBlankState}
+                    className="text-xs font-bold text-[#1A1A2E]/60 hover:underline"
+                  >
+                    ➕ 開始新題目
+                  </button>
+                ) : null}
+              </div>
+
+              {editingPuzzleId ? (
+                <p className="mt-2 rounded-xl bg-[#8B5FBF]/10 px-3 py-2 text-xs font-medium text-[#8B5FBF]">
+                  ✏️ 正在編輯既有題目「{editingPuzzleId}」，關卡 ID 不能修改。發布會直接覆蓋這一題，
+                  不會建立新文件。
+                </p>
+              ) : null}
 
               <div className="mt-3 flex flex-col gap-3">
                 <Field label="關卡 ID（將作為 Firestore 文件 ID：puzzles/{id}）">
@@ -674,6 +866,7 @@ function AdminPuzzleEditorPageContent() {
                     value={puzzleId}
                     onChange={(event) => setPuzzleId(event.target.value)}
                     placeholder="例如：demo-puzzle-002"
+                    disabled={editingPuzzleId !== null}
                     className={INPUT_CLASS_NAME}
                   />
                 </Field>
@@ -725,7 +918,13 @@ function AdminPuzzleEditorPageContent() {
                 disabled={isPublishing}
                 className="mt-4 w-full rounded-2xl bg-gradient-to-b from-[#F6D87A] to-[#E8B84B] px-4 py-3 text-sm font-extrabold text-[#5C3D0A] shadow-md transition-transform active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {isPublishing ? "上架中…" : "🚀 一鍵上架"}
+                {isPublishing
+                  ? editingPuzzleId
+                    ? "更新中…"
+                    : "上架中…"
+                  : editingPuzzleId
+                    ? "💾 更新題目"
+                    : "🚀 一鍵上架"}
               </button>
             </section>
           </div>
@@ -767,7 +966,11 @@ function toFenSafely(board: BoardGrid): string {
 // confirm()，跟整個 App 的視覺風格保持一致。
 // ============================================================
 
-function ExistingPuzzlesSection() {
+function ExistingPuzzlesSection({
+  onEditPuzzle,
+}: {
+  onEditPuzzle: (puzzle: PuzzleDoc) => void;
+}) {
   const [puzzles, setPuzzles] = useState<PuzzleDoc[]>([]);
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [fetchErrorMessage, setFetchErrorMessage] = useState<string | null>(null);
@@ -861,8 +1064,11 @@ function ExistingPuzzlesSection() {
                     <p className="truncate text-sm font-semibold text-[#1A1A2E]">
                       {puzzle.title}
                       <span className="ml-1 text-xs font-normal text-[#1A1A2E]/50">
-                        (Lv.{puzzle.level} ・ {puzzle.moves.length} 步 ・{" "}
-                        {puzzle.isPublished ? "已上架" : "未上架"})
+                        (Lv.{puzzle.level} ・ 主線 {puzzle.moves.length} 步
+                        {puzzle.alternativeLines && puzzle.alternativeLines.length > 0
+                          ? ` ・ ${puzzle.alternativeLines.length} 條替代解法`
+                          : ""}
+                        ・ {puzzle.isPublished ? "已上架" : "未上架"})
                       </span>
                     </p>
                     <p className="truncate text-[11px] text-[#1A1A2E]/40">ID: {puzzle.id}</p>
@@ -889,13 +1095,22 @@ function ExistingPuzzlesSection() {
                       </button>
                     </div>
                   ) : (
-                    <button
-                      type="button"
-                      onClick={() => setConfirmingDeleteId(puzzle.id)}
-                      className="shrink-0 rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-[#C0392B] ring-1 ring-inset ring-[#C0392B]/30 transition-transform active:scale-95"
-                    >
-                      🗑️ 刪除
-                    </button>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => onEditPuzzle(puzzle)}
+                        className="rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-[#8B5FBF] ring-1 ring-inset ring-[#8B5FBF]/30 transition-transform active:scale-95"
+                      >
+                        ✏️ 編輯
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmingDeleteId(puzzle.id)}
+                        className="rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-[#C0392B] ring-1 ring-inset ring-[#C0392B]/30 transition-transform active:scale-95"
+                      >
+                        🗑️ 刪除
+                      </button>
+                    </div>
                   )}
                 </li>
               );

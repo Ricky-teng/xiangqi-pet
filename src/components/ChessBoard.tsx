@@ -7,8 +7,6 @@
  *   1. 將 10x9 的 BoardGrid 渲染成可互動的棋盤。
  *   2. 採用「點選式」走棋：先點起點（高亮顯示），再點終點，
  *      組合成四字元走法記號（例如 "h2e2"）後呼叫 onMove。
- *   3. 當 isLocked 為 true（小雞生病中）時，蓋上毛玻璃半透明遮罩，
- *      阻擋棋盤互動，並提供「返回主頁」按鈕。
  *
  * 【這一版的關鍵修正：棋子畫在「線條交叉點」上，不是塞進方格裡】
  *   真正的象棋棋盤是「9 條直線 x 10 條橫線」交織出的格線，棋子放在
@@ -82,24 +80,18 @@ function pointOf(row: number, col: number): { x: number; y: number } {
 export interface ChessBoardProps {
   /** 目前棋盤狀態（10x9，grid[row][col]） */
   board: BoardGrid;
-  /** 是否因小雞生病而鎖定棋盤（鎖定時蓋上遮罩、停用互動） */
-  isLocked: boolean;
   /** 學生完成一次「起點+終點」點選後呼叫，傳入四字元走法記號（例如 "h2e2"） */
   onMove: (moveNotation: string) => void;
-  /** 遮罩上「返回主頁」按鈕被點擊時呼叫 */
-  onBackToHome: () => void;
 }
 
 // ============================================================
 // 4. 主體元件
 // ============================================================
 
-export default function ChessBoard({ board, isLocked, onMove, onBackToHome }: ChessBoardProps) {
+export default function ChessBoard({ board, onMove }: ChessBoardProps) {
   const [selectedFrom, setSelectedFrom] = useState<{ row: number; col: number } | null>(null);
 
   function handleCellClick(row: number, col: number) {
-    if (isLocked) return;
-
     const cellPiece = board[row]?.[col];
 
     if (!selectedFrom) {
@@ -267,11 +259,11 @@ export default function ChessBoard({ board, isLocked, onMove, onBackToHome }: Ch
               <g
                 key={`${rowIndex}-${colIndex}`}
                 role="button"
-                tabIndex={isLocked ? -1 : 0}
+                tabIndex={0}
                 aria-label={`座標 ${squareLabel}${cell ? `，${cell.color === "r" ? "紅方" : "黑方"}${PIECE_LABEL[cell.type][cell.color === "r" ? "red" : "black"]}` : ""}`}
                 onClick={() => handleCellClick(rowIndex, colIndex)}
                 onKeyDown={(event) => handleCellKeyDown(event, rowIndex, colIndex)}
-                style={{ cursor: isLocked ? "not-allowed" : "pointer", outline: "none" }}
+                style={{ cursor: "pointer", outline: "none" }}
               >
                 {/* 隱藏點擊熱區：比實際棋子稍大，方便手指點擊交叉點 */}
                 <circle cx={x} cy={y} r={CELL * 0.48} fill="transparent" />
@@ -316,25 +308,6 @@ export default function ChessBoard({ board, isLocked, onMove, onBackToHome }: Ch
           })
         )}
       </svg>
-
-      {/* ---- 生病鎖定遮罩（毛玻璃半透明） ---- */}
-      {isLocked ? (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 rounded-2xl bg-[#1A1A2E]/55 backdrop-blur-sm">
-          <div className="text-5xl" role="img" aria-label="生病的小雞">
-            🤒
-          </div>
-          <p className="px-6 text-center text-base font-semibold text-white">
-            小雞生病了，沒辦法繼續挑戰殘局
-          </p>
-          <button
-            type="button"
-            onClick={onBackToHome}
-            className="rounded-full bg-[#E8B84B] px-6 py-2 text-sm font-bold text-[#1A1A2E] shadow-md transition-transform active:scale-95"
-          >
-            返回主頁照顧小雞
-          </button>
-        </div>
-      ) : null}
     </div>
   );
 }
