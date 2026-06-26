@@ -522,13 +522,7 @@ function AdminPuzzleEditorPageContent() {
             返回大廳
           </button>
           <h1 className="text-base font-bold text-[#1A1A2E]">🐔 老師視覺化擺子出題後台</h1>
-          <button
-            type="button"
-            onClick={() => router.push("/admin/dashboard")}
-            className="flex items-center gap-1 rounded-full bg-[#1A1A2E]/5 px-3 py-1.5 text-xs font-bold text-[#1A1A2E] transition-transform active:scale-95"
-          >
-            📊 學生數據
-          </button>
+          
         </header>
 
         {/* ---- 現有題目管理（issue：老師之前無法刪除題目） ---- */}
