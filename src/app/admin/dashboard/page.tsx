@@ -201,11 +201,11 @@ function DashboardContent() {
         <header className="flex items-center justify-between rounded-2xl bg-white/70 px-4 py-3 shadow-sm">
           <button
             type="button"
-            onClick={() => router.push("/admin")}
+            onClick={() => router.push("/")}
             className="flex items-center gap-1 rounded-full bg-[#1A1A2E]/5 px-3 py-1.5 text-xs font-bold text-[#1A1A2E] transition-transform active:scale-95"
           >
             <span aria-hidden="true">←</span>
-            回出題後台
+            回大廳
           </button>
           <h1 className="text-base font-bold text-[#1A1A2E]">📊 學生答題監控後台</h1>
           <span className="w-[88px]" aria-hidden="true" />
