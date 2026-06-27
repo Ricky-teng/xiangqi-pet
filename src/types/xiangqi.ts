@@ -84,3 +84,19 @@ export interface SolverState {
    */
   totalWrongAttempts: number;
 }
+
+/**
+ * 棋子的中文名稱（紅黑用字不同：仕/士、相/象、帥/將、兵/卒）。
+ * 原本各自分散定義在 ChessBoard.tsx 跟其他地方，統一搬到這裡讓
+ * 中文記譜（chineseNotation.ts）等其他模組也能直接共用，不用各自
+ * 重複定義一份容易彼此不同步的副本。
+ */
+export const PIECE_LABEL: Record<PieceType, { red: string; black: string }> = {
+  k: { red: "帥", black: "將" },
+  a: { red: "仕", black: "士" },
+  e: { red: "相", black: "象" },
+  h: { red: "馬", black: "馬" },
+  r: { red: "車", black: "車" },
+  c: { red: "炮", black: "炮" },
+  p: { red: "兵", black: "卒" },
+};

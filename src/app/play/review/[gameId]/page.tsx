@@ -30,6 +30,7 @@ import RequireAuth from "@/components/RequireAuth";
 import ChessBoard from "@/components/ChessBoard";
 import { useRulesEngine } from "@/hooks/useRulesEngine";
 import { parseFen } from "@/lib/xiangqi/fen";
+import { toChineseNotation } from "@/lib/xiangqi/chineseNotation";
 import type { VsComputerGameDoc } from "@/types/database";
 
 const OUTCOME_LABEL: Record<"win" | "lose" | "draw", string> = {
@@ -76,6 +77,15 @@ function ReviewContent({ gameId }: { gameId: string }) {
   const [exploreMoveError, setExploreMoveError] = useState<string | null>(null);
 
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
+
+  // 切換回放步數時，舊的分析結果（跟箭頭）對應的是「之前那一步」的
+  // 局面，必須清掉，不然會顯示跟目前局面對不上的舊建議。推演模式下
+  // 切換局面已經各自在 handleExploreMove/enterExploreMode 裡清過了，
+  // 這裡只需要處理回放模式下「切換 step」這一種情況。
+  useEffect(() => {
+    setAnalysis(null);
+    setAnalyzeError(null);
+  }, [step]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analyzeError, setAnalyzeError] = useState<string | null>(null);
 
@@ -247,7 +257,13 @@ function ReviewContent({ gameId }: { gameId: string }) {
           </div>
 
           <div className="mt-3">
-            <ChessBoard board={displayBoard} onMove={isExploring ? handleExploreMove : () => {}} />
+            <ChessBoard
+              board={displayBoard}
+              onMove={isExploring ? handleExploreMove : () => {}}
+              highlightMove={
+                analysis ? { from: analysis.move.slice(0, 2), to: analysis.move.slice(2, 4) } : null
+              }
+            />
           </div>
 
           {isExploring ? (
@@ -257,7 +273,9 @@ function ReviewContent({ gameId }: { gameId: string }) {
           ) : (
             <p className="mt-3 text-center text-xs text-[#1A1A2E]/60">
               第 {step} / {totalSteps} 步
-              {step > 0 ? `（${game.moveHistory[step - 1]}）` : "（開局）"}
+              {step > 0
+                ? `（${toChineseNotation(parseFen(game.fenHistory[step - 1]), game.moveHistory[step - 1])}）`
+                : "（開局）"}
             </p>
           )}
 
@@ -320,7 +338,9 @@ function ReviewContent({ gameId }: { gameId: string }) {
 
           {analysis ? (
             <div className="mt-3 rounded-xl bg-[#5B8C5A]/10 px-3 py-2 text-center text-xs text-[#5B8C5A]">
-              <p className="font-bold">引擎建議走法：{analysis.move}</p>
+              <p className="font-bold">
+                引擎建議走法：{toChineseNotation(displayBoard, analysis.move)}
+              </p>
               <p className="mt-0.5 text-[#5B8C5A]/80">
                 紅方優勢分數：{toRedPerspectiveScore(analysis.scoreCp, currentSideToMove) > 0 ? "+" : ""}
                 {toRedPerspectiveScore(analysis.scoreCp, currentSideToMove)}

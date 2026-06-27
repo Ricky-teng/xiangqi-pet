@@ -37,22 +37,13 @@
 "use client";
 
 import { useState, type KeyboardEvent } from "react";
-import type { BoardGrid, PieceType } from "@/types/xiangqi";
+import type { BoardGrid } from "@/types/xiangqi";
+import { PIECE_LABEL } from "@/types/xiangqi";
 import { formatSquare } from "@/lib/xiangqi/move";
 
 // ============================================================
 // 1. 棋子顯示文字對照表
 // ============================================================
-
-const PIECE_LABEL: Record<PieceType, { red: string; black: string }> = {
-  k: { red: "帥", black: "將" },
-  a: { red: "仕", black: "士" },
-  e: { red: "相", black: "象" },
-  h: { red: "馬", black: "馬" },
-  r: { red: "車", black: "車" },
-  c: { red: "炮", black: "炮" },
-  p: { red: "兵", black: "卒" },
-};
 
 // ============================================================
 // 2. 棋盤幾何常數
@@ -82,13 +73,26 @@ export interface ChessBoardProps {
   board: BoardGrid;
   /** 學生完成一次「起點+終點」點選後呼叫，傳入四字元走法記號（例如 "h2e2"） */
   onMove: (moveNotation: string) => void;
+  /**
+   * 選用：在棋盤上畫一條箭頭標示某一步走法（給「分析」功能顯示引擎
+   * 建議走法用）。格式跟 onMove 一樣是這個 App 的座標記號，但拆成
+   * from/to 兩段字串（例如 from:"h9", to:"g7"）。不提供就不畫箭頭，
+   * 不影響其他既有用法（解題、對弈、回放都不需要這個 prop）。
+   */
+  highlightMove?: { from: string; to: string } | null;
+}
+
+function parseSquareLabel(square: string): { row: number; col: number } {
+  const col = square.charCodeAt(0) - "a".charCodeAt(0);
+  const row = Number(square[1]);
+  return { row, col };
 }
 
 // ============================================================
 // 4. 主體元件
 // ============================================================
 
-export default function ChessBoard({ board, onMove }: ChessBoardProps) {
+export default function ChessBoard({ board, onMove, highlightMove }: ChessBoardProps) {
   const [selectedFrom, setSelectedFrom] = useState<{ row: number; col: number } | null>(null);
 
   function handleCellClick(row: number, col: number) {
@@ -307,6 +311,53 @@ export default function ChessBoard({ board, onMove }: ChessBoardProps) {
             );
           })
         )}
+
+        {/* 分析建議走法箭頭：用 marker 畫箭頭尖端，從起點畫到終點，
+            終點稍微往回縮一點距離，不要整個箭頭蓋住棋子本身。 */}
+        {highlightMove ? (
+          <g style={{ pointerEvents: "none" }}>
+            <defs>
+              <marker
+                id="analysis-arrow-head"
+                viewBox="0 0 10 10"
+                refX="8"
+                refY="5"
+                markerWidth="6"
+                markerHeight="6"
+                orient="auto-start-reverse"
+              >
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#8B5FBF" />
+              </marker>
+            </defs>
+            {(() => {
+              const fromSquare = parseSquareLabel(highlightMove.from);
+              const toSquare = parseSquareLabel(highlightMove.to);
+              const fromPoint = pointOf(fromSquare.row, fromSquare.col);
+              const toPoint = pointOf(toSquare.row, toSquare.col);
+              // 終點往回縮短一點距離，讓箭頭尖端停在棋子外緣附近，
+              // 不會完全蓋住目的地的棋子。
+              const dx = toPoint.x - fromPoint.x;
+              const dy = toPoint.y - fromPoint.y;
+              const length = Math.hypot(dx, dy) || 1;
+              const shrink = CELL * 0.42;
+              const trimmedToX = toPoint.x - (dx / length) * shrink;
+              const trimmedToY = toPoint.y - (dy / length) * shrink;
+              return (
+                <line
+                  x1={fromPoint.x}
+                  y1={fromPoint.y}
+                  x2={trimmedToX}
+                  y2={trimmedToY}
+                  stroke="#8B5FBF"
+                  strokeWidth={CELL * 0.12}
+                  strokeLinecap="round"
+                  markerEnd="url(#analysis-arrow-head)"
+                  opacity={0.85}
+                />
+              );
+            })()}
+          </g>
+        ) : null}
       </svg>
     </div>
   );

@@ -46,6 +46,7 @@ import type { PuzzleLevel } from "@/types/xiangqi";
 import { CATALOG_ENTRIES } from "@/lib/pet/catalog";
 import ChessBoard from "@/components/ChessBoard";
 import { parseFen } from "@/lib/xiangqi/fen";
+import { toChineseNotation } from "@/lib/xiangqi/chineseNotation";
 
 type FetchStatus = "loading" | "success" | "error";
 
@@ -511,7 +512,9 @@ function ReplayModal({ game, onClose }: { game: VsComputerGameDoc; onClose: () =
 
         <p className="mt-2 text-center text-xs text-[#1A1A2E]/60">
           第 {step} / {totalSteps} 步
-          {step > 0 ? `（${game.moveHistory[step - 1]}）` : "（開局）"}
+          {step > 0
+            ? `（${toChineseNotation(parseFen(game.fenHistory[step - 1]), game.moveHistory[step - 1])}）`
+            : "（開局）"}
         </p>
 
         <div className="mt-3 flex items-center justify-center gap-2">
