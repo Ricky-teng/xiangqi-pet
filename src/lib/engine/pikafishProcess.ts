@@ -28,6 +28,7 @@
  */
 
 import { spawn, type ChildProcessWithoutNullStreams } from "child_process";
+import fs from "fs";
 import path from "path";
 import type { ComputerLevel } from "@/lib/engine/computerPlayer";
 
@@ -123,11 +124,28 @@ export async function getPikafishMove(
 ): Promise<{ move: string; scoreCp: number; depth: number }> {
   const config = LEVEL_SEARCH_CONFIG[level];
   const pikafishFen = toPikafishFen(appFen, sideToMove);
+  const binaryPath = getPikafishBinaryPath();
+  const nnuePath = getNnueFilePath();
+
+  // 診斷用：在真正 spawn 之前先確認檔案到底存不存在，這樣 log 裡會
+  // 明確區分「檔案根本沒被打包進部署」跟「檔案有，但引擎執行時卡住」
+  // 這兩種完全不同的問題，不用再靠猜測。
+  console.log("[pikafishProcess] process.cwd():", process.cwd());
+  console.log("[pikafishProcess] binaryPath:", binaryPath, "存在:", fs.existsSync(binaryPath));
+  console.log("[pikafishProcess] nnuePath:", nnuePath, "存在:", fs.existsSync(nnuePath));
+
+  if (!fs.existsSync(binaryPath)) {
+    throw new Error(`找不到 Pikafish 執行檔：${binaryPath}（process.cwd()=${process.cwd()}）`);
+  }
+  if (!fs.existsSync(nnuePath)) {
+    throw new Error(`找不到 Pikafish 權重檔：${nnuePath}（process.cwd()=${process.cwd()}）`);
+  }
 
   return new Promise((resolve, reject) => {
     let proc: ChildProcessWithoutNullStreams;
     try {
-      proc = spawn(getPikafishBinaryPath(), [], { cwd: path.dirname(getNnueFilePath()) });
+      proc = spawn(binaryPath, [], { cwd: path.dirname(nnuePath) });
+      console.log("[pikafishProcess] spawn 呼叫完成，pid:", proc.pid);
     } catch (error) {
       reject(new Error(`啟動 Pikafish 執行檔失敗：${error instanceof Error ? error.message : error}`));
       return;
@@ -137,14 +155,21 @@ export async function getPikafishMove(
     let lastScoreCp = 0;
     let lastDepth = 0;
     let settled = false;
+    let receivedAnyOutput = false;
 
     // 安全閥：不管引擎回不回應，最多等 movetimeMs 再加一點緩衝時間，
     // 超過就強制視為失敗，避免 API 卡死。
     const hardTimeout = setTimeout(() => {
       if (settled) return;
       settled = true;
+      console.log(
+        "[pikafishProcess] 逾時。曾經收到任何 stdout 輸出嗎:",
+        receivedAnyOutput,
+        "目前累積的 stdout 內容:",
+        stdoutBuffer.slice(0, 2000)
+      );
       proc.kill();
-      reject(new Error("Pikafish 引擎回應逾時"));
+      reject(new Error(`Pikafish 引擎回應逾時（曾收到輸出：${receivedAnyOutput}）`));
     }, config.movetimeMs + 5000);
 
     function cleanup() {
@@ -161,6 +186,10 @@ export async function getPikafishMove(
     });
 
     proc.stdout.on("data", (chunk: Buffer) => {
+      if (!receivedAnyOutput) {
+        receivedAnyOutput = true;
+        console.log("[pikafishProcess] 收到第一筆 stdout 輸出:", chunk.toString("utf-8").slice(0, 500));
+      }
       stdoutBuffer += chunk.toString("utf-8");
 
       // 持續解析目前累積到的每一行，更新「目前看到的最新分數/深度」，
