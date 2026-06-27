@@ -87,20 +87,47 @@ function toPikafishFen(appFen: string, sideToMove: "w" | "b"): string {
   return `${translateLetters(appFen.trim(), APP_TO_PIKAFISH_LETTER)} ${sideToMove}`;
 }
 
-/** 每個難度等級對應的搜尋深度上限/思考時間上限（毫秒）。
- * 時間上限同時是保護 Vercel 函式執行時間限制的安全閥——不管局面多
- * 複雜，搜尋一定會在這個時間內停止，不會害整個 API 逾時。 */
+/**
+ * 優化後的皮卡魚難度配置
+ * 1. 修正了高難度下深度與時間不匹配的問題（調低了10級的預期深度，拉長了時間）。
+ * 2. 確保 movetime 絕對不超過 9000ms，為 Vercel 預留足夠的 HTTP 傳輸與 API 回傳緩衝時間（防止 504 Timeout）。
+ */
 const LEVEL_SEARCH_CONFIG: Record<ComputerLevel, { depth: number; movetimeMs: number }> = {
-  1: { depth: 1, movetimeMs: 200 },
-  2: { depth: 2, movetimeMs: 300 },
-  3: { depth: 3, movetimeMs: 400 },
-  4: { depth: 4, movetimeMs: 600 },
-  5: { depth: 6, movetimeMs: 900 },
-  6: { depth: 8, movetimeMs: 1300 },
-  7: { depth: 10, movetimeMs: 1800 },
-  8: { depth: 13, movetimeMs: 2500 },
-  9: { depth: 16, movetimeMs: 3500 },
-  10: { depth: 20, movetimeMs: 5000 },
+  1: { depth: 1, movetimeMs: 100 },
+  2: { depth: 2, movetimeMs: 200 },
+  3: { depth: 4, movetimeMs: 350 },
+  4: { depth: 6, movetimeMs: 500 },
+  5: { depth: 8, movetimeMs: 800 },
+  6: { depth: 10, movetimeMs: 1200 },
+  7: { depth: 12, movetimeMs: 1800 },
+  8: { depth: 14, movetimeMs: 2600 },
+  9: { depth: 16, movetimeMs: 4000 },
+  10: { depth: 18, movetimeMs: 8500 }, // 8.5秒是 Vercel Serverless Function 既安全又能發揮最高棋力的平衡點
+};
+
+/**
+ * 【等級1~3的「亂走/送子」感】只靠搜尋深度淺，不足以讓電腦看起來像
+ * 真的會犯錯——就算只搜1層，NNUE 評估函式本身還是很準，電腦依然會
+ * 挑「當下看起來最不糟」的那一步，不會主動送子。要做出「常送子」的
+ * 體感，必須讓電腦有意選擇明知比較差的走法，不能只靠搜得淺。
+ *
+ * 做法：低等級時請 Pikafish 同時回報多條候選線（MultiPV），每條都有
+ * 自己的分數；選棋時不是永遠選第1名，而是依等級決定「有多大機率不選
+ * 最好的那條、改選排名比較後面（分數比較差）的那條」。分數比較差的
+ * 候選線本來就常常是「送了子」「漏了防守」這類明顯缺陷的走法，這樣
+ * 選出來的「錯」是真正有意義的錯，不是純粹的隨機亂下。
+ */
+const LEVEL_MULTIPV_CONFIG: Record<ComputerLevel, { multiPv: number; topChoiceProbability: number }> = {
+  1: { multiPv: 8, topChoiceProbability: 0.15 },
+  2: { multiPv: 6, topChoiceProbability: 0.3 },
+  3: { multiPv: 5, topChoiceProbability: 0.45 },
+  4: { multiPv: 4, topChoiceProbability: 0.6 },
+  5: { multiPv: 3, topChoiceProbability: 0.75 },
+  6: { multiPv: 2, topChoiceProbability: 0.85 },
+  7: { multiPv: 1, topChoiceProbability: 1 },
+  8: { multiPv: 1, topChoiceProbability: 1 },
+  9: { multiPv: 1, topChoiceProbability: 1 },
+  10: { multiPv: 1, topChoiceProbability: 1 },
 };
 
 function getPikafishBinaryPath(): string {
@@ -111,25 +138,30 @@ function getNnueFilePath(): string {
   return path.join(process.cwd(), "vendor", "pikafish", "pikafish.nnue");
 }
 
+interface SearchResult {
+  move: string;
+  scoreCp: number;
+  depth: number;
+}
+
 /**
- * 啟動一個 Pikafish 子程序、送出指定局面、等待 bestmove 回應後關閉
- * 子程序。每次呼叫都是全新的子程序（不在多次請求之間保留常駐程序），
- * 因為 Serverless Function 本來就是無狀態、每次調用環境都可能不同，
- * 沒有「常駐」這個概念可以依賴。
+ * 核心搜尋邏輯：啟動子程序、設定 MultiPV/權重檔、送出局面、等
+ * bestmove。回傳「依排名分組的候選線」+ UCI 直接給的 bestmove
+ * 字串，呼叫端（getPikafishMove 或 analyzePosition）各自決定要怎麼
+ * 從候選線裡選出最終結果——遊戲對弈時可能故意選非最佳線製造「送子」
+ * 效果，棋局分析時則永遠要最佳線，所以選擇邏輯不適合寫在這個共用
+ * 函式裡，這裡只負責「跟引擎對話、拿到所有候選線資料」這件事。
  */
-export async function getPikafishMove(
+async function runPikafishSearch(
   appFen: string,
   sideToMove: "w" | "b",
-  level: ComputerLevel
-): Promise<{ move: string; scoreCp: number; depth: number }> {
-  const config = LEVEL_SEARCH_CONFIG[level];
+  searchConfig: { depth: number; movetimeMs: number },
+  multiPv: number
+): Promise<{ candidatesByRank: Map<number, SearchResult>; bestmoveToken: string }> {
   const pikafishFen = toPikafishFen(appFen, sideToMove);
   const binaryPath = getPikafishBinaryPath();
   const nnuePath = getNnueFilePath();
 
-  // 診斷用：在真正 spawn 之前先確認檔案到底存不存在，這樣 log 裡會
-  // 明確區分「檔案根本沒被打包進部署」跟「檔案有，但引擎執行時卡住」
-  // 這兩種完全不同的問題，不用再靠猜測。
   console.log("[pikafishProcess] process.cwd():", process.cwd());
   console.log("[pikafishProcess] binaryPath:", binaryPath, "存在:", fs.existsSync(binaryPath));
   console.log("[pikafishProcess] nnuePath:", nnuePath, "存在:", fs.existsSync(nnuePath));
@@ -152,8 +184,8 @@ export async function getPikafishMove(
     }
 
     let stdoutBuffer = "";
-    let lastScoreCp = 0;
-    let lastDepth = 0;
+    let stderrBuffer = "";
+    const candidatesByRank = new Map<number, SearchResult>();
     let settled = false;
     let receivedAnyOutput = false;
 
@@ -165,12 +197,14 @@ export async function getPikafishMove(
       console.log(
         "[pikafishProcess] 逾時。曾經收到任何 stdout 輸出嗎:",
         receivedAnyOutput,
+        "stderr 內容:",
+        stderrBuffer.slice(0, 2000),
         "目前累積的 stdout 內容:",
         stdoutBuffer.slice(0, 2000)
       );
       proc.kill();
       reject(new Error(`Pikafish 引擎回應逾時（曾收到輸出：${receivedAnyOutput}）`));
-    }, config.movetimeMs + 5000);
+    }, searchConfig.movetimeMs + 8000);
 
     function cleanup() {
       clearTimeout(hardTimeout);
@@ -192,21 +226,26 @@ export async function getPikafishMove(
       }
       stdoutBuffer += chunk.toString("utf-8");
 
-      // 持續解析目前累積到的每一行，更新「目前看到的最新分數/深度」，
-      // 等看到 bestmove 才算真正結束。
       const lines = stdoutBuffer.split("\n");
       for (const line of lines) {
-        if (line.startsWith("info") && line.includes("score cp")) {
+        if (line.startsWith("info") && line.includes("score cp") && line.includes(" pv ")) {
+          const multipvMatch = line.match(/multipv (\d+)/);
           const depthMatch = line.match(/depth (\d+)/);
           const scoreMatch = line.match(/score cp (-?\d+)/);
-          if (depthMatch) lastDepth = Number(depthMatch[1]);
-          if (scoreMatch) lastScoreCp = Number(scoreMatch[1]);
+          const pvMatch = line.match(/ pv (\S+)/);
+          if (multipvMatch && depthMatch && scoreMatch && pvMatch) {
+            candidatesByRank.set(Number(multipvMatch[1]), {
+              move: pvMatch[1],
+              scoreCp: Number(scoreMatch[1]),
+              depth: Number(depthMatch[1]),
+            });
+          }
         }
 
         if (line.startsWith("bestmove")) {
           if (settled) return;
-          const move = line.split(" ")[1];
-          if (!move || move === "(none)") {
+          const bestmoveToken = line.split(" ")[1];
+          if (!bestmoveToken || bestmoveToken === "(none)") {
             settled = true;
             cleanup();
             proc.kill();
@@ -216,23 +255,95 @@ export async function getPikafishMove(
           settled = true;
           cleanup();
           proc.kill();
-          resolve({ move: fromPikafishMove(move), scoreCp: lastScoreCp, depth: lastDepth });
+          resolve({ candidatesByRank, bestmoveToken });
           return;
         }
       }
     });
 
-    proc.stderr.on("data", () => {
-      // Pikafish 正常運作時不太會往 stderr 寫東西；這裡不特別處理，
-      // 真正的錯誤都是透過 stdout 的 "info string ERROR: ..." 文字
-      // 或者進程整個 exit/error 事件來呈現。
+    proc.stderr.on("data", (chunk: Buffer) => {
+      // 之前這裡完全沒記錄 stderr，導致 Linux 動態連結器找不到相容
+      // 函式庫版本時印出的錯誤訊息完全看不到，排查問題時瞎子摸象了
+      // 很久。現在改成記錄起來，逾時或失敗時會印在上面的診斷訊息裡。
+      stderrBuffer += chunk.toString("utf-8");
     });
 
-    // 依序送出 UCI 指令：設定權重檔路徑 → 確認準備好 → 設定局面 →
-    // 開始搜尋（深度/時間雙重上限，先到的算）。
-    proc.stdin.write(`setoption name EvalFile value ${getNnueFilePath()}\n`);
+    proc.stdin.write(`setoption name EvalFile value ${nnuePath}\n`);
+    proc.stdin.write(`setoption name MultiPV value ${multiPv}\n`);
     proc.stdin.write("isready\n");
     proc.stdin.write(`position fen ${pikafishFen}\n`);
-    proc.stdin.write(`go depth ${config.depth} movetime ${config.movetimeMs}\n`);
+    proc.stdin.write(`go depth ${searchConfig.depth} movetime ${searchConfig.movetimeMs}\n`);
   });
+}
+
+/**
+ * 依等級決定的機率，從 MultiPV 候選線裡選一條：大機率選排名第1
+ * （最好的那條），否則從排名第2之後均勻隨機選一條（故意選比較差的，
+ * 製造「送子」之類有意義的錯誤）。
+ *
+ * candidatesByRank 為空（極端邊緣情況，例如搜尋極淺、根本沒有任何
+ * 符合解析格式的輸出行）時，退回使用 UCI "bestmove" 那一行直接給的
+ * 走法當保底，不會整個失敗。
+ */
+function selectMoveFromCandidates(
+  candidatesByRank: Map<number, SearchResult>,
+  multiPvConfig: { multiPv: number; topChoiceProbability: number },
+  bestmoveToken: string
+): SearchResult {
+  const sortedByRank = Array.from(candidatesByRank.entries()).sort(([rankA], [rankB]) => rankA - rankB);
+
+  if (sortedByRank.length === 0) {
+    return { move: bestmoveToken, scoreCp: 0, depth: 0 };
+  }
+
+  const topCandidate = sortedByRank[0][1];
+  if (sortedByRank.length === 1 || Math.random() < multiPvConfig.topChoiceProbability) {
+    return topCandidate;
+  }
+
+  const alternatives = sortedByRank.slice(1).map(([, candidate]) => candidate);
+  return alternatives[Math.floor(Math.random() * alternatives.length)];
+}
+
+/**
+ * 取得電腦對手這一步要走哪裡（會套用等級對應的「送子」隨機性，
+ * 見 LEVEL_MULTIPV_CONFIG）。
+ */
+export async function getPikafishMove(
+  appFen: string,
+  sideToMove: "w" | "b",
+  level: ComputerLevel
+): Promise<SearchResult> {
+  const searchConfig = LEVEL_SEARCH_CONFIG[level];
+  const multiPvConfig = LEVEL_MULTIPV_CONFIG[level];
+
+  const { candidatesByRank, bestmoveToken } = await runPikafishSearch(
+    appFen,
+    sideToMove,
+    searchConfig,
+    multiPvConfig.multiPv
+  );
+
+  const chosen = selectMoveFromCandidates(candidatesByRank, multiPvConfig, bestmoveToken);
+  return { move: fromPikafishMove(chosen.move), scoreCp: chosen.scoreCp, depth: chosen.depth };
+}
+
+/**
+ * 棋局分析（給「最近對局」回顧功能用）：永遠用等級10的搜尋設定、
+ * 永遠回傳真正最佳的那一步，不套用任何「送子」隨機性——分析時要給
+ * 學生/老師看到的是引擎真正的判斷，不是刻意弄弱的版本。
+ */
+export async function analyzePosition(
+  appFen: string,
+  sideToMove: "w" | "b"
+): Promise<SearchResult> {
+  const searchConfig = LEVEL_SEARCH_CONFIG[10];
+
+  const { candidatesByRank, bestmoveToken } = await runPikafishSearch(appFen, sideToMove, searchConfig, 1);
+
+  const top = candidatesByRank.get(1);
+  if (top) {
+    return { move: fromPikafishMove(top.move), scoreCp: top.scoreCp, depth: top.depth };
+  }
+  return { move: fromPikafishMove(bestmoveToken), scoreCp: 0, depth: 0 };
 }

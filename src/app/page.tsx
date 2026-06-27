@@ -31,7 +31,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { collection, getDocs, query, where } from "firebase/firestore";
+import { collection, getDocs, limit, orderBy, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useGameStore } from "@/stores/useGameStore";
 import { signOutUser } from "@/hooks/useAuth";
@@ -39,7 +39,7 @@ import RequireAuth from "@/components/RequireAuth";
 import { STAGE_XP_THRESHOLDS } from "@/lib/pet/petGrowth";
 import { SICKNESS_ESCALATION_HOURS } from "@/lib/pet/petDecay";
 import { hasUnclaimedDailyTask } from "@/lib/tasks/dailyTasks";
-import type { DailyTaskDoc, UserDoc } from "@/types/database";
+import type { DailyTaskDoc, UserDoc, VsComputerGameDoc } from "@/types/database";
 
 // ============================================================
 // 1. 小雞外觀對照（依階段 + 健康狀態）
@@ -197,6 +197,22 @@ function TeacherHomeContent({ user }: { user: UserDoc }) {
 // ============================================================
 // 2.2 學生首頁：完整的小雞養成 + 挑戰入口（原本的內容，未改動邏輯）
 // ============================================================
+
+const OUTCOME_LABEL: Record<"win" | "lose" | "draw", string> = {
+  win: "🏆 獲勝",
+  lose: "😢 落敗",
+  draw: "🤝 和棋",
+};
+
+function formatTimestamp(ms: number): string {
+  if (!ms) return "—";
+  return new Date(ms).toLocaleString("zh-TW", {
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
 function StudentHomeContent({ user }: { user: UserDoc }) {
   const router = useRouter();
@@ -606,8 +622,83 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
             ♟️ 開始對弈
           </button>
         </section>
+
+        {/* ============================================================
+            E. 最近對局：學生自己的對弈紀錄，點進去可以回顧+分析+推演
+           ============================================================ */}
+        <RecentGamesSection userUid={user.uid} />
       </div>
     </main>
+  );
+}
+
+/** 學生自己的最近對局列表，點一筆進去可以回顧/分析/推演（見 /play/review/[gameId]） */
+function RecentGamesSection({ userUid }: { userUid: string }) {
+  const router = useRouter();
+  const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
+  const [games, setGames] = useState<VsComputerGameDoc[]>([]);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function fetchRecentGames() {
+      try {
+        const snapshot = await getDocs(
+          query(
+            collection(db, "users", userUid, "vsComputerGames"),
+            orderBy("playedAt", "desc"),
+            limit(5)
+          )
+        );
+        if (isCancelled) return;
+        setGames(snapshot.docs.map((docSnapshot) => docSnapshot.data() as VsComputerGameDoc));
+        setStatus("success");
+      } catch (error) {
+        if (isCancelled) return;
+        console.error("[home] 讀取最近對局失敗：", error);
+        setStatus("error");
+      }
+    }
+
+    fetchRecentGames();
+    return () => {
+      isCancelled = true;
+    };
+  }, [userUid]);
+
+  if (status === "loading") return null; // 安靜載入，不需要額外的轉圈圈打斷首頁節奏
+  if (status === "error") return null; // 讀不到就不顯示這個區塊，不影響首頁其他功能
+
+  return (
+    <section className="mt-4 rounded-3xl bg-white/60 px-4 py-5 shadow-sm">
+      <h2 className="mb-3 text-center text-sm font-bold text-[#1A1A2E]">📺 最近對局</h2>
+      {games.length === 0 ? (
+        <p className="text-center text-xs text-[#1A1A2E]/50">還沒有對弈紀錄，去跟電腦下一局吧！</p>
+      ) : (
+        <ul className="flex flex-col gap-2">
+          {games.map((game) => (
+            <li key={game.id}>
+              <button
+                type="button"
+                onClick={() => router.push(`/play/review/${game.id}`)}
+                className="flex w-full items-center justify-between rounded-2xl bg-white/80 px-4 py-3 text-left shadow-sm transition-transform active:scale-95"
+              >
+                <span>
+                  <span className="block text-sm font-bold text-[#1A1A2E]">
+                    {OUTCOME_LABEL[game.outcome]}
+                    <span className="ml-1 text-xs font-normal text-[#1A1A2E]/50">
+                      對手 Lv.{game.opponentLevel}・{game.moveHistory.length}手
+                    </span>
+                  </span>
+                  <span className="text-xs text-[#1A1A2E]/40">{formatTimestamp(game.playedAt)}</span>
+                </span>
+                <span className="shrink-0 text-xs font-bold text-[#8B5FBF]">回顧 ›</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 
