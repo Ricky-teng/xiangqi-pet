@@ -5,7 +5,9 @@
  * ------------------------------------------------------------
  * 顯示所有學生的：象棋等級、解題統計（總解題數/總嘗試次數/勝率）、
  * 小雞健康狀態，並可以展開查看每個學生「每一次解題」的明細
- * （解了哪道題、什麼難度、什麼時候解的、解出來之前錯了幾次）。
+ * （解了哪道題、什麼難度、什麼時候解的、解出來之前錯了幾次），以及
+ * 「每一場對弈電腦」的紀錄（贏/輸/和、難度、飼料增減），點進去可以
+ * 用棋盤一步一步回放整局棋。
  *
  * 資料來源（皆為一次性 getDocs，不開即時監聽，避免長期掛著這頁
  * 浪費 Firestore 讀取額度）：
@@ -19,25 +21,31 @@
  *   3. pets 集合（文件 ID 即 uid，一對一對應 users），撈出健康狀態。
  *   4. puzzles 集合，用來把 solvedPuzzles 紀錄裡的 puzzleId
  *      換成題目標題顯示。
+ *   5. collectionGroup("vsComputerGames")：跟 solvedPuzzles 同樣的
+ *      collection group 查詢手法，但這個文件本身就存了 studentUid
+ *      欄位（見 gameRecording.ts），不需要從路徑反推。
  *
  * 權限需求（Firestore 安全規則）：
  *   這個頁面需要「老師可以讀取所有學生的 users / pets /
- *   solvedPuzzles」，這跟學生端「只能讀寫自己」的規則不一樣，
- *   必須額外加一條「if 角色是 teacher 就放行讀取」的規則，
- *   否則會出現跟之前一樣的 Missing or insufficient permissions。
- *   完整規則內容請見對話裡的說明，不是程式碼檔案的一部分。
+ *   solvedPuzzles / vsComputerGames」，這跟學生端「只能讀寫自己」的
+ *   規則不一樣，必須額外加規則放行讀取，否則會出現跟之前一樣的
+ *   Missing or insufficient permissions。完整規則內容請見對話裡的
+ *   說明，不是程式碼檔案的一部分。
  */
 
 "use client";
+
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { collection, collectionGroup, doc, getDocs, query, updateDoc, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import RequireAuth from "@/components/RequireAuth";
-import type { PetDoc, PuzzleDoc, SolvedPuzzleRecord, UserDoc } from "@/types/database";
+import type { PetDoc, PuzzleDoc, SolvedPuzzleRecord, UserDoc, VsComputerGameDoc } from "@/types/database";
 import type { PuzzleLevel } from "@/types/xiangqi";
 import { CATALOG_ENTRIES } from "@/lib/pet/catalog";
+import ChessBoard from "@/components/ChessBoard";
+import { parseFen } from "@/lib/xiangqi/fen";
 
 type FetchStatus = "loading" | "success" | "error";
 
@@ -58,6 +66,12 @@ const HEALTH_STATUS_EMOJI: Record<string, string> = {
   slightly_sick: "🤢",
   severely_sick: "🤮",
   dead: "💀",
+};
+
+const OUTCOME_LABEL: Record<"win" | "lose" | "draw", string> = {
+  win: "🏆 獲勝",
+  lose: "😢 落敗",
+  draw: "🤝 和棋",
 };
 
 function formatTimestamp(ms: number): string {
@@ -82,6 +96,10 @@ function DashboardContent() {
   const [petsByUid, setPetsByUid] = useState<Map<string, PetDoc>>(new Map());
   const [solvedRecords, setSolvedRecords] = useState<SolvedRecordWithUid[]>([]);
   const [puzzlesById, setPuzzlesById] = useState<Map<string, PuzzleDoc>>(new Map());
+  const [vsComputerGames, setVsComputerGames] = useState<VsComputerGameDoc[]>([]);
+
+  // 正在查看回放的對局（null 代表沒有打開回放）
+  const [replayingGame, setReplayingGame] = useState<VsComputerGameDoc | null>(null);
 
   const [expandedUid, setExpandedUid] = useState<string | null>(null);
 
@@ -131,12 +149,14 @@ function DashboardContent() {
       setErrorMessage(null);
 
       try {
-        const [usersSnapshot, solvedSnapshot, petsSnapshot, puzzlesSnapshot] = await Promise.all([
-          getDocs(query(collection(db, "users"), where("role", "==", "student"))),
-          getDocs(collectionGroup(db, "solvedPuzzles")),
-          getDocs(collection(db, "pets")),
-          getDocs(collection(db, "puzzles")),
-        ]);
+        const [usersSnapshot, solvedSnapshot, petsSnapshot, puzzlesSnapshot, vsComputerSnapshot] =
+          await Promise.all([
+            getDocs(query(collection(db, "users"), where("role", "==", "student"))),
+            getDocs(collectionGroup(db, "solvedPuzzles")),
+            getDocs(collection(db, "pets")),
+            getDocs(collection(db, "puzzles")),
+            getDocs(collectionGroup(db, "vsComputerGames")),
+          ]);
 
         if (isCancelled) return;
 
@@ -159,10 +179,17 @@ function DashboardContent() {
           return { ...(docSnapshot.data() as SolvedPuzzleRecord), uid };
         });
 
+        // vsComputerGames 文件本身已經存了 studentUid 欄位，不需要像
+        // solvedPuzzles 那樣從文件路徑反推。
+        const gameRecords = vsComputerSnapshot.docs.map(
+          (docSnapshot) => docSnapshot.data() as VsComputerGameDoc
+        );
+
         setStudents(studentList);
         setPetsByUid(petMap);
         setPuzzlesById(puzzleMap);
         setSolvedRecords(records);
+        setVsComputerGames(gameRecords);
         setStatus("success");
       } catch (error) {
         if (isCancelled) return;
@@ -195,17 +222,31 @@ function DashboardContent() {
     return grouped;
   }, [solvedRecords]);
 
+  // 依 uid 分組的對弈電腦紀錄，並依對局時間新到舊排序
+  const gamesByUid = useMemo(() => {
+    const grouped = new Map<string, VsComputerGameDoc[]>();
+    for (const game of vsComputerGames) {
+      const list = grouped.get(game.studentUid) ?? [];
+      list.push(game);
+      grouped.set(game.studentUid, list);
+    }
+    for (const list of grouped.values()) {
+      list.sort((a, b) => b.playedAt - a.playedAt);
+    }
+    return grouped;
+  }, [vsComputerGames]);
+
   return (
     <main className="min-h-screen bg-[#FDF6E8] pb-16">
       <div className="mx-auto max-w-3xl px-4 pt-4">
         <header className="flex items-center justify-between rounded-2xl bg-white/70 px-4 py-3 shadow-sm">
           <button
             type="button"
-            onClick={() => router.push("/")}
+            onClick={() => router.push("/admin")}
             className="flex items-center gap-1 rounded-full bg-[#1A1A2E]/5 px-3 py-1.5 text-xs font-bold text-[#1A1A2E] transition-transform active:scale-95"
           >
             <span aria-hidden="true">←</span>
-            回大廳
+            回出題後台
           </button>
           <h1 className="text-base font-bold text-[#1A1A2E]">📊 學生答題監控後台</h1>
           <span className="w-[88px]" aria-hidden="true" />
@@ -232,6 +273,7 @@ function DashboardContent() {
               {students.map((student) => {
                 const pet = petsByUid.get(student.uid);
                 const records = recordsByUid.get(student.uid) ?? [];
+                const games = gamesByUid.get(student.uid) ?? [];
                 const isExpanded = expandedUid === student.uid;
 
                 return (
@@ -369,6 +411,49 @@ function DashboardContent() {
                             })}
                           </ul>
                         )}
+
+                        <p className="mt-3 text-xs font-semibold text-[#1A1A2E]/70">♟️ 對弈電腦紀錄</p>
+                        {games.length === 0 ? (
+                          <p className="mt-1 text-xs text-[#1A1A2E]/50">這位學生還沒有對弈過電腦。</p>
+                        ) : (
+                          <ul className="mt-1 flex flex-col gap-2">
+                            {games.map((game) => (
+                              <li
+                                key={game.id}
+                                className="flex items-center justify-between rounded-xl bg-[#FDF6E8] px-3 py-2 text-xs"
+                              >
+                                <div className="min-w-0 flex-1">
+                                  <p className="truncate font-semibold text-[#1A1A2E]">
+                                    {OUTCOME_LABEL[game.outcome]}
+                                    <span className="ml-1 font-normal text-[#1A1A2E]/50">
+                                      (對手 Lv.{game.opponentLevel}・自身 Lv.{game.studentLevelAtPlay}・
+                                      {game.moveHistory.length}手)
+                                    </span>
+                                  </p>
+                                  <p className="text-[#1A1A2E]/50">{formatTimestamp(game.playedAt)}</p>
+                                </div>
+                                <div className="ml-3 flex shrink-0 flex-col items-end gap-1">
+                                  <span
+                                    className={[
+                                      "font-bold",
+                                      game.foodDelta >= 0 ? "text-[#5B8C5A]" : "text-[#C0392B]",
+                                    ].join(" ")}
+                                  >
+                                    {game.foodDelta >= 0 ? "+" : ""}
+                                    {game.foodDelta} 飼料
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => setReplayingGame(game)}
+                                    className="rounded-lg bg-[#8B5FBF] px-2 py-1 text-[11px] font-bold text-white transition-transform active:scale-95"
+                                  >
+                                    📺 查看棋局
+                                  </button>
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
                       </div>
                     ) : null}
                   </li>
@@ -378,7 +463,93 @@ function DashboardContent() {
           )}
         </div>
       </div>
+
+      {replayingGame ? (
+        <ReplayModal game={replayingGame} onClose={() => setReplayingGame(null)} />
+      ) : null}
     </main>
+  );
+}
+
+/** 對弈紀錄回放：用既有的 ChessBoard 元件顯示某一步的局面，靠 prev/next 一步步看 */
+function ReplayModal({ game, onClose }: { game: VsComputerGameDoc; onClose: () => void }) {
+  const [step, setStep] = useState(0); // 0 = 開局局面，最大值 = fenHistory.length - 1
+  const totalSteps = game.fenHistory.length - 1;
+
+  const board = useMemo(
+    () => parseFen(game.fenHistory[step] ?? game.fenHistory[0]),
+    [game, step]
+  );
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#1A1A2E]/60 px-4"
+      onClick={onClose}
+    >
+      <div
+        className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-3xl bg-[#FDF6E8] p-4 shadow-xl"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-bold text-[#1A1A2E]">
+            {OUTCOME_LABEL[game.outcome]}・對手 Lv.{game.opponentLevel}
+          </h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-full bg-[#1A1A2E]/10 px-2.5 py-1 text-xs font-bold text-[#1A1A2E]/70"
+          >
+            ✕
+          </button>
+        </div>
+
+        {/* 回放是唯讀的，onMove 給空函式即可——不是要拿掉 ChessBoard
+            的互動能力，只是這個情境下完全不需要它做任何事。 */}
+        <div className="mt-3">
+          <ChessBoard board={board} onMove={() => {}} />
+        </div>
+
+        <p className="mt-2 text-center text-xs text-[#1A1A2E]/60">
+          第 {step} / {totalSteps} 步
+          {step > 0 ? `（${game.moveHistory[step - 1]}）` : "（開局）"}
+        </p>
+
+        <div className="mt-3 flex items-center justify-center gap-2">
+          <button
+            type="button"
+            onClick={() => setStep(0)}
+            disabled={step === 0}
+            className="rounded-lg bg-white px-3 py-1.5 text-sm font-bold text-[#1A1A2E]/70 ring-1 ring-inset ring-[#A9764C]/30 disabled:opacity-40"
+          >
+            ⏮
+          </button>
+          <button
+            type="button"
+            onClick={() => setStep((current) => Math.max(0, current - 1))}
+            disabled={step === 0}
+            className="rounded-lg bg-white px-3 py-1.5 text-sm font-bold text-[#1A1A2E]/70 ring-1 ring-inset ring-[#A9764C]/30 disabled:opacity-40"
+          >
+            ◀ 上一步
+          </button>
+          <button
+            type="button"
+            onClick={() => setStep((current) => Math.min(totalSteps, current + 1))}
+            disabled={step === totalSteps}
+            className="rounded-lg bg-white px-3 py-1.5 text-sm font-bold text-[#1A1A2E]/70 ring-1 ring-inset ring-[#A9764C]/30 disabled:opacity-40"
+          >
+            下一步 ▶
+          </button>
+          <button
+            type="button"
+            onClick={() => setStep(totalSteps)}
+            disabled={step === totalSteps}
+            className="rounded-lg bg-white px-3 py-1.5 text-sm font-bold text-[#1A1A2E]/70 ring-1 ring-inset ring-[#A9764C]/30 disabled:opacity-40"
+          >
+            ⏭
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 

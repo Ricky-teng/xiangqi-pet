@@ -6,6 +6,12 @@ import { UserDoc, PetDoc, DailyTaskDoc } from "@/types/database";
 import { resolveStageForXp } from "@/lib/pet/petGrowth";
 import { getCatalogEntryForRebirthCount } from "@/lib/pet/catalog";
 import { getTodayDateString, getTodaysCompletedTaskIds } from "@/lib/tasks/dailyTasks";
+import {
+  calculateWinRewardFood,
+  LOSE_PENALTY_FOOD,
+  DRAW_REWARD_FOOD,
+  type ComputerLevel,
+} from "@/lib/engine/computerPlayer";
 
 // 定義我們遊戲總機裡面有哪些資料與開關
 interface GameStoreState {
@@ -62,6 +68,16 @@ interface GameStoreState {
    * 同一個任務同一天只能領一次，跨天后會重置。
    */
   claimDailyTask: (task: DailyTaskDoc) => { success: boolean; message: string };
+
+  /**
+   * 對弈電腦結束後，依結果（贏/輸/和）跟「對手等級 vs 學生自己等級」的
+   * 差距結算飼料獎懲，並更新 foodCount。見
+   * @/lib/engine/computerPlayer.ts 的 calculateWinRewardFood。
+   */
+  applyVsComputerResult: (
+    outcome: "win" | "lose" | "draw",
+    opponentLevel: ComputerLevel
+  ) => { success: boolean; message: string; foodDelta: number };
 }
 
 export const useGameStore = create<GameStoreState>((set, get) => ({
@@ -422,5 +438,42 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       success: true,
       message: `完成「${task.title}」，獲得 ${task.rewardFood} 飼料！`,
     };
+  },
+
+  // 7. 對弈電腦結算
+  applyVsComputerResult: (outcome, opponentLevel) => {
+    const { user } = get();
+    if (!user) return { success: false, message: "找不到資料", foodDelta: 0 };
+
+    const winRewardFood = calculateWinRewardFood(opponentLevel, user.chessLevel);
+    const foodDelta = outcome === "win" ? winRewardFood : outcome === "draw" ? DRAW_REWARD_FOOD : -LOSE_PENALTY_FOOD;
+
+    // 飼料不會扣到負數，避免顯示出奇怪的負數庫存
+    const newFoodCount = Math.max(0, user.foodCount + foodDelta);
+    const now = Date.now();
+
+    const updatedUser: UserDoc = {
+      ...user,
+      foodCount: newFoodCount,
+      updatedAt: now,
+    };
+
+    set({ user: updatedUser });
+
+    updateDoc(doc(db, "users", user.uid), {
+      foodCount: newFoodCount,
+      updatedAt: now,
+    }).catch((error) => {
+      console.error("[useGameStore] applyVsComputerResult 同步寫回 Firestore 失敗：", error);
+    });
+
+    const message =
+      outcome === "win"
+        ? `恭喜獲勝！獲得 ${winRewardFood} 飼料！`
+        : outcome === "draw"
+          ? `和棋，獲得 ${DRAW_REWARD_FOOD} 飼料安慰獎。`
+          : `這局輸了，扣 ${LOSE_PENALTY_FOOD} 飼料，再接再厲！`;
+
+    return { success: true, message, foodDelta };
   },
 }));

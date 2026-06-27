@@ -175,3 +175,22 @@ export interface DailyTaskDoc {
   createdAt: number;
   updatedAt: number;
 }
+
+/**
+ * 5. 對弈電腦紀錄 (路徑: users/{uid}/vsComputerGames/{gameId})
+ * ------------------------------------------------------------
+ * 每打完一局（贏/輸/和都算）就寫一筆，給老師後台查閱用。fenHistory
+ * 存「每一步之後的局面」（第一個元素是開局），回放時直接讀取顯示，
+ * 不需要老師端重新載入規則引擎重算。
+ */
+export interface VsComputerGameDoc {
+  id: string;
+  studentUid: string;
+  opponentLevel: PuzzleLevel; // 這局挑戰的電腦難度等級
+  studentLevelAtPlay: PuzzleLevel; // 下棋當時學生自己的等級快照（避免之後老師改等級，歷史紀錄對不起來）
+  outcome: "win" | "lose" | "draw";
+  foodDelta: number; // 這局實際獲得/扣除的飼料數量
+  moveHistory: string[]; // 走法記號列表，依序
+  fenHistory: string[]; // 每一步之後的局面 FEN，跟 moveHistory 等長，依序對應
+  playedAt: number;
+}

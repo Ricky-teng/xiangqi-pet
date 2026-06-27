@@ -589,6 +589,23 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
             🚀 開始挑戰
           </button>
         </section>
+
+        {/* ============================================================
+            D. 與電腦對弈入口
+           ============================================================ */}
+        <section className="mt-4 rounded-3xl bg-white/60 px-4 py-5 shadow-sm">
+          <h2 className="mb-3 text-center text-sm font-bold text-[#1A1A2E]">♟️ 與電腦對弈</h2>
+          <p className="mb-4 text-center text-xs text-[#1A1A2E]/60">
+            真正下一場棋，不是解題——選個難度，贏了有飼料獎勵！
+          </p>
+          <button
+            type="button"
+            onClick={() => router.push("/play")}
+            className="w-full rounded-2xl bg-gradient-to-b from-[#8B5FBF] to-[#6B4593] px-4 py-3 text-base font-extrabold text-white shadow-md transition-transform active:scale-95"
+          >
+            ♟️ 開始對弈
+          </button>
+        </section>
       </div>
     </main>
   );

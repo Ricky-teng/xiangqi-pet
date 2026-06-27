@@ -164,7 +164,7 @@ export default function LoginPage() {
                 type="text"
                 value={displayName}
                 onChange={(event) => setDisplayName(event.target.value)}
-                placeholder="同學們會看到的名字"
+                placeholder="同學們會看到的名字(請填全名)"
                 disabled={isSubmitting}
                 className={INPUT_CLASS_NAME}
               />
