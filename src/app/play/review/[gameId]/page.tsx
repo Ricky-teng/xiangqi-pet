@@ -29,6 +29,7 @@ import { useGameStore } from "@/stores/useGameStore";
 import RequireAuth from "@/components/RequireAuth";
 import ChessBoard from "@/components/ChessBoard";
 import { useRulesEngine } from "@/hooks/useRulesEngine";
+import { usePositionAnalysis, toRedPerspectiveScore, formatScoreLabel } from "@/hooks/usePositionAnalysis";
 import { parseFen } from "@/lib/xiangqi/fen";
 import { toChineseNotation } from "@/lib/xiangqi/chineseNotation";
 import type { VsComputerGameDoc } from "@/types/database";
@@ -39,30 +40,13 @@ const OUTCOME_LABEL: Record<"win" | "lose" | "draw", string> = {
   draw: "🤝 和棋",
 };
 
-interface AnalysisResult {
-  move: string;
-  scoreCp: number;
-  depth: number;
-}
-
 function sideToMoveAtStep(step: number): "w" | "b" {
   // fenHistory[0] 是開局（紅方先走），每往後一步換另一方走，
   // 所以「第 step 步之後輪到誰」就看 step 是奇數還是偶數。
   return step % 2 === 0 ? "w" : "b";
 }
 
-/** 把引擎分數（永遠是「目前局面輪走方」的視角）換算成「紅方視角」，
- * 對這個 App 來說比較直覺好懂——學生永遠是紅方。 */
-function toRedPerspectiveScore(scoreCp: number, sideToMove: "w" | "b"): number {
-  return sideToMove === "w" ? scoreCp : -scoreCp;
-}
-
 /** 把紅方視角分數換算成「黑優202分」「紅優100分」這種一看就懂的格式 */
-function formatScoreLabel(redPerspectiveScore: number): string {
-  if (redPerspectiveScore === 0) return "勢均力敵";
-  const side = redPerspectiveScore > 0 ? "紅優" : "黑優";
-  return `${side}${Math.abs(redPerspectiveScore)}分`;
-}
 
 function ReviewContent({ gameId }: { gameId: string }) {
   const router = useRouter();
@@ -83,56 +67,13 @@ function ReviewContent({ gameId }: { gameId: string }) {
   const [exploreMoveHistory, setExploreMoveHistory] = useState<string[]>([]);
   const [exploreMoveError, setExploreMoveError] = useState<string | null>(null);
 
-  const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [analyzeError, setAnalyzeError] = useState<string | null>(null);
-
-  // 「自動分析」模式：點過一次「分析這個局面」之後就打開，之後只要
-  // 局面變了（回放切換步數、推演走了新的一步、進出推演模式）就自動
-  // 重新分析，不需要每次都手動再按一次。
-  const [autoAnalyze, setAutoAnalyze] = useState(false);
-
   const fenForAnalysis = mode === "explore" ? exploreFen : game?.fenHistory[step] ?? null;
   const sideForAnalysis = mode === "explore" ? exploreSideToMove : sideToMoveAtStep(step);
 
-  useEffect(() => {
-    // 局面一變，舊的分析結果（跟箭頭）就對不上了，先清掉。
-    setAnalysis(null);
-    setAnalyzeError(null);
-
-    if (!autoAnalyze || !fenForAnalysis) return;
-
-    let isCancelled = false;
-    setIsAnalyzing(true);
-
-    (async () => {
-      try {
-        const response = await fetch("/api/analyze-position", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ fen: fenForAnalysis, sideToMove: sideForAnalysis }),
-        });
-        if (!response.ok) {
-          const errorBody = (await response.json().catch(() => null)) as { error?: string } | null;
-          throw new Error(errorBody?.error ?? `分析失敗（狀態碼 ${response.status}）`);
-        }
-        const data = (await response.json()) as AnalysisResult;
-        if (isCancelled) return;
-        setAnalysis(data);
-      } catch (error) {
-        if (isCancelled) return;
-        console.error("[review] 分析失敗：", error);
-        setAnalyzeError(error instanceof Error ? error.message : "分析時發生未知錯誤，請稍後再試。");
-      } finally {
-        if (!isCancelled) setIsAnalyzing(false);
-      }
-    })();
-
-    return () => {
-      isCancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fenForAnalysis, sideForAnalysis, autoAnalyze]);
+  const { analysis, isAnalyzing, analyzeError, autoAnalyze, toggleAutoAnalyze } = usePositionAnalysis(
+    fenForAnalysis,
+    sideForAnalysis
+  );
 
   useEffect(() => {
     let isCancelled = false;
@@ -347,7 +288,7 @@ function ReviewContent({ gameId }: { gameId: string }) {
             )}
             <button
               type="button"
-              onClick={() => setAutoAnalyze((prev) => !prev)}
+              onClick={toggleAutoAnalyze}
               className={[
                 "flex-1 rounded-xl px-3 py-2 text-xs font-bold transition-transform active:scale-95",
                 autoAnalyze ? "bg-[#1A1A2E]/10 text-[#1A1A2E]/70" : "bg-[#E8B84B] text-[#1A1A2E]",

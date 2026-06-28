@@ -51,6 +51,16 @@ function VsComputerContent() {
   const [fen, setFen] = useState(STANDARD_START_FEN);
   const [sideToMove, setSideToMove] = useState<"w" | "b">("w");
   const [moveError, setMoveError] = useState<string | null>(null);
+
+  // 認輸：兩段式確認（先按一次顯示「確定要認輸嗎？」，再按一次才真的執行），
+  // 避免不小心點到就直接判輸。
+  const [isConfirmingResign, setIsConfirmingResign] = useState(false);
+
+  // 求和：呼叫 /api/analyze-position 看現在的局面，電腦（黑方）自己的
+  // 優勢分數沒有超過 100，就同意和棋；否則拒絕，遊戲繼續。
+  const [isCheckingDraw, setIsCheckingDraw] = useState(false);
+  const [drawRejectedMessage, setDrawRejectedMessage] = useState<string | null>(null);
+  const DRAW_ACCEPT_THRESHOLD_CP = 100;
   const [gameResultMessage, setGameResultMessage] = useState<string | null>(null);
 
   // 走法/局面歷史，給對局結束時寫進 Firestore 用（回放功能要用到）
@@ -92,6 +102,26 @@ function VsComputerContent() {
    * 之後」的完整歷史（呼叫端負責先 append 好再傳進來，這樣不管是學生
    * 那步結束遊戲、還是電腦那步結束遊戲，記錄的都是完整正確的歷史）。
    */
+  function finalizeGame(outcome: "win" | "lose" | "draw", finalMoveHistory: string[], finalFenHistory: string[]) {
+    if (!opponentLevel || !user) return;
+
+    const rewardResult = applyVsComputerResult(outcome, opponentLevel);
+    setGameResultMessage(rewardResult.message);
+    setGamePhase("game_over");
+
+    recordVsComputerGame({
+      studentUid: user.uid,
+      opponentLevel,
+      studentLevelAtPlay: user.chessLevel,
+      outcome,
+      foodDelta: rewardResult.foodDelta,
+      moveHistory: finalMoveHistory,
+      fenHistory: finalFenHistory,
+    }).catch((error) => {
+      console.error("[play] 對局紀錄寫入失敗（不影響飼料獎懲，只是老師後台看不到這一局）：", error);
+    });
+  }
+
   function resolveGameOverIfNeeded(
     checkFen: string,
     checkSideToMove: "w" | "b",
@@ -107,28 +137,15 @@ function VsComputerContent() {
     const outcome: "win" | "lose" | "draw" =
       status.result === "draw" ? "draw" : status.result === "red_wins" ? "win" : "lose";
 
-    const rewardResult = applyVsComputerResult(outcome, opponentLevel);
-    setGameResultMessage(rewardResult.message);
-    setGamePhase("game_over");
-
-    recordVsComputerGame({
-      studentUid: user.uid,
-      opponentLevel,
-      studentLevelAtPlay: user.chessLevel,
-      outcome,
-      foodDelta: rewardResult.foodDelta,
-      moveHistory: newMoveHistory,
-      fenHistory: newFenHistory,
-    }).catch((error) => {
-      console.error("[play] 對局紀錄寫入失敗（不影響飼料獎懲，只是老師後台看不到這一局）：", error);
-    });
-
+    finalizeGame(outcome, newMoveHistory, newFenHistory);
     return true;
   }
 
   function handleStudentMove(notation: string) {
     if (!engine || gamePhase !== "student_turn") return;
     setMoveError(null);
+    setIsConfirmingResign(false);
+    setDrawRejectedMessage(null);
 
     if (!engine.isLegalMove(fen, "w", notation)) {
       setMoveError("這步不合法，再想想看！");
@@ -146,6 +163,56 @@ function VsComputerContent() {
 
     if (!resolveGameOverIfNeeded(result.fen, result.sideToMove, newMoveHistory, newFenHistory)) {
       setGamePhase("computer_thinking");
+    }
+  }
+
+  function handleResign() {
+    if (gamePhase !== "student_turn") return;
+
+    if (!isConfirmingResign) {
+      setIsConfirmingResign(true);
+      return;
+    }
+
+    setIsConfirmingResign(false);
+    finalizeGame("lose", moveHistory, fenHistory);
+  }
+
+  function cancelResignConfirm() {
+    setIsConfirmingResign(false);
+  }
+
+  async function handleOfferDraw() {
+    if (gamePhase !== "student_turn") return;
+
+    setIsCheckingDraw(true);
+    setDrawRejectedMessage(null);
+    try {
+      const response = await fetch("/api/analyze-position", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        // 求和只會在學生（紅方）回合按，sideToMove 固定是 "w"。
+        body: JSON.stringify({ fen, sideToMove: "w" }),
+      });
+      if (!response.ok) {
+        const errorBody = (await response.json().catch(() => null)) as { error?: string } | null;
+        throw new Error(errorBody?.error ?? `分析失敗（狀態碼 ${response.status}）`);
+      }
+      const data = (await response.json()) as { scoreCp: number };
+      // data.scoreCp 是紅方視角的分數（因為 sideToMove 是 "w"），取負號
+      // 換算成電腦（黑方）自己的優勢分數。
+      const computerAdvantage = -data.scoreCp;
+
+      if (computerAdvantage <= DRAW_ACCEPT_THRESHOLD_CP) {
+        finalizeGame("draw", moveHistory, fenHistory);
+      } else {
+        setDrawRejectedMessage("電腦覺得自己優勢明顯，拒絕求和，繼續下吧！");
+      }
+    } catch (error) {
+      console.error("[play] 求和判斷失敗：", error);
+      setDrawRejectedMessage("求和請求失敗，請稍後再試。");
+    } finally {
+      setIsCheckingDraw(false);
     }
   }
 
@@ -245,6 +312,52 @@ function VsComputerContent() {
               <div className="mt-3 min-h-[1.5rem] text-center text-xs">
                 {moveError ? <span className="text-[#C0392B]">{moveError}</span> : null}
               </div>
+
+              {isStudentTurn ? (
+                <div className="mt-2">
+                  {isConfirmingResign ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-xs font-bold text-[#C0392B]">確定要認輸嗎？</span>
+                      <button
+                        type="button"
+                        onClick={handleResign}
+                        className="rounded-lg bg-[#C0392B] px-3 py-1.5 text-xs font-bold text-white transition-transform active:scale-95"
+                      >
+                        確定認輸
+                      </button>
+                      <button
+                        type="button"
+                        onClick={cancelResignConfirm}
+                        className="rounded-lg bg-white px-3 py-1.5 text-xs font-bold text-[#1A1A2E]/70 ring-1 ring-inset ring-[#A9764C]/30"
+                      >
+                        取消
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={handleResign}
+                        className="flex-1 rounded-xl bg-white px-3 py-2 text-xs font-bold text-[#C0392B] ring-1 ring-inset ring-[#C0392B]/30 transition-transform active:scale-95"
+                      >
+                        🏳️ 認輸
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleOfferDraw}
+                        disabled={isCheckingDraw}
+                        className="flex-1 rounded-xl bg-white px-3 py-2 text-xs font-bold text-[#1A1A2E]/70 ring-1 ring-inset ring-[#A9764C]/30 transition-transform active:scale-95 disabled:opacity-50"
+                      >
+                        {isCheckingDraw ? "詢問電腦中…" : "🤝 求和"}
+                      </button>
+                    </div>
+                  )}
+
+                  {drawRejectedMessage ? (
+                    <p className="mt-2 text-center text-xs text-[#C0392B]">{drawRejectedMessage}</p>
+                  ) : null}
+                </div>
+              ) : null}
             </section>
 
             {gamePhase === "game_over" ? (

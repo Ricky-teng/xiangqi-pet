@@ -47,6 +47,7 @@ import { CATALOG_ENTRIES } from "@/lib/pet/catalog";
 import ChessBoard from "@/components/ChessBoard";
 import { parseFen } from "@/lib/xiangqi/fen";
 import { toChineseNotation } from "@/lib/xiangqi/chineseNotation";
+import { usePositionAnalysis, toRedPerspectiveScore, formatScoreLabel } from "@/hooks/usePositionAnalysis";
 
 type FetchStatus = "loading" | "success" | "error";
 
@@ -482,6 +483,15 @@ function ReplayModal({ game, onClose }: { game: VsComputerGameDoc; onClose: () =
     [game, step]
   );
 
+  // 第 step 步之後輪到誰：跟學生回顧頁面同一套邏輯，開局（step=0）
+  // 紅方先走，之後每一步換另一方。
+  const sideToMoveAtStep: "w" | "b" = step % 2 === 0 ? "w" : "b";
+
+  const { analysis, isAnalyzing, analyzeError, autoAnalyze, toggleAutoAnalyze } = usePositionAnalysis(
+    game.fenHistory[step] ?? null,
+    sideToMoveAtStep
+  );
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-[#1A1A2E]/60 px-4"
@@ -504,10 +514,27 @@ function ReplayModal({ game, onClose }: { game: VsComputerGameDoc; onClose: () =
           </button>
         </div>
 
+        {/* 目前局面評分：開了自動分析之後，切換步數時會跟著更新 */}
+        {analysis || isAnalyzing ? (
+          <div className="mt-3 rounded-2xl bg-[#1A1A2E] px-4 py-2 text-center">
+            <span className="text-sm font-extrabold text-[#FDF6E8]">
+              {analysis
+                ? formatScoreLabel(toRedPerspectiveScore(analysis.scoreCp, sideToMoveAtStep))
+                : "分析中…"}
+            </span>
+          </div>
+        ) : null}
+
         {/* 回放是唯讀的，onMove 給空函式即可——不是要拿掉 ChessBoard
             的互動能力，只是這個情境下完全不需要它做任何事。 */}
         <div className="mt-3">
-          <ChessBoard board={board} onMove={() => {}} />
+          <ChessBoard
+            board={board}
+            onMove={() => {}}
+            highlightMove={
+              analysis ? { from: analysis.move.slice(0, 2), to: analysis.move.slice(2, 4) } : null
+            }
+          />
         </div>
 
         <p className="mt-2 text-center text-xs text-[#1A1A2E]/60">
@@ -551,6 +578,30 @@ function ReplayModal({ game, onClose }: { game: VsComputerGameDoc; onClose: () =
             ⏭
           </button>
         </div>
+
+        <button
+          type="button"
+          onClick={toggleAutoAnalyze}
+          className={[
+            "mt-3 w-full rounded-xl px-3 py-2 text-xs font-bold transition-transform active:scale-95",
+            autoAnalyze ? "bg-[#1A1A2E]/10 text-[#1A1A2E]/70" : "bg-[#E8B84B] text-[#1A1A2E]",
+          ].join(" ")}
+        >
+          {autoAnalyze ? (isAnalyzing ? "分析中…（點擊關閉）" : "🔍 自動分析中（點擊關閉）") : "🔍 分析這個局面"}
+        </button>
+
+        {analyzeError ? (
+          <p className="mt-3 rounded-xl bg-[#C0392B]/10 px-3 py-2 text-center text-xs text-[#C0392B]">
+            {analyzeError}
+          </p>
+        ) : null}
+
+        {analysis ? (
+          <div className="mt-3 rounded-xl bg-[#5B8C5A]/10 px-3 py-2 text-center text-xs text-[#5B8C5A]">
+            <p className="font-bold">引擎建議走法：{toChineseNotation(board, analysis.move)}</p>
+            <p className="mt-0.5 text-[#5B8C5A]/80">搜尋深度 {analysis.depth}</p>
+          </div>
+        ) : null}
       </div>
     </div>
   );
