@@ -94,14 +94,14 @@ function toPikafishFen(appFen: string, sideToMove: "w" | "b"): string {
  */
 const LEVEL_SEARCH_CONFIG: Record<ComputerLevel, { depth: number; movetimeMs: number }> = {
   1: { depth: 1, movetimeMs: 100 },
-  2: { depth: 2, movetimeMs: 200 },
-  3: { depth: 4, movetimeMs: 350 },
-  4: { depth: 6, movetimeMs: 500 },
-  5: { depth: 8, movetimeMs: 800 },
-  6: { depth: 10, movetimeMs: 1200 },
-  7: { depth: 12, movetimeMs: 1800 },
-  8: { depth: 14, movetimeMs: 2600 },
-  9: { depth: 16, movetimeMs: 4000 },
+  2: { depth: 1, movetimeMs: 200 },
+  3: { depth: 3, movetimeMs: 350 },
+  4: { depth: 5, movetimeMs: 500 },
+  5: { depth: 6, movetimeMs: 700 },
+  6: { depth: 8, movetimeMs: 1200 },
+  7: { depth: 10, movetimeMs: 1800 },
+  8: { depth: 11, movetimeMs: 2400 },
+  9: { depth: 13, movetimeMs: 4000 },
   10: { depth: 18, movetimeMs: 8500 }, // 8.5秒是 Vercel Serverless Function 既安全又能發揮最高棋力的平衡點
 };
 
@@ -118,12 +118,12 @@ const LEVEL_SEARCH_CONFIG: Record<ComputerLevel, { depth: number; movetimeMs: nu
  * 選出來的「錯」是真正有意義的錯，不是純粹的隨機亂下。
  */
 const LEVEL_MULTIPV_CONFIG: Record<ComputerLevel, { multiPv: number; topChoiceProbability: number }> = {
-  1: { multiPv: 8, topChoiceProbability: 0.15 },
+  1: { multiPv: 10, topChoiceProbability: 0.15 },
   2: { multiPv: 6, topChoiceProbability: 0.3 },
   3: { multiPv: 5, topChoiceProbability: 0.45 },
-  4: { multiPv: 4, topChoiceProbability: 0.6 },
-  5: { multiPv: 3, topChoiceProbability: 0.75 },
-  6: { multiPv: 2, topChoiceProbability: 0.85 },
+  4: { multiPv: 5, topChoiceProbability: 0.6 },
+  5: { multiPv: 4, topChoiceProbability: 0.75 },
+  6: { multiPv: 3, topChoiceProbability: 0.85 },
   7: { multiPv: 1, topChoiceProbability: 1 },
   8: { multiPv: 1, topChoiceProbability: 1 },
   9: { multiPv: 1, topChoiceProbability: 1 },

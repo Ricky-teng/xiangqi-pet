@@ -57,6 +57,13 @@ function toRedPerspectiveScore(scoreCp: number, sideToMove: "w" | "b"): number {
   return sideToMove === "w" ? scoreCp : -scoreCp;
 }
 
+/** 把紅方視角分數換算成「黑優202分」「紅優100分」這種一看就懂的格式 */
+function formatScoreLabel(redPerspectiveScore: number): string {
+  if (redPerspectiveScore === 0) return "勢均力敵";
+  const side = redPerspectiveScore > 0 ? "紅優" : "黑優";
+  return `${side}${Math.abs(redPerspectiveScore)}分`;
+}
+
 function ReviewContent({ gameId }: { gameId: string }) {
   const router = useRouter();
   const user = useGameStore((s) => s.user);
@@ -77,17 +84,55 @@ function ReviewContent({ gameId }: { gameId: string }) {
   const [exploreMoveError, setExploreMoveError] = useState<string | null>(null);
 
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
-
-  // 切換回放步數時，舊的分析結果（跟箭頭）對應的是「之前那一步」的
-  // 局面，必須清掉，不然會顯示跟目前局面對不上的舊建議。推演模式下
-  // 切換局面已經各自在 handleExploreMove/enterExploreMode 裡清過了，
-  // 這裡只需要處理回放模式下「切換 step」這一種情況。
-  useEffect(() => {
-    setAnalysis(null);
-    setAnalyzeError(null);
-  }, [step]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analyzeError, setAnalyzeError] = useState<string | null>(null);
+
+  // 「自動分析」模式：點過一次「分析這個局面」之後就打開，之後只要
+  // 局面變了（回放切換步數、推演走了新的一步、進出推演模式）就自動
+  // 重新分析，不需要每次都手動再按一次。
+  const [autoAnalyze, setAutoAnalyze] = useState(false);
+
+  const fenForAnalysis = mode === "explore" ? exploreFen : game?.fenHistory[step] ?? null;
+  const sideForAnalysis = mode === "explore" ? exploreSideToMove : sideToMoveAtStep(step);
+
+  useEffect(() => {
+    // 局面一變，舊的分析結果（跟箭頭）就對不上了，先清掉。
+    setAnalysis(null);
+    setAnalyzeError(null);
+
+    if (!autoAnalyze || !fenForAnalysis) return;
+
+    let isCancelled = false;
+    setIsAnalyzing(true);
+
+    (async () => {
+      try {
+        const response = await fetch("/api/analyze-position", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fen: fenForAnalysis, sideToMove: sideForAnalysis }),
+        });
+        if (!response.ok) {
+          const errorBody = (await response.json().catch(() => null)) as { error?: string } | null;
+          throw new Error(errorBody?.error ?? `分析失敗（狀態碼 ${response.status}）`);
+        }
+        const data = (await response.json()) as AnalysisResult;
+        if (isCancelled) return;
+        setAnalysis(data);
+      } catch (error) {
+        if (isCancelled) return;
+        console.error("[review] 分析失敗：", error);
+        setAnalyzeError(error instanceof Error ? error.message : "分析時發生未知錯誤，請稍後再試。");
+      } finally {
+        if (!isCancelled) setIsAnalyzing(false);
+      }
+    })();
+
+    return () => {
+      isCancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fenForAnalysis, sideForAnalysis, autoAnalyze]);
 
   useEffect(() => {
     let isCancelled = false;
@@ -137,7 +182,6 @@ function ReviewContent({ gameId }: { gameId: string }) {
     setExploreSideToMove(sideToMoveAtStep(step));
     setExploreMoveHistory([]);
     setExploreMoveError(null);
-    setAnalysis(null);
     setMode("explore");
   }
 
@@ -146,7 +190,6 @@ function ReviewContent({ gameId }: { gameId: string }) {
     setExploreFen(null);
     setExploreMoveHistory([]);
     setExploreMoveError(null);
-    setAnalysis(null);
   }
 
   function handleExploreMove(notation: string) {
@@ -162,35 +205,9 @@ function ReviewContent({ gameId }: { gameId: string }) {
     setExploreFen(result.fen);
     setExploreSideToMove(result.sideToMove);
     setExploreMoveHistory((prev) => [...prev, notation]);
-    setAnalysis(null);
   }
 
-  async function handleAnalyze() {
-    const fenToAnalyze = mode === "explore" ? exploreFen : game?.fenHistory[step];
-    const sideToAnalyze = mode === "explore" ? exploreSideToMove : sideToMoveAtStep(step);
-    if (!fenToAnalyze) return;
 
-    setIsAnalyzing(true);
-    setAnalyzeError(null);
-    try {
-      const response = await fetch("/api/analyze-position", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fen: fenToAnalyze, sideToMove: sideToAnalyze }),
-      });
-      if (!response.ok) {
-        const errorBody = (await response.json().catch(() => null)) as { error?: string } | null;
-        throw new Error(errorBody?.error ?? `分析失敗（狀態碼 ${response.status}）`);
-      }
-      const data = (await response.json()) as AnalysisResult;
-      setAnalysis(data);
-    } catch (error) {
-      console.error("[review] 分析失敗：", error);
-      setAnalyzeError(error instanceof Error ? error.message : "分析時發生未知錯誤，請稍後再試。");
-    } finally {
-      setIsAnalyzing(false);
-    }
-  }
 
   if (engineError) {
     return (
@@ -245,6 +262,20 @@ function ReviewContent({ gameId }: { gameId: string }) {
           {OUTCOME_LABEL[game.outcome]}・對手 Lv.{game.opponentLevel}（自身 Lv.{game.studentLevelAtPlay}）・
           {game.moveHistory.length} 手
         </section>
+
+        {/* 目前局面評分：跟下面棋盤本體分開、放在比較上面、視覺上更
+            醒目的位置，按過一次「分析」之後，只要有分析結果就會顯示，
+            不需要往下找才看得到分數。開了自動分析之後，切換局面時會
+            短暫顯示「分析中」，讓學生知道系統在處理、不是卡住了。 */}
+        {analysis || isAnalyzing ? (
+          <section className="mt-3 rounded-2xl bg-[#1A1A2E] px-4 py-2 text-center">
+            <span className="text-sm font-extrabold text-[#FDF6E8]">
+              {analysis
+                ? formatScoreLabel(toRedPerspectiveScore(analysis.scoreCp, currentSideToMove))
+                : "分析中…"}
+            </span>
+          </section>
+        ) : null}
 
         <section className="mt-4 rounded-3xl bg-white/60 px-4 py-4 shadow-sm">
           <div className="flex items-center justify-between">
@@ -316,11 +347,13 @@ function ReviewContent({ gameId }: { gameId: string }) {
             )}
             <button
               type="button"
-              onClick={handleAnalyze}
-              disabled={isAnalyzing}
-              className="flex-1 rounded-xl bg-[#E8B84B] px-3 py-2 text-xs font-bold text-[#1A1A2E] transition-transform active:scale-95 disabled:opacity-50"
+              onClick={() => setAutoAnalyze((prev) => !prev)}
+              className={[
+                "flex-1 rounded-xl px-3 py-2 text-xs font-bold transition-transform active:scale-95",
+                autoAnalyze ? "bg-[#1A1A2E]/10 text-[#1A1A2E]/70" : "bg-[#E8B84B] text-[#1A1A2E]",
+              ].join(" ")}
             >
-              {isAnalyzing ? "分析中…" : "🔍 分析這個局面"}
+              {autoAnalyze ? (isAnalyzing ? "分析中…（點擊關閉）" : "🔍 自動分析中（點擊關閉）") : "🔍 分析這個局面"}
             </button>
           </div>
 
@@ -341,11 +374,7 @@ function ReviewContent({ gameId }: { gameId: string }) {
               <p className="font-bold">
                 引擎建議走法：{toChineseNotation(displayBoard, analysis.move)}
               </p>
-              <p className="mt-0.5 text-[#5B8C5A]/80">
-                紅方優勢分數：{toRedPerspectiveScore(analysis.scoreCp, currentSideToMove) > 0 ? "+" : ""}
-                {toRedPerspectiveScore(analysis.scoreCp, currentSideToMove)}
-                （搜尋深度 {analysis.depth}）
-              </p>
+              <p className="mt-0.5 text-[#5B8C5A]/80">搜尋深度 {analysis.depth}</p>
             </div>
           ) : null}
         </section>
