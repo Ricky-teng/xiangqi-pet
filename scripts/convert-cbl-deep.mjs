@@ -49,7 +49,11 @@ function ffishFenToApp(fen) {
   return fen.split(' ')[0].replace(/[NnBb]/g, c => ({ N:'H', n:'h', B:'E', b:'e' }[c]));
 }
 
+const TIMEOUT_MS = 20000; // 20 seconds per position
+let searchDeadline = 0;
+
 function findMate(board, depth) {
+  if (Date.now() > searchDeadline) throw new Error('timeout');
   if (depth === 0) return null;
   const isRedTurn = board.turn();
   const movesStr  = board.legalMoves();
@@ -86,11 +90,18 @@ function findMate(board, depth) {
 }
 
 function solveDeep(ffish, ffishFen) {
+  searchDeadline = Date.now() + TIMEOUT_MS;
   for (let depth = MIN_DEPTH; depth <= MAX_DEPTH; depth += 2) {
     const board = new ffish.Board('xiangqi', ffishFen);
-    const result = findMate(board, depth);
-    board.delete();
-    if (result) return result;
+    try {
+      const result = findMate(board, depth);
+      board.delete();
+      if (result) return result;
+    } catch (e) {
+      board.delete();
+      if (e.message === 'timeout') return null;
+      throw e;
+    }
   }
   return null;
 }
@@ -173,10 +184,11 @@ async function main() {
       existingIds.add(puzzle.id);
       newFound++;
       totalNew++;
+      // Save immediately after each find so interruptions don't lose work
+      writeFileSync('./scripts/cbl-puzzles.json', JSON.stringify(allPuzzles, null, 2));
     }
 
     console.log(`  → ${newFound} new puzzles found`);
-    writeFileSync('./scripts/cbl-puzzles.json', JSON.stringify(allPuzzles, null, 2));
   }
 
   console.log(`\nDone. ${totalNew} new puzzles added. Total: ${allPuzzles.length} → ./scripts/cbl-puzzles.json`);
