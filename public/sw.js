@@ -1,36 +1,51 @@
 /**
  * public/sw.js
  *
- * 最小可行的 Service Worker，目的單純是滿足瀏覽器「可安裝 PWA」的條件
- * （Chrome/Android 在判斷要不要顯示「安裝應用程式」提示時，會檢查
- * 有沒有註冊 Service Worker），不是用來做積極的離線快取。
+ * Service Worker — 有更新就通知前端，不積極快取動態資料
+ * ------------------------------------------------------------
+ * 核心策略跟之前一樣 network-first（有網路就抓最新，網路失敗才用快取），
+ * 但加了「有新版本就立刻接管」的機制：
  *
- * 刻意不快取任何 Firestore/API 回應、不做任何「離線優先」的邏輯：
- * 這個 App 的核心畫面（飼料數量、小雞健康狀態、排行榜、題庫…）全部
- * 都是即時資料，如果 Service Worker 把這些內容快取起來，學生重新
- * 整理頁面時可能會看到「上次離線前」的舊資料，看起來像是資料跑掉、
- * bug，比完全沒有離線支援更糟。只快取一個不太會變的靜態外殼頁面，
- * 純粹讓「完全沒網路」時不會看到瀏覽器的恐龍錯誤畫面。
+ *   1. install 完成後立刻呼叫 skipWaiting()，不等舊分頁關掉才啟用。
+ *   2. activate 時 clients.claim() 讓新 SW 馬上接管所有已開的分頁。
+ *   3. activate 完成後對所有分頁送一則 "SW_UPDATED" 訊息。
+ *   4. 前端（ServiceWorkerRegister.tsx）收到這則訊息就顯示
+ *      「有新版本，點此重新整理」的提示條。
+ *
+ * 為什麼不在 install 事件送訊息：install 完成時新 SW 還沒接管，
+ * 分頁還在聽舊 SW，postMessage 送過去沒有人接收。要等 activate
+ * 完成（也就是 clients.claim() 完成）才能確定這些分頁都在聽新 SW。
  */
 
-const SHELL_CACHE_NAME = "xiangqi-pet-shell-v1";
+const SHELL_CACHE_NAME = "xiangqi-pet-shell-v2";
 const SHELL_URLS = ["/"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(SHELL_CACHE_NAME).then((cache) => cache.addAll(SHELL_URLS))
+    caches
+      .open(SHELL_CACHE_NAME)
+      .then((cache) => cache.addAll(SHELL_URLS))
+      .then(() => self.skipWaiting())
   );
 });
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys
-          .filter((key) => key !== SHELL_CACHE_NAME)
-          .map((key) => caches.delete(key))
+    caches
+      .keys()
+      .then((keys) =>
+        Promise.all(
+          keys
+            .filter((key) => key !== SHELL_CACHE_NAME)
+            .map((key) => caches.delete(key))
+        )
       )
-    )
+      .then(() => self.clients.claim())
+      .then(() =>
+        self.clients.matchAll({ type: "window" }).then((clients) => {
+          clients.forEach((client) => client.postMessage({ type: "SW_UPDATED" }));
+        })
+      )
   );
 });
 
@@ -41,7 +56,9 @@ self.addEventListener("fetch", (event) => {
 
   event.respondWith(
     fetch(event.request).catch(() =>
-      caches.match(event.request).then((cached) => cached ?? caches.match("/"))
+      caches
+        .match(event.request)
+        .then((cached) => cached ?? caches.match("/"))
     )
   );
 });
