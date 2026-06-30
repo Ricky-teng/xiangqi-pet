@@ -113,7 +113,7 @@ async function chooseHeuristicMove(
   legalMoves: string[],
   level: ComputerLevel
 ): Promise<string> {
-  const captrueMoves = legalMoves.filter((move) => engine.isCaptrueMove(fen, sideToMove, move));
+  const captrueMoves = legalMoves.filter((move) => engine.isCaptureMove(fen, sideToMove, move));
 
   // 等級 1 時幾乎不特別偏好吃子（10%機率），等級 10 時幾乎一定吃
   // （100%機率），中間等級線性內插。
