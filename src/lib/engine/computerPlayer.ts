@@ -113,16 +113,16 @@ async function chooseHeuristicMove(
   legalMoves: string[],
   level: ComputerLevel
 ): Promise<string> {
-  const captureMoves = legalMoves.filter((move) => engine.isCaptureMove(fen, sideToMove, move));
+  const captrueMoves = legalMoves.filter((move) => engine.isCaptrueMove(fen, sideToMove, move));
 
   // 等級 1 時幾乎不特別偏好吃子（10%機率），等級 10 時幾乎一定吃
   // （100%機率），中間等級線性內插。
-  const preferCaptureChance = level / 10;
-  if (captureMoves.length > 0 && Math.random() < preferCaptureChance) {
-    return captureMoves[Math.floor(Math.random() * captureMoves.length)];
+  const preferCaptrueChance = level / 10;
+  if (captrueMoves.length > 0 && Math.random() < preferCaptrueChance) {
+    return captrueMoves[Math.floor(Math.random() * captrueMoves.length)];
   }
 
-  const quietMoves = legalMoves.filter((move) => !captureMoves.includes(move));
+  const quietMoves = legalMoves.filter((move) => !captrueMoves.includes(move));
   const pool = quietMoves.length > 0 ? quietMoves : legalMoves;
   return pool[Math.floor(Math.random() * pool.length)];
 }

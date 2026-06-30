@@ -387,10 +387,23 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
         </header>
 
         {/* ============================================================
-            B. 中央舞台與狀態圖卡區
+            B. 小雞展示區（獨立卡片，給小雞圖像足夠的呼吸空間）
+            ------------------------------------------------------------
+            原本這個 emoji 跟金色等級牌、三大屬性、兩條進度條全部擠在
+            同一個 <section> 裡垂直堆疊，金色等級牌還用負邊距
+            （-mt-2）往上貼，視覺上直接吃掉小雞圖像下緣的空間，看起來
+            像被等級牌「擋住」。現在把「小雞長什麼樣子」這件事獨立成
+            一張卡片，字級從 text-6xl 加大到 text-8xl，並給足夠的
+            padding，其餘狀態資訊（等級、屬性、進度條）移到下面
+            B'. 成長狀態區，兩者用各自獨立的卡片呈現，不再共用一個
+            容器、不再互相擠壓。
            ============================================================ */}
-        <section className="mt-4 flex flex-col items-center rounded-3xl bg-white/60 px-4 py-6 shadow-sm">
-          <div className="text-6xl" role="img" aria-label={`小雞，目前狀態：${HEALTH_STATUS_LABEL[pet.healthStatus]}`}>
+        <section className="mt-4 flex flex-col items-center rounded-3xl bg-white/60 px-4 py-8 shadow-sm">
+          <div
+            className="text-8xl"
+            role="img"
+            aria-label={`小雞，目前狀態：${HEALTH_STATUS_LABEL[pet.healthStatus]}`}
+          >
             {getPetEmoji(pet.stage, pet.healthStatus)}
           </div>
 
@@ -412,9 +425,16 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
               nextLabel="死亡"
             />
           ) : null}
+        </section>
 
+        {/* ============================================================
+            B'. 成長狀態區：等級牌、三大屬性、飽食度/經驗值進度條、
+                轉生/復活相關區塊。跟上面的小雞展示區分開，金色等級牌
+                改用 mt-0（不再是負邊距），不會疊到任何東西上面。
+           ============================================================ */}
+        <section className="mt-4 flex flex-col items-center rounded-3xl bg-white/60 px-4 py-6 shadow-sm">
           {/* 金色等級牌（仿手遊「總戰力」標籤，本頁的簽名視覺元素） */}
-          <div className="-mt-2 rounded-full border-2 border-[#C9962C] bg-gradient-to-b from-[#F6D87A] to-[#E8B84B] px-5 py-1 text-sm font-extrabold text-[#5C3D0A] shadow-md">
+          <div className="rounded-full border-2 border-[#C9962C] bg-gradient-to-b from-[#F6D87A] to-[#E8B84B] px-5 py-1 text-sm font-extrabold text-[#5C3D0A] shadow-md">
             學生目前象棋等級：{user.chessLevel} 級
           </div>
 

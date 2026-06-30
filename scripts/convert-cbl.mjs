@@ -111,8 +111,6 @@ function solvePosition(ffish, ffishFen) {
 
 // ── Main ─────────────────────────────────────────────────────────
 const CBL_FILES = [
-  { file: 'C:/Users/small/OneDrive/桌面/1-基礎殺法-1/鐵門栓.CBL', title: '鐵門栓' },
-  { file: 'C:/Users/small/OneDrive/桌面/1-基礎殺法-1/長短車.CBL', title: '長短車' },
   { file: 'C:/Users/small/OneDrive/桌面/1-基礎殺法-1/雙炮將.CBL', title: '雙炮將' },
   { file: 'C:/Users/small/OneDrive/桌面/1-基礎殺法-1/對面笑.CBL', title: '對面笑' },
   { file: 'C:/Users/small/OneDrive/桌面/1-基礎殺法-1/悶宮殺.CBL', title: '悶宮殺' },
