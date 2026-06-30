@@ -211,7 +211,8 @@ interface PuzzlePageProps {
 }
 
 function PuzzleChallengePageContent({ params }: PuzzlePageProps) {
-  const { id: puzzleId } = use(params);
+  const { id: rawId } = use(params);
+  const puzzleId = decodeURIComponent(rawId);
   const router = useRouter();
 
   // ---- 從全域狀態總機取出使用者與小雞資料（獨立 selector，避免不必要的重渲染） ----
