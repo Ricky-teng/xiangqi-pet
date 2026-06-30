@@ -51,9 +51,9 @@
 
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { collection, deleteDoc, doc, getDocs, setDoc } from "firebase/firestore";
+import { collection, deleteDoc, doc, getDocs, setDoc, writeBatch } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useGameStore } from "@/stores/useGameStore";
 import RequireAuth from "@/components/RequireAuth";
@@ -971,6 +971,9 @@ function ExistingPuzzlesSection({
   const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteErrorMessage, setDeleteErrorMessage] = useState<string | null>(null);
+  const [importProgress, setImportProgress] = useState<{ done: number; total: number } | null>(null);
+  const [importError, setImportError] = useState<string | null>(null);
+  const importFileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     fetchPuzzles();
@@ -1015,22 +1018,96 @@ function ExistingPuzzlesSection({
     }
   }
 
+  async function handleImportJson(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (importFileRef.current) importFileRef.current.value = "";
+    if (!file) return;
+
+    setImportError(null);
+    setImportProgress({ done: 0, total: 0 });
+
+    let raw: unknown;
+    try {
+      raw = JSON.parse(await file.text());
+    } catch {
+      setImportError("JSON 格式錯誤，無法解析。");
+      setImportProgress(null);
+      return;
+    }
+    if (!Array.isArray(raw) || raw.length === 0) {
+      setImportError("JSON 必須是非空陣列。");
+      setImportProgress(null);
+      return;
+    }
+
+    const items = raw as PuzzleDoc[];
+    setImportProgress({ done: 0, total: items.length });
+
+    const BATCH_SIZE = 400;
+    let done = 0;
+    try {
+      for (let i = 0; i < items.length; i += BATCH_SIZE) {
+        const chunk = items.slice(i, i + BATCH_SIZE);
+        const batch = writeBatch(db);
+        for (const puzzle of chunk) {
+          if (!puzzle.id) continue;
+          batch.set(doc(db, "puzzles", puzzle.id), puzzle);
+        }
+        await batch.commit();
+        done += chunk.length;
+        setImportProgress({ done, total: items.length });
+      }
+    } catch (error) {
+      setImportError(error instanceof Error ? `匯入失敗：${error.message}` : "匯入時發生未知錯誤。");
+      setImportProgress(null);
+      return;
+    }
+
+    setImportProgress(null);
+    await fetchPuzzles();
+  }
+
   return (
     <section className="mt-4 rounded-3xl bg-white/60 px-4 py-5 shadow-sm">
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-bold text-[#1A1A2E]">📋 現有題目管理</h2>
-        <button
-          type="button"
-          onClick={fetchPuzzles}
-          className="text-xs font-bold text-[#1A1A2E]/60 hover:underline"
-        >
-          🔄 重新整理
-        </button>
+        <div className="flex items-center gap-3">
+          <input
+            ref={importFileRef}
+            type="file"
+            accept=".json,application/json"
+            className="hidden"
+            onChange={handleImportJson}
+          />
+          <button
+            type="button"
+            onClick={() => importFileRef.current?.click()}
+            disabled={importProgress !== null}
+            className="text-xs font-bold text-[#5B8C5A] hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {importProgress
+              ? `匯入中… ${importProgress.done}/${importProgress.total}`
+              : "📥 上傳 JSON 匯入"}
+          </button>
+          <button
+            type="button"
+            onClick={fetchPuzzles}
+            className="text-xs font-bold text-[#1A1A2E]/60 hover:underline"
+          >
+            🔄 重新整理
+          </button>
+        </div>
       </div>
 
       {deleteErrorMessage ? (
         <p className="mt-2 rounded-xl bg-[#C0392B]/10 px-3 py-2 text-xs font-medium text-[#C0392B]">
           {deleteErrorMessage}
+        </p>
+      ) : null}
+
+      {importError ? (
+        <p className="mt-2 rounded-xl bg-[#C0392B]/10 px-3 py-2 text-xs font-medium text-[#C0392B]">
+          {importError}
         </p>
       ) : null}
 

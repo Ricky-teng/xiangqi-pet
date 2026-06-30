@@ -8766,5 +8766,1726 @@
     "isPublished": false,
     "createdAt": 1782782357996,
     "updatedAt": 1782782357996
+  },
+  {
+    "id": "長短車_0",
+    "level": 1,
+    "title": "長短車 1",
+    "description": "長短車殺法練習",
+    "initialFen": "4k4/2R6/9/9/9/9/8r/9/4p1r2/1R3K3",
+    "moves": [
+      "b9b0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374243,
+    "updatedAt": 1782782374243
+  },
+  {
+    "id": "長短車_1",
+    "level": 1,
+    "title": "長短車 2",
+    "description": "長短車殺法練習",
+    "initialFen": "3k5/4R4/4e4/9/9/1R7/9/2r6/4p1r2/5K3",
+    "moves": [
+      "b5d5"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374255,
+    "updatedAt": 1782782374255
+  },
+  {
+    "id": "長短車_2",
+    "level": 1,
+    "title": "長短車 3",
+    "description": "長短車殺法練習",
+    "initialFen": "5k3/4R1R2/8e/9/9/9/9/9/3r1r3/4K1E2",
+    "moves": [
+      "e1e0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374266,
+    "updatedAt": 1782782374266
+  },
+  {
+    "id": "長短車_3",
+    "level": 1,
+    "title": "長短車 4",
+    "description": "長短車殺法練習",
+    "initialFen": "5k3/4R4/8e/9/9/6R2/9/9/2rr5/4K1E2",
+    "moves": [
+      "g5f5"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374278,
+    "updatedAt": 1782782374278
+  },
+  {
+    "id": "長短車_4",
+    "level": 1,
+    "title": "長短車 5",
+    "description": "長短車殺法練習",
+    "initialFen": "2e1R4/4R4/3k5/9/9/3c5/9/9/1rp5r/3K5",
+    "moves": [
+      "e0d0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374289,
+    "updatedAt": 1782782374289
+  },
+  {
+    "id": "長短車_5",
+    "level": 1,
+    "title": "長短車 6",
+    "description": "長短車殺法練習",
+    "initialFen": "2R1R4/3k5/9/9/9/3c5/9/9/2r5r/3K5",
+    "moves": [
+      "c0d0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374300,
+    "updatedAt": 1782782374300
+  },
+  {
+    "id": "長短車_6",
+    "level": 1,
+    "title": "長短車 7",
+    "description": "長短車殺法練習",
+    "initialFen": "2R6/4R4/3k1h3/9/9/3c5/9/9/4p3r/3K5",
+    "moves": [
+      "c0c2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374311,
+    "updatedAt": 1782782374311
+  },
+  {
+    "id": "長短車_7",
+    "level": 1,
+    "title": "長短車 8",
+    "description": "長短車殺法練習",
+    "initialFen": "4ka1R1/3ra4/9/4R4/9/9/9/9/4p1r2/5K3",
+    "moves": [
+      "h0f0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374323,
+    "updatedAt": 1782782374323
+  },
+  {
+    "id": "長短車_8",
+    "level": 1,
+    "title": "長短車 9",
+    "description": "長短車殺法練習",
+    "initialFen": "3aka2R/3R1h3/4e4/9/9/9/9/4p4/2rp5/4KC3",
+    "moves": [
+      "i0f0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374333,
+    "updatedAt": 1782782374333
+  },
+  {
+    "id": "長短車_9",
+    "level": 1,
+    "title": "長短車 10",
+    "description": "長短車殺法練習",
+    "initialFen": "5k3/4R1R2/5r2e/9/9/9/9/9/3p1r3/4K4",
+    "moves": [
+      "e1e0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374345,
+    "updatedAt": 1782782374345
+  },
+  {
+    "id": "長短車_10",
+    "level": 1,
+    "title": "長短車 11",
+    "description": "長短車殺法練習",
+    "initialFen": "3k5/2R1a4/9/9/9/9/9/9/5rr2/1R2K4",
+    "moves": [
+      "b9b0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374354,
+    "updatedAt": 1782782374354
+  },
+  {
+    "id": "長短車_11",
+    "level": 1,
+    "title": "長短車 12",
+    "description": "長短車殺法練習",
+    "initialFen": "3k2e2/7R1/9/9/9/9/9/9/4r1r2/1R3K3",
+    "moves": [
+      "b9b0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374363,
+    "updatedAt": 1782782374363
+  },
+  {
+    "id": "長短車_12",
+    "level": 1,
+    "title": "長短車 13",
+    "description": "長短車殺法練習",
+    "initialFen": "5k3/4R1R2/8e/9/9/9/9/4E4/1r1r5/4K4",
+    "moves": [
+      "g1f1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374371,
+    "updatedAt": 1782782374371
+  },
+  {
+    "id": "長短車_13",
+    "level": 1,
+    "title": "長短車 14",
+    "description": "長短車殺法練習",
+    "initialFen": "5k3/4R4/9/9/9/9/9/9/2rrA4/c3KAR2",
+    "moves": [
+      "g9g0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374380,
+    "updatedAt": 1782782374380
+  },
+  {
+    "id": "長短車_14",
+    "level": 1,
+    "title": "長短車 15",
+    "description": "長短車殺法練習",
+    "initialFen": "3k5/2R6/e8/4R4/9/9/9/9/1r1r5/c3K4",
+    "moves": [
+      "e3e0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374391,
+    "updatedAt": 1782782374391
+  },
+  {
+    "id": "長短車_15",
+    "level": 1,
+    "title": "長短車 16",
+    "description": "長短車殺法練習",
+    "initialFen": "5k3/4R4/8e/9/9/6R2/9/4E4/1r1r5/4K4",
+    "moves": [
+      "g5f5"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374401,
+    "updatedAt": 1782782374401
+  },
+  {
+    "id": "長短車_16",
+    "level": 1,
+    "title": "長短車 17",
+    "description": "長短車殺法練習",
+    "initialFen": "2e1R4/4R4/3k5/9/9/9/9/9/c3p1r2/5K3",
+    "moves": [
+      "e0d0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374412,
+    "updatedAt": 1782782374412
+  },
+  {
+    "id": "長短車_17",
+    "level": 1,
+    "title": "長短車 18",
+    "description": "長短車殺法練習",
+    "initialFen": "4R1R2/5k3/9/9/9/9/9/4E4/1r1r5/4K4",
+    "moves": [
+      "g0f0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374421,
+    "updatedAt": 1782782374421
+  },
+  {
+    "id": "長短車_18",
+    "level": 2,
+    "title": "長短車 19",
+    "description": "長短車殺法練習",
+    "initialFen": "3k1a3/4a4/3r5/9/9/2R6/4c4/4E4/3rAp3/R3KA3",
+    "moves": [
+      "c5c0",
+      "d0d1",
+      "a9a1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374439,
+    "updatedAt": 1782782374439
+  },
+  {
+    "id": "長短車_19",
+    "level": 2,
+    "title": "長短車 20",
+    "description": "長短車殺法練習",
+    "initialFen": "3ak1er1/5R3/4e4/9/9/1R7/6h2/9/4p4/5K2c",
+    "moves": [
+      "f1f0",
+      "e0e1",
+      "b5b1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374455,
+    "updatedAt": 1782782374455
+  },
+  {
+    "id": "長短車_20",
+    "level": 2,
+    "title": "長短車 21",
+    "description": "長短車殺法練習",
+    "initialFen": "4k1er1/4aR3/4c4/9/9/1R7/6h2/9/4p4/3K4c",
+    "moves": [
+      "b5b0",
+      "e1d0",
+      "b0d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374472,
+    "updatedAt": 1782782374472
+  },
+  {
+    "id": "長短車_21",
+    "level": 2,
+    "title": "長短車 22",
+    "description": "長短車殺法練習",
+    "initialFen": "r1eakaer1/5R3/1c2c4/p1p1h3p/6p2/2P6/P3P1P1P/1CH2R1C1/4A4/2EAK1E2",
+    "moves": [
+      "f1f0",
+      "e0e1",
+      "f7f1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374497,
+    "updatedAt": 1782782374497
+  },
+  {
+    "id": "長短車_22",
+    "level": 2,
+    "title": "長短車 23",
+    "description": "長短車殺法練習",
+    "initialFen": "4k4/9/4e3R/5R3/6e2/9/9/9/2rpA4/c3K4",
+    "moves": [
+      "i2e2",
+      "e0d0",
+      "f3d3"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374517,
+    "updatedAt": 1782782374517
+  },
+  {
+    "id": "長短車_23",
+    "level": 2,
+    "title": "長短車 24",
+    "description": "長短車殺法練習",
+    "initialFen": "3aka1R1/5hR2/4e4/9/9/9/9/2h1E4/3p5/c3K4",
+    "moves": [
+      "h0f0",
+      "e0e1",
+      "g1f1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374541,
+    "updatedAt": 1782782374541
+  },
+  {
+    "id": "長短車_24",
+    "level": 2,
+    "title": "長短車 25",
+    "description": "長短車殺法練習",
+    "initialFen": "2R2a3/3ka4/1R2c4/9/9/3r5/9/4E1H2/3pA4/4KA1rc",
+    "moves": [
+      "c0c1",
+      "d1d0",
+      "b2b0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374566,
+    "updatedAt": 1782782374566
+  },
+  {
+    "id": "長短車_25",
+    "level": 2,
+    "title": "長短車 26",
+    "description": "長短車殺法練習",
+    "initialFen": "2eakar2/2h1h4/4e1H2/p1p1CR2p/6p2/2c6/P2rP1P1P/4C1Hc1/5R3/2EAKAE2",
+    "moves": [
+      "f3f0",
+      "g0f0",
+      "f8f0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374593,
+    "updatedAt": 1782782374593
+  },
+  {
+    "id": "長短車_26",
+    "level": 2,
+    "title": "長短車 27",
+    "description": "長短車殺法練習",
+    "initialFen": "4ka1R1/2Hr5/5a3/2R6/9/9/9/9/3rp4/5K3",
+    "moves": [
+      "c3e3",
+      "e0d0",
+      "h0f0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374619,
+    "updatedAt": 1782782374619
+  },
+  {
+    "id": "長短車_27",
+    "level": 2,
+    "title": "長短車 28",
+    "description": "長短車殺法練習",
+    "initialFen": "2c1RR3/3k1H3/5h1hC/2p3p1r/2e3e2/5r3/9/3c1p3/4p4/4CK3",
+    "moves": [
+      "e0d0",
+      "d7d0",
+      "f0d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374643,
+    "updatedAt": 1782782374643
+  },
+  {
+    "id": "長短車_28",
+    "level": 2,
+    "title": "長短車 29",
+    "description": "長短車殺法練習",
+    "initialFen": "3k5/4a4/1R1c1a3/9/9/9/9/9/5pr2/R3K4",
+    "moves": [
+      "b2b0",
+      "d0d1",
+      "a9a1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374663,
+    "updatedAt": 1782782374663
+  },
+  {
+    "id": "長短車_29",
+    "level": 2,
+    "title": "長短車 30",
+    "description": "長短車殺法練習",
+    "initialFen": "2R2ae2/3ka4/4ec3/9/9/1R7/4r4/9/4A1h2/3A1K3",
+    "moves": [
+      "b5b1",
+      "d1d2",
+      "c0c2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374691,
+    "updatedAt": 1782782374691
+  },
+  {
+    "id": "長短車_30",
+    "level": 2,
+    "title": "長短車 31",
+    "description": "長短車殺法練習",
+    "initialFen": "2eak4/4aR3/4e4/9/9/9/9/9/2rp5/4K1R2",
+    "moves": [
+      "g9g0",
+      "e1f0",
+      "g0f0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374713,
+    "updatedAt": 1782782374713
+  },
+  {
+    "id": "長短車_31",
+    "level": 2,
+    "title": "長短車 32",
+    "description": "長短車殺法練習",
+    "initialFen": "4k1r2/4aR3/9/9/9/9/1R7/9/4p2c1/3K4c",
+    "moves": [
+      "b6b0",
+      "e1d0",
+      "b0d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374730,
+    "updatedAt": 1782782374730
+  },
+  {
+    "id": "長短車_32",
+    "level": 2,
+    "title": "長短車 33",
+    "description": "長短車殺法練習",
+    "initialFen": "4k1r2/1R2aR3/9/9/9/9/9/9/4p2c1/5K2c",
+    "moves": [
+      "f1e1",
+      "e0d0",
+      "b1b0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374745,
+    "updatedAt": 1782782374745
+  },
+  {
+    "id": "長短車_33",
+    "level": 2,
+    "title": "長短車 34",
+    "description": "長短車殺法練習",
+    "initialFen": "2eakaer1/9/2h1c1c1h/p1p1p1p2/1r6p/5R3/P1P1P1P1P/C1H1C1H2/5R3/2EAKAE2",
+    "moves": [
+      "f5f0",
+      "e0e1",
+      "f8f1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374771,
+    "updatedAt": 1782782374771
+  },
+  {
+    "id": "長短車_34",
+    "level": 2,
+    "title": "長短車 35",
+    "description": "長短車殺法練習",
+    "initialFen": "2eaka3/3R5/4e4/3R5/9/9/9/6h2/5r3/4K1c2",
+    "moves": [
+      "d1d0",
+      "e0e1",
+      "d3d1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374795,
+    "updatedAt": 1782782374795
+  },
+  {
+    "id": "長短車_35",
+    "level": 2,
+    "title": "長短車 36",
+    "description": "長短車殺法練習",
+    "initialFen": "4k4/9/9/6R2/5R3/9/9/4E4/1rr6/c3K4",
+    "moves": [
+      "g3e3",
+      "e0d0",
+      "f4d4"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374822,
+    "updatedAt": 1782782374822
+  },
+  {
+    "id": "長短車_36",
+    "level": 2,
+    "title": "長短車 37",
+    "description": "長短車殺法練習",
+    "initialFen": "3aka1R1/5hR2/4e4/9/9/9/9/1h7/3rA4/1c2KA3",
+    "moves": [
+      "h0f0",
+      "e0e1",
+      "g1f1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374844,
+    "updatedAt": 1782782374844
+  },
+  {
+    "id": "長短車_37",
+    "level": 3,
+    "title": "長短車 38",
+    "description": "長短車殺法練習",
+    "initialFen": "3ak1e2/4a4/4e4/5Hr2/9/5R3/9/5R3/2p1r4/c2K5",
+    "moves": [
+      "f3d2",
+      "e1d2",
+      "f5f0",
+      "e0e1",
+      "f7f1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374880,
+    "updatedAt": 1782782374880
+  },
+  {
+    "id": "長短車_38",
+    "level": 3,
+    "title": "長短車 39",
+    "description": "長短車殺法練習",
+    "initialFen": "3ak1e2/9/4e4/6R1h/9/9/9/3A5/1r1r5/c3KAER1",
+    "moves": [
+      "g3g0",
+      "e0e1",
+      "g0g1",
+      "e1e0",
+      "h9h0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374917,
+    "updatedAt": 1782782374917
+  },
+  {
+    "id": "長短車_39",
+    "level": 3,
+    "title": "長短車 40",
+    "description": "長短車殺法練習",
+    "initialFen": "5k2c/3RR4/9/9/4pch2/9/9/9/4p1r2/5K1p1",
+    "moves": [
+      "e1f1",
+      "f0e0",
+      "d1e1",
+      "e0d0",
+      "f1f0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782374959,
+    "updatedAt": 1782782374959
+  },
+  {
+    "id": "長短車_40",
+    "level": 3,
+    "title": "長短車 41",
+    "description": "長短車殺法練習",
+    "initialFen": "2e2k3/Cr1Ra2R1/4ea3/9/9/9/4c4/5p3/4p1p2/5K3",
+    "moves": [
+      "d1d0",
+      "e1d0",
+      "h1h0",
+      "e2g0",
+      "h0g0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782375125,
+    "updatedAt": 1782782375125
+  },
+  {
+    "id": "長短車_41",
+    "level": 3,
+    "title": "長短車 42",
+    "description": "長短車殺法練習",
+    "initialFen": "c1eR5/6Rh1/1C3k3/9/2e6/9/9/9/1hr1p4/3K1c1r1",
+    "moves": [
+      "g1g2",
+      "f2f1",
+      "d0d1",
+      "f1f0",
+      "g2g0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782375400,
+    "updatedAt": 1782782375400
+  },
+  {
+    "id": "長短車_42",
+    "level": 3,
+    "title": "長短車 43",
+    "description": "長短車殺法練習",
+    "initialFen": "3ak1e2/3P1R3/4e4/1H7/9/2R6/9/5p3/4r1r2/5K3",
+    "moves": [
+      "d1d0",
+      "e0d0",
+      "f1f0",
+      "d0d1",
+      "c5c1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782375443,
+    "updatedAt": 1782782375443
+  },
+  {
+    "id": "長短車_43",
+    "level": 3,
+    "title": "長短車 44",
+    "description": "長短車殺法練習",
+    "initialFen": "3k2e2/1Hr1R1R2/4e3c/9/9/9/9/9/3p1r3/4K4",
+    "moves": [
+      "e1d1",
+      "d0e0",
+      "g1e1",
+      "e0f0",
+      "d1d0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782375487,
+    "updatedAt": 1782782375487
+  },
+  {
+    "id": "長短車_44",
+    "level": 3,
+    "title": "長短車 45",
+    "description": "長短車殺法練習",
+    "initialFen": "3r5/5hR2/4k4/9/9/9/9/4p4/3r5/4KR3",
+    "moves": [
+      "f9f2",
+      "e2e1",
+      "g1f1",
+      "e1e0",
+      "f2e2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782375520,
+    "updatedAt": 1782782375520
+  },
+  {
+    "id": "長短車_45",
+    "level": 3,
+    "title": "長短車 46",
+    "description": "長短車殺法練習",
+    "initialFen": "2e6/7R1/4kaRC1/9/9/4C4/r8/4p4/5p3/r2cK4",
+    "moves": [
+      "g2g1",
+      "f2e1",
+      "g1e1",
+      "e2d2",
+      "e5e2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782375969,
+    "updatedAt": 1782782375969
+  },
+  {
+    "id": "長短車_47",
+    "level": 3,
+    "title": "長短車 48",
+    "description": "長短車殺法練習",
+    "initialFen": "2ea1k3/4a4/9/7R1/9/6R2/r3c4/4E4/1h2A4/4KAE2",
+    "moves": [
+      "h3h0",
+      "f0f1",
+      "h0h1",
+      "f1f2",
+      "g5g2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782381288,
+    "updatedAt": 1782782381288
+  },
+  {
+    "id": "長短車_48",
+    "level": 3,
+    "title": "長短車 49",
+    "description": "長短車殺法練習",
+    "initialFen": "2ea1k3/4a4/4c1R2/9/9/9/9/4E4/1h1rA4/c3KAER1",
+    "moves": [
+      "h9h0",
+      "f0f1",
+      "h0h1",
+      "f1f0",
+      "g2g0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782381339,
+    "updatedAt": 1782782381339
+  },
+  {
+    "id": "長短車_49",
+    "level": 3,
+    "title": "長短車 50",
+    "description": "長短車殺法練習",
+    "initialFen": "4ka3/4a4/4c4/2R3r2/5R3/9/6r2/9/4A4/3A1K3",
+    "moves": [
+      "c3c0",
+      "e1d0",
+      "f4f0",
+      "e0e1",
+      "c0c1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782381380,
+    "updatedAt": 1782782381380
+  },
+  {
+    "id": "長短車_50",
+    "level": 3,
+    "title": "長短車 51",
+    "description": "長短車殺法練習",
+    "initialFen": "3ak1e2/4a4/4e4/5H3/9/5Rr2/9/5R3/2p1r4/3K5",
+    "moves": [
+      "f3d2",
+      "e1d2",
+      "f5f0",
+      "e0e1",
+      "f7f1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782381418,
+    "updatedAt": 1782782381418
+  },
+  {
+    "id": "長短車_51",
+    "level": 3,
+    "title": "長短車 52",
+    "description": "長短車殺法練習",
+    "initialFen": "3k2e2/1Hr1R1R2/4e4/9/9/9/9/2h6/3p1r3/4K4",
+    "moves": [
+      "e1d1",
+      "d0e0",
+      "g1e1",
+      "e0f0",
+      "d1d0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782381458,
+    "updatedAt": 1782782381458
+  },
+  {
+    "id": "長短車_52",
+    "level": 3,
+    "title": "長短車 53",
+    "description": "長短車殺法練習",
+    "initialFen": "c1eR5/6R2/1C3k3/9/9/9/9/9/2r1p4/3K1c1r1",
+    "moves": [
+      "d0d2",
+      "c0e2",
+      "d2d1",
+      "e2g0",
+      "g1g2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782381620,
+    "updatedAt": 1782782381620
+  },
+  {
+    "id": "長短車_53",
+    "level": 3,
+    "title": "長短車 54",
+    "description": "長短車殺法練習",
+    "initialFen": "1h1k1ae2/R3a4/4e4/2R1p4/9/3C5/9/4Cp3/4p1r2/5K3",
+    "moves": [
+      "a1d1",
+      "d0e0",
+      "c3c0",
+      "e1d0",
+      "c0d0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782381694,
+    "updatedAt": 1782782381694
+  },
+  {
+    "id": "長短車_54",
+    "level": 3,
+    "title": "長短車 55",
+    "description": "長短車殺法練習",
+    "initialFen": "3a1ke2/3P3R1/4e4/9/9/2R6/9/5p3/4r1r2/5K3",
+    "moves": [
+      "c5f5",
+      "f0e0",
+      "d1d0",
+      "e0d0",
+      "f5f0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782381735,
+    "updatedAt": 1782782381735
+  },
+  {
+    "id": "長短車_55",
+    "level": 3,
+    "title": "長短車 56",
+    "description": "長短車殺法練習",
+    "initialFen": "2R6/2R6/3k2P2/9/9/9/9/4p4/r2p1p3/4K4",
+    "moves": [
+      "c0d0",
+      "d2e2",
+      "g2f2",
+      "e2f2",
+      "d0d2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782381777,
+    "updatedAt": 1782782381777
+  },
+  {
+    "id": "長短車_56",
+    "level": 3,
+    "title": "長短車 57",
+    "description": "長短車殺法練習",
+    "initialFen": "1R1Ckae2/4aR3/r8/1H1Cp3p/1c7/9/1pP5P/4E4/1rc1A1h2/3K1AE2",
+    "moves": [
+      "b3c1",
+      "c8c1",
+      "d0d1",
+      "e1d0",
+      "b0d0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782382465,
+    "updatedAt": 1782782382465
+  },
+  {
+    "id": "長短車_57",
+    "level": 4,
+    "title": "長短車 58",
+    "description": "長短車殺法練習",
+    "initialFen": "2eakr3/3Ra4/4e4/7H1/9/9/8R/3p5/2p1p4/3K5",
+    "moves": [
+      "h3g1",
+      "f0f1",
+      "i6i0",
+      "e1f0",
+      "i0f0",
+      "e0f0",
+      "d1d0"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782382658,
+    "updatedAt": 1782782382658
+  },
+  {
+    "id": "長短車_58",
+    "level": 4,
+    "title": "長短車 59",
+    "description": "長短車殺法練習",
+    "initialFen": "3a1R3/4k4/5R3/9/9/9/9/4E4/2pp1pp2/4K3c",
+    "moves": [
+      "f0f1",
+      "e1e0",
+      "f2e2",
+      "d0e1",
+      "f1e1",
+      "e0f0",
+      "e2f2"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782383539,
+    "updatedAt": 1782782383539
+  },
+  {
+    "id": "長短車_59",
+    "level": 4,
+    "title": "長短車 60",
+    "description": "長短車殺法練習",
+    "initialFen": "4ka1R1/3R5/1r3a3/4p4/6C2/9/9/9/4pr1h1/3K4c",
+    "moves": [
+      "g4g0",
+      "f0e1",
+      "g0g2",
+      "e1f0",
+      "d1d0",
+      "e0e1",
+      "h0h1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782383697,
+    "updatedAt": 1782782383697
+  },
+  {
+    "id": "長短車_61",
+    "level": 2,
+    "title": "長短車 62",
+    "description": "長短車殺法練習",
+    "initialFen": "3a1a3/2P1k4/9/9/9/9/3R5/4r4/4p1p2/R4K2c",
+    "moves": [
+      "d6d1",
+      "e1e2",
+      "a9a2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782385009,
+    "updatedAt": 1782782385009
+  },
+  {
+    "id": "長短車_62",
+    "level": 4,
+    "title": "長短車 63",
+    "description": "長短車殺法練習",
+    "initialFen": "4k2CR/4a4/4haH2/6p2/4p4/9/5r3/2r2p3/4p4/c4K1R1",
+    "moves": [
+      "g2f0",
+      "e0f0",
+      "h0h4",
+      "f0f1",
+      "h4f4",
+      "e2f4",
+      "h9h1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782385187,
+    "updatedAt": 1782782385187
+  },
+  {
+    "id": "長短車_63",
+    "level": 3,
+    "title": "長短車 64",
+    "description": "長短車殺法練習",
+    "initialFen": "1R2R4/3kac3/4e1h2/p3p1p2/2p3e1p/9/P1P1hrP1P/4EA1r1/9/2E1KA3",
+    "moves": [
+      "e0c0",
+      "h7h9",
+      "c0c1",
+      "d1d2",
+      "b0b2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782389982,
+    "updatedAt": 1782782389982
+  },
+  {
+    "id": "長短車_64",
+    "level": 4,
+    "title": "長短車 65",
+    "description": "長短車殺法練習",
+    "initialFen": "r1e2RC2/1R7/3k5/6p2/9/4C4/5h3/4h1c2/3pp1p2/5K1c1",
+    "moves": [
+      "f0f2",
+      "c0e2",
+      "b1b2",
+      "d2d1",
+      "f2f1",
+      "d1d0",
+      "b2d2"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782390378,
+    "updatedAt": 1782782390378
+  },
+  {
+    "id": "長短車_65",
+    "level": 3,
+    "title": "長短車 66",
+    "description": "長短車殺法練習",
+    "initialFen": "1rPa5/4a2R1/5k2e/8H/6e1R/9/9/9/2p1p4/3K5",
+    "moves": [
+      "i3g4",
+      "f2e2",
+      "i4i2",
+      "e1f2",
+      "i2f2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782390484,
+    "updatedAt": 1782782390484
+  },
+  {
+    "id": "長短車_66",
+    "level": 4,
+    "title": "長短車 67",
+    "description": "長短車殺法練習",
+    "initialFen": "3k2e2/1h2R1R2/4e3c/H8/9/9/9/9/2rp1r3/4K4",
+    "moves": [
+      "a3b1",
+      "c8c1",
+      "e1d1",
+      "d0e0",
+      "g1e1",
+      "e0f0",
+      "d1d0"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782390552,
+    "updatedAt": 1782782390552
+  },
+  {
+    "id": "長短車_67",
+    "level": 4,
+    "title": "長短車 68",
+    "description": "長短車殺法練習",
+    "initialFen": "2ek5/9/e8/2R6/9/1R7/9/4EAh2/5r3/2EAK1c2",
+    "moves": [
+      "c3d3",
+      "d0e0",
+      "b5e5",
+      "c0e2",
+      "e5e2",
+      "e0f0",
+      "d3f3"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782390717,
+    "updatedAt": 1782782390717
+  },
+  {
+    "id": "長短車_68",
+    "level": 4,
+    "title": "長短車 69",
+    "description": "長短車殺法練習",
+    "initialFen": "4ka3/4a4/9/9/9/5R3/4c4/4E4/4A1rr1/1R1A1K3",
+    "moves": [
+      "b9b0",
+      "e1d0",
+      "f5f0",
+      "e0e1",
+      "b0b1",
+      "e1e2",
+      "f0f2"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782390851,
+    "updatedAt": 1782782390851
+  },
+  {
+    "id": "長短車_69",
+    "level": 4,
+    "title": "長短車 70",
+    "description": "長短車殺法練習",
+    "initialFen": "3a1R3/4k4/5R3/9/9/9/9/4p4/3p1p3/2p1K1p2",
+    "moves": [
+      "f0f1",
+      "e1e0",
+      "f2e2",
+      "d0e1",
+      "f1e1",
+      "e0f0",
+      "e2f2"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782391673,
+    "updatedAt": 1782782391673
+  },
+  {
+    "id": "長短車_70",
+    "level": 4,
+    "title": "長短車 71",
+    "description": "長短車殺法練習",
+    "initialFen": "4ka3/2Rha4/9/1R7/9/9/9/4p1h2/7r1/4K3c",
+    "moves": [
+      "b3b0",
+      "e1d0",
+      "b0d0",
+      "e0e1",
+      "d0d1",
+      "e1e2",
+      "c1c2"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782391755,
+    "updatedAt": 1782782391755
+  },
+  {
+    "id": "長短車_71",
+    "level": 4,
+    "title": "長短車 72",
+    "description": "長短車殺法練習",
+    "initialFen": "2ea1k3/4a4/4e2R1/3R5/9/9/9/3A5/2rp5/c3KA3",
+    "moves": [
+      "d3f3",
+      "e1f2",
+      "h2f2",
+      "f0e0",
+      "f2f0",
+      "e0e1",
+      "f3f1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782391882,
+    "updatedAt": 1782782391882
+  },
+  {
+    "id": "長短車_72",
+    "level": 4,
+    "title": "長短車 73",
+    "description": "長短車殺法練習",
+    "initialFen": "4ka1R1/3R5/1r3a3/9/4p1C2/9/9/4p2c1/4pr1h1/3K3c1",
+    "moves": [
+      "g4g0",
+      "f0e1",
+      "g0g2",
+      "e1f0",
+      "d1d0",
+      "e0e1",
+      "h0h1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782391989,
+    "updatedAt": 1782782391989
+  },
+  {
+    "id": "長短車_73",
+    "level": 3,
+    "title": "長短車 74",
+    "description": "長短車殺法練習",
+    "initialFen": "1r1a5/4a2R1/5k2e/8H/6e1R/9/9/9/2p1p4/3K5",
+    "moves": [
+      "i3g4",
+      "f2e2",
+      "i4i2",
+      "e1f2",
+      "i2f2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782392064,
+    "updatedAt": 1782782392064
+  },
+  {
+    "id": "長短車_75",
+    "level": 2,
+    "title": "長短車 76",
+    "description": "長短車殺法練習",
+    "initialFen": "3a1a3/2P1k4/9/9/9/9/3R5/4r4/4p1p2/R4K3",
+    "moves": [
+      "d6d1",
+      "e1e2",
+      "a9a2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782393516,
+    "updatedAt": 1782782393516
+  },
+  {
+    "id": "長短車_76",
+    "level": 4,
+    "title": "長短車 77",
+    "description": "長短車殺法練習",
+    "initialFen": "4k2CR/4a4/4haH2/6p2/4p4/5c3/5r3/5p3/4p4/5K1R1",
+    "moves": [
+      "g2f0",
+      "e0f0",
+      "h0h4",
+      "f0f1",
+      "h4f4",
+      "e2f4",
+      "h9h1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782393761,
+    "updatedAt": 1782782393761
+  },
+  {
+    "id": "長短車_77",
+    "level": 2,
+    "title": "長短車 78",
+    "description": "長短車殺法練習",
+    "initialFen": "3akae2/5r3/e1h1c1c1h/pCCRp3p/9/2P6/P3P3P/2H3p2/3R5/2EAKAEr1",
+    "moves": [
+      "b3b0",
+      "e0e1",
+      "d3d1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782399366,
+    "updatedAt": 1782782399366
+  },
+  {
+    "id": "長短車_79",
+    "level": 3,
+    "title": "長短車 80",
+    "description": "長短車殺法練習",
+    "initialFen": "1R2R4/3kac3/4e1h2/4p1p2/p1p3e1p/9/4hr3/4EA1r1/9/2E1KA3",
+    "moves": [
+      "e0c0",
+      "h7h9",
+      "c0c1",
+      "d1d2",
+      "b0b2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782404043,
+    "updatedAt": 1782782404043
+  },
+  {
+    "id": "長短車_80",
+    "level": 1,
+    "title": "長短車 81",
+    "description": "長短車殺法練習",
+    "initialFen": "4ka1R1/5R3/4e4/8p/2h2r3/2E6/9/5A3/4A4/2E1K4",
+    "moves": [
+      "h0f0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782404053,
+    "updatedAt": 1782782404053
+  },
+  {
+    "id": "長短車_81",
+    "level": 1,
+    "title": "長短車 82",
+    "description": "長短車殺法練習",
+    "initialFen": "4k2r1/5R3/e8/R7p/9/2E6/9/5A3/5r3/2EK5",
+    "moves": [
+      "a3e3"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782404061,
+    "updatedAt": 1782782404061
+  },
+  {
+    "id": "長短車_82",
+    "level": 1,
+    "title": "長短車 83",
+    "description": "長短車殺法練習",
+    "initialFen": "R8/3R5/4k3c/8p/9/2E4r1/9/9/4A1p2/2E2K3",
+    "moves": [
+      "a0e0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782404069,
+    "updatedAt": 1782782404069
+  },
+  {
+    "id": "長短車_83",
+    "level": 2,
+    "title": "長短車 84",
+    "description": "長短車殺法練習",
+    "initialFen": "5R1R1/4k4/9/8p/9/2Ec4r/9/4E4/4A1p2/5K3",
+    "moves": [
+      "h0h1",
+      "e1e2",
+      "f0f2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782404088,
+    "updatedAt": 1782782404088
+  },
+  {
+    "id": "長短車_84",
+    "level": 2,
+    "title": "長短車 85",
+    "description": "長短車殺法練習",
+    "initialFen": "4k4/9/R3e4/3R4p/9/2E6/9/4E4/3pAp1h1/4K4",
+    "moves": [
+      "a2e2",
+      "e0f0",
+      "d3f3"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782404115,
+    "updatedAt": 1782782404115
+  },
+  {
+    "id": "長短車_85",
+    "level": 2,
+    "title": "長短車 86",
+    "description": "長短車殺法練習",
+    "initialFen": "3ak1r2/4a4/4e3e/4C4/5R3/5R3/9/2r6/4p4/5K3",
+    "moves": [
+      "f4f0",
+      "g0f0",
+      "f5f0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782404139,
+    "updatedAt": 1782782404139
+  },
+  {
+    "id": "長短車_86",
+    "level": 1,
+    "title": "長短車 87",
+    "description": "長短車殺法練習",
+    "initialFen": "4R1R2/3r1k3/9/5hp1p/4p4/3r5/8P/4E4/9/3AKAE2",
+    "moves": [
+      "g0f0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782404149,
+    "updatedAt": 1782782404149
+  },
+  {
+    "id": "長短車_87",
+    "level": 2,
+    "title": "長短車 88",
+    "description": "長短車殺法練習",
+    "initialFen": "4kah2/1R1Ra4/e3e4/5r3/9/9/p3r4/4E4/c3A4/2EAKC3",
+    "moves": [
+      "b1b0",
+      "e1d0",
+      "b0d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782404343,
+    "updatedAt": 1782782404343
+  },
+  {
+    "id": "長短車_88",
+    "level": 4,
+    "title": "長短車 89",
+    "description": "長短車殺法練習",
+    "initialFen": "2ea1k3/3Pa4/4e4/7R1/5r3/6R2/4c4/4E4/1h2A4/4KAE2",
+    "moves": [
+      "h3h0",
+      "e2g0",
+      "g5g0",
+      "f0f1",
+      "h0h1",
+      "f1f2",
+      "g0g2"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782404456,
+    "updatedAt": 1782782404456
+  },
+  {
+    "id": "長短車_89",
+    "level": 2,
+    "title": "長短車 90",
+    "description": "長短車殺法練習",
+    "initialFen": "3k1aR2/4a4/4R4/8p/9/2P6/2h6/3AE4/3c1K3/2r6",
+    "moves": [
+      "e2e1",
+      "c9a9",
+      "g0f0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782420769,
+    "updatedAt": 1782782420769
+  },
+  {
+    "id": "長短車_90",
+    "level": 3,
+    "title": "長短車 91",
+    "description": "長短車殺法練習",
+    "initialFen": "3aka3/3R5/9/9/1R7/9/9/2h1C4/4Arh2/4KAp2",
+    "moves": [
+      "b4e4",
+      "f0e1",
+      "e4e1",
+      "e0f0",
+      "d1d0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782420842,
+    "updatedAt": 1782782420842
+  },
+  {
+    "id": "長短車_92",
+    "level": 2,
+    "title": "長短車 93",
+    "description": "長短車殺法練習",
+    "initialFen": "2ek1a3/2R3R2/4ea3/9/9/9/3rc4/4E4/4A4/4KAE2",
+    "moves": [
+      "g1d1",
+      "d6d1",
+      "c1c0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782471870,
+    "updatedAt": 1782782471870
+  },
+  {
+    "id": "長短車_93",
+    "level": 2,
+    "title": "長短車 94",
+    "description": "長短車殺法練習",
+    "initialFen": "1R4R2/3rk4/9/5hp1p/4p4/3r5/8P/4E4/9/3AKAE2",
+    "moves": [
+      "b0e0",
+      "e1f1",
+      "g0f0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782471895,
+    "updatedAt": 1782782471895
+  },
+  {
+    "id": "長短車_94",
+    "level": 2,
+    "title": "長短車 95",
+    "description": "長短車殺法練習",
+    "initialFen": "1h1ak4/4aR3/4e3e/p1p4Rp/3r5/9/P7P/9/1h7/2E1K4",
+    "moves": [
+      "h3h0",
+      "e1f0",
+      "h0f0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782471939,
+    "updatedAt": 1782782471939
+  },
+  {
+    "id": "長短車_95",
+    "level": 3,
+    "title": "長短車 96",
+    "description": "長短車殺法練習",
+    "initialFen": "3a1k3/4a4/4c1R2/9/9/9/7R1/3hE4/3rA4/2p1KAE2",
+    "moves": [
+      "g2g0",
+      "f0f1",
+      "g0g1",
+      "f1f2",
+      "h6f6"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782471985,
+    "updatedAt": 1782782471985
+  },
+  {
+    "id": "長短車_96",
+    "level": 2,
+    "title": "長短車 97",
+    "description": "長短車殺法練習",
+    "initialFen": "2ek4r/9/2R1e4/9/9/7R1/9/9/1r7/4K4",
+    "moves": [
+      "c2c0",
+      "e2c0",
+      "h5d5"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782472035,
+    "updatedAt": 1782782472035
+  },
+  {
+    "id": "長短車_97",
+    "level": 2,
+    "title": "長短車 98",
+    "description": "長短車殺法練習",
+    "initialFen": "1C2ka3/3R5/3a5/3R1hr2/4p4/2P6/r3P1h1p/4E4/4A4/2E1KA3",
+    "moves": [
+      "d3c3",
+      "a6a9",
+      "c3c0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782473482,
+    "updatedAt": 1782782473482
+  },
+  {
+    "id": "長短車_98",
+    "level": 3,
+    "title": "長短車 99",
+    "description": "長短車殺法練習",
+    "initialFen": "2e1ka3/4a4/c3e4/p6Rp/2r1r4/3R5/4P3P/1C2E4/4A4/4KAE2",
+    "moves": [
+      "b7b0",
+      "e1d0",
+      "d5d0",
+      "e0e1",
+      "h3h1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782473562,
+    "updatedAt": 1782782473562
+  },
+  {
+    "id": "長短車_99",
+    "level": 3,
+    "title": "長短車 100",
+    "description": "長短車殺法練習",
+    "initialFen": "5a3/3ka4/4e4/R3R4/9/9/5p1r1/9/4AK3/1c1A5",
+    "moves": [
+      "a3d3",
+      "e1d2",
+      "d3d2",
+      "d1d2",
+      "e3d3"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782477144,
+    "updatedAt": 1782782477144
+  },
+  {
+    "id": "長短車_101",
+    "level": 3,
+    "title": "長短車 102",
+    "description": "長短車殺法練習",
+    "initialFen": "2e1ka1R1/4a4/4e4/2rH4p/ph2r4/3RC4/P7P/4E4/4A4/3K1AE2",
+    "moves": [
+      "d3f2",
+      "e1f2",
+      "d5d0",
+      "e0e1",
+      "h0h1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782477423,
+    "updatedAt": 1782782477423
+  },
+  {
+    "id": "長短車_111",
+    "level": 4,
+    "title": "長短車 112",
+    "description": "長短車殺法練習",
+    "initialFen": "2e1ka3/3Ra4/4e4/4p4/6h2/4C2R1/2r1c4/4C4/1rp1A4/2E1KAE2",
+    "moves": [
+      "e5e2",
+      "e6e2",
+      "e7e2",
+      "e1d0",
+      "h5h1",
+      "b8b9",
+      "h1e1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782783084116,
+    "updatedAt": 1782783084116
   }
 ]
