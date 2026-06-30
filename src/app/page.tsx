@@ -97,27 +97,6 @@ function getPetImagePath(stage: string, healthStatus: string): string {
 }
 
 /**
- * 走路動畫的兩個跨步姿勢圖路徑（給移動時逐幀交替播放用）。
- * 蛋沒有走路圖（蛋本來就不會用腳走路），回傳 null，呼叫端看到 null
- * 就退回用站立圖原地小幅彈跳代替「移動中」的視覺效果。
- * 生病/死亡狀態也不使用走路動畫——生病的小雞按設計就是病懨懨、死亡
- * 的小雞固定不動，這兩種狀態本來就不會進到「移動中」的程式路徑，
- * 所以這個函式只需要處理健康狀態 + 三個有走路圖的成長階段。
- */
-function getWalkFramePaths(stage: string): [string, string] | null {
-  switch (stage) {
-    case "chick":
-      return ["/pet/chick_walk1.png", "/pet/chick_walk2.png"];
-    case "teen":
-      return ["/pet/teen_walk1.png", "/pet/teen_walk2.png"];
-    case "master":
-      return ["/pet/master_walk1.png", "/pet/master_walk2.png"];
-    default:
-      return null;
-  }
-}
-
-/**
  * 小雞時不時會說的話，依健康狀態分組（不分成長階段——蛋還不會說話，
  * 但蛋的健康狀態理論上一定是 normal，所以共用 normal 那組台詞也沒問題，
  * 邏輯上沒有蛋在喊「我快死了」這種矛盾情況）。每組挑好幾句隨機顯示，
@@ -126,15 +105,15 @@ function getWalkFramePaths(stage: string): [string, string] | null {
 const PET_DIALOGUE_LINES: Record<string, string[]> = {
   normal: [
     "今天也要加油解題喔！",
-    "我肚子餓餓的時候要記得餵我～",
+    "肚子餓餓的時候要記得餵我～",
     "咕咕咕～感覺今天運氣不錯！",
     "象棋好難，但是好好玩！",
-    "陪我解題嘛～",
+    "陪我散散步嘛～",
   ],
   slightly_sick: [
     "咳咳…我好像有點不舒服…",
     "可以買藥水給我嗎？",
-    "感覺昏昏的，不想動…",
+    "感覺懶懶的，不想動…",
   ],
   severely_sick: [
     "嗚…好不舒服…快救救我…",
@@ -306,74 +285,25 @@ function formatTimestamp(ms: number): string {
  * 【對話框】每隔一段隨機時間（8~16 秒），從對應健康狀態的台詞池
  * 裡隨機挑一句，用對話框顯示幾秒後自動消失。
  */
+/**
+ * 小雞展示元件：固定不動的圖片 + 不定時跳出對話框說話。
+ * ------------------------------------------------------------
+ * 原本有做過左右走動 + 雙幀跨步動畫的版本，後來覺得美術製作（每個
+ * 階段要額外畫 2 張對齊一致的走路姿勢圖，又要花心力裁切對齊，不然
+ * 播放起來會像在抖動）太麻煩，决定拿掉，改回固定站立不動，只保留
+ * 「不定時說話」這個比較划算（不需要額外美術資源）的互動感來源。
+ *
+ * 死掉的小雞（healthStatus === "dead"）不會說話，靜靜待在原地——
+ * 這個狀態的小雞理論上就是「沒在動」，繼續說話在情境上會很奇怪。
+ */
 function LivingPetDisplay({ stage, healthStatus }: { stage: string; healthStatus: string }) {
   const isAlive = healthStatus !== "dead";
 
-  // 水平位置：用百分比（0~100）表示小雞目前在舞台範圍內的位置，
-  // 0 是最左邊、100 是最右邊，搭配 CSS transition 做平滑移動。
-  const [positionPercent, setPositionPercent] = useState(50);
-  const [facingLeft, setFacingLeft] = useState(false);
   const [dialogueText, setDialogueText] = useState<string | null>(null);
 
-  // 是否正在移動中：true 的這段期間（跟 CSS transition 的秒數對齊）
-  // 顯示走路動畫的兩個跨步姿勢交替播放，false 時顯示站立圖。
-  const [isWalking, setIsWalking] = useState(false);
-  // 走路動畫目前播放到第幾幀（0 或 1，對應 walkFramePaths 陣列的兩張圖）。
-  const [walkFrameIndex, setWalkFrameIndex] = useState(0);
-
-  const MOVE_DURATION_MS = 2500; // 跟下面 CSS 的 duration-[2500ms] 對齊
-  const WALK_FRAME_INTERVAL_MS = 220; // 兩個跨步姿勢交替的速度，數字越小走路看起來越快
-
-  // 走動排程：不是固定間隔，每次走完隨機決定「下一次再過幾秒走」，
-  // 看起來比固定節奏的機械感更自然。
-  useEffect(() => {
-    if (!isAlive) return;
-
-    let timeoutId: ReturnType<typeof setTimeout>;
-
-    function scheduleNextWalk() {
-      const delayMs = 2500 + Math.random() * 3500; // 2.5~6 秒走一次
-      timeoutId = setTimeout(() => {
-        setPositionPercent((current) => {
-          // 下一個目的地跟目前位置至少要差 20%，避免「走了等於沒走」
-          // 這種幾乎原地踏步的情況看起來像沒有動畫在運作。
-          let next = Math.random() * 100;
-          while (Math.abs(next - current) < 20) {
-            next = Math.random() * 100;
-          }
-          setFacingLeft(next < current);
-          return next;
-        });
-
-        // 開始移動：切到走路動畫，移動結束（跟 CSS transition 秒數
-        // 對齊）後切回站立圖，不需要額外監聽 transitionend 事件，
-        // 用固定時長的 setTimeout 簡單可靠就好。
-        setIsWalking(true);
-        setTimeout(() => setIsWalking(false), MOVE_DURATION_MS);
-
-        scheduleNextWalk();
-      }, delayMs);
-    }
-
-    scheduleNextWalk();
-    return () => clearTimeout(timeoutId);
-  }, [isAlive]);
-
-  // 走路動畫幀交替：只有在 isWalking 期間才跑這個計時器，停下來就
-  // 不需要繼續切換幀（省資源，也避免站立時還在背景空轉）。
-  useEffect(() => {
-    if (!isWalking) {
-      setWalkFrameIndex(0);
-      return;
-    }
-    const intervalId = setInterval(() => {
-      setWalkFrameIndex((current) => (current === 0 ? 1 : 0));
-    }, WALK_FRAME_INTERVAL_MS);
-    return () => clearInterval(intervalId);
-  }, [isWalking]);
-
-  // 對話框排程：同樣用隨機間隔，講完之後對話框會自動消失（見下面
-  // 顯示對話框那段的 setTimeout），不需要使用者手動關閉。
+  // 對話框排程：不是固定間隔，每次講完隨機決定「下一次再過幾秒說」，
+  // 講完之後對話框會自動消失（見下面顯示對話框那段的 setTimeout），
+  // 不需要使用者手動關閉。
   useEffect(() => {
     if (!isAlive) return;
 
@@ -396,37 +326,21 @@ function LivingPetDisplay({ stage, healthStatus }: { stage: string; healthStatus
     return () => clearTimeout(timeoutId);
   }, [isAlive, healthStatus]);
 
-  // 決定目前這一刻要顯示哪張圖：走路動畫只在「活著 + 正在移動 + 這個
-  // 階段有走路圖（蛋沒有）」三個條件同時成立時才使用，其餘情況一律
-  // 顯示靜態的站立/生病/死亡圖。
-  const walkFramePaths = isAlive && healthStatus === "normal" ? getWalkFramePaths(stage) : null;
-  const imageSrc =
-    isWalking && walkFramePaths ? walkFramePaths[walkFrameIndex] : getPetImagePath(stage, healthStatus);
-
   return (
-    <div className="relative h-40 w-full overflow-hidden">
+    <div className="relative flex h-40 w-full items-end justify-center">
       {dialogueText ? (
-        <div
-          className="absolute top-0 z-10 max-w-[80%] -translate-x-1/2 rounded-2xl bg-white px-3 py-2 text-xs font-semibold text-[#1A1A2E] shadow-md"
-          style={{ left: `${positionPercent}%` }}
-        >
+        <div className="absolute top-0 z-10 max-w-[80%] rounded-2xl bg-white px-3 py-2 text-xs font-semibold text-[#1A1A2E] shadow-md">
           {dialogueText}
           {/* 對話框小尾巴，指向下方的小雞 */}
           <div className="absolute left-1/2 top-full h-0 w-0 -translate-x-1/2 border-x-8 border-t-8 border-x-transparent border-t-white" />
         </div>
       ) : null}
 
-      <div
-        className="absolute bottom-0 -translate-x-1/2 transition-[left] duration-[2500ms] ease-in-out"
-        style={{ left: `${positionPercent}%` }}
-      >
-        <img
-          src={imageSrc}
-          alt={`小雞，目前狀態：${HEALTH_STATUS_LABEL[healthStatus] ?? healthStatus}`}
-          className="h-28 w-28 object-contain"
-          style={{ transform: facingLeft ? "scaleX(-1)" : undefined }}
-        />
-      </div>
+      <img
+        src={getPetImagePath(stage, healthStatus)}
+        alt={`小雞，目前狀態：${HEALTH_STATUS_LABEL[healthStatus] ?? healthStatus}`}
+        className="h-28 w-28 object-contain"
+      />
     </div>
   );
 }
@@ -591,7 +505,12 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
             A. 頂部狀態列
            ============================================================ */}
         <header className="flex items-center justify-between rounded-2xl bg-white/70 px-4 py-2 shadow-sm">
-          
+          <div className="flex items-center gap-1 text-sm font-semibold text-[#1A1A2E]">
+            <span aria-hidden="true">⚡</span>
+            <span className="tabular-nums">
+              {user.stamina.current}/{user.stamina.max}
+            </span>
+          </div>
           <div className="flex items-center gap-1 text-sm font-semibold text-[#8B5FBF]">
             <span aria-hidden="true">🟪</span>
             <span className="tabular-nums">{user.foodCount}</span>

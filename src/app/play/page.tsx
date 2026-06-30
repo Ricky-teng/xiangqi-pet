@@ -64,6 +64,12 @@ function VsComputerContent() {
   const [isCheckingDraw, setIsCheckingDraw] = useState(false);
   const [drawRejectedMessage, setDrawRejectedMessage] = useState<string | null>(null);
   const DRAW_ACCEPT_THRESHOLD_CP = 100;
+  // 求和最少要下滿這個步數才能用，避免「一開局就求和騙飼料」這種
+  // 刷分手法——開局雙方分數本來就接近 0，幾乎一定會被判定「可以
+  // 接受求和」，如果沒有這個門檻，學生可以每盤一開局就求和，完全
+  // 不用真的下棋就能一直拿和棋安慰獎飼料。15 步（雙方合計）大概是
+  // 開局走完、進入中局的程度，足以確保這是一場「有認真下」的對局。
+  const MIN_MOVES_BEFORE_DRAW_OFFER = 15;
   const [gameResultMessage, setGameResultMessage] = useState<string | null>(null);
 
   // 走法/局面歷史，給對局結束時寫進 Firestore 用（回放功能要用到）
@@ -189,6 +195,13 @@ function VsComputerContent() {
 
   async function handleOfferDraw() {
     if (gamePhase !== "student_turn") return;
+
+    if (moveHistory.length < MIN_MOVES_BEFORE_DRAW_OFFER) {
+      setDrawRejectedMessage(
+        `至少要下滿 ${MIN_MOVES_BEFORE_DRAW_OFFER} 步才能求和（目前 ${moveHistory.length} 步），再多下幾步吧！`
+      );
+      return;
+    }
 
     setIsCheckingDraw(true);
     setDrawRejectedMessage(null);
@@ -351,10 +364,14 @@ function VsComputerContent() {
                       <button
                         type="button"
                         onClick={handleOfferDraw}
-                        disabled={isCheckingDraw}
+                        disabled={isCheckingDraw || moveHistory.length < MIN_MOVES_BEFORE_DRAW_OFFER}
                         className="flex-1 rounded-xl bg-white px-3 py-2 text-xs font-bold text-[#1A1A2E]/70 ring-1 ring-inset ring-[#A9764C]/30 transition-transform active:scale-95 disabled:opacity-50"
                       >
-                        {isCheckingDraw ? "詢問電腦中…" : "🤝 求和"}
+                        {isCheckingDraw
+                          ? "詢問電腦中…"
+                          : moveHistory.length < MIN_MOVES_BEFORE_DRAW_OFFER
+                            ? `🤝 求和（還差 ${MIN_MOVES_BEFORE_DRAW_OFFER - moveHistory.length} 步）`
+                            : "🤝 求和"}
                       </button>
                     </div>
                   )}
