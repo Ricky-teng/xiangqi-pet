@@ -211,8 +211,7 @@ interface PuzzlePageProps {
 }
 
 function PuzzleChallengePageContent({ params }: PuzzlePageProps) {
-  const { id: rawId } = use(params);
-  const puzzleId = decodeURIComponent(rawId);
+  const { id: puzzleId } = use(params);
   const router = useRouter();
 
   // ---- 從全域狀態總機取出使用者與小雞資料（獨立 selector，避免不必要的重渲染） ----
@@ -374,7 +373,11 @@ function PuzzleHeader({
         </div>
 
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-bold text-[#1A1A2E]">{puzzle.title}</p>
+          {/* 刻意不顯示 puzzle.title——很多題目標題本身就會洩漏解法
+              （例如「馬後炮絕殺」這種標題等於直接告訴學生要用什麼殺法），
+              尤其現在 /puzzle 改成隨機出題模式，更不該讓學生事先知道
+              這題叫什麼名字。改成只顯示中性、不洩漏任何資訊的等級徽章。 */}
+          <p className="text-sm font-bold text-[#1A1A2E]">象棋殘局挑戰</p>
           <div className="mt-0.5 flex items-center gap-2">
             <span className="rounded-full border border-[#C9962C] bg-gradient-to-b from-[#F6D87A] to-[#E8B84B] px-2 py-0.5 text-[10px] font-extrabold text-[#5C3D0A]">
               難度 Lv.{puzzle.level}
