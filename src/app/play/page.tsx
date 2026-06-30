@@ -49,6 +49,9 @@ function VsComputerContent() {
   const [opponentLevel, setOpponentLevel] = useState<ComputerLevel | null>(null);
   const [gamePhase, setGamePhase] = useState<GamePhase>("choosing_difficulty");
   const [fen, setFen] = useState(STANDARD_START_FEN);
+  // 剛剛走的這一步（學生或電腦都算），給 ChessBoard 畫淡色標示用，
+  // 解決「電腦走完棋看不出剛剛動了哪顆子」的問題。
+  const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
   const [sideToMove, setSideToMove] = useState<"w" | "b">("w");
   const [moveError, setMoveError] = useState<string | null>(null);
 
@@ -86,6 +89,7 @@ function VsComputerContent() {
     setGameResultMessage(null);
     setMoveHistory([]);
     setFenHistory([STANDARD_START_FEN]);
+    setLastMove(null);
     setGamePhase("student_turn");
   }
 
@@ -160,6 +164,7 @@ function VsComputerContent() {
     setSideToMove(result.sideToMove);
     setMoveHistory(newMoveHistory);
     setFenHistory(newFenHistory);
+    setLastMove({ from: notation.slice(0, 2), to: notation.slice(2, 4) });
 
     if (!resolveGameOverIfNeeded(result.fen, result.sideToMove, newMoveHistory, newFenHistory)) {
       setGamePhase("computer_thinking");
@@ -240,6 +245,7 @@ function VsComputerContent() {
         setSideToMove(result.sideToMove);
         setMoveHistory(newMoveHistory);
         setFenHistory(newFenHistory);
+        setLastMove({ from: chosenMove.slice(0, 2), to: chosenMove.slice(2, 4) });
 
         if (!resolveGameOverIfNeeded(result.fen, result.sideToMove, newMoveHistory, newFenHistory)) {
           setGamePhase("student_turn");
@@ -306,7 +312,7 @@ function VsComputerContent() {
               </div>
 
               <div className={["mt-3", isStudentTurn ? "" : "pointer-events-none opacity-60"].join(" ")}>
-                <ChessBoard board={board} onMove={handleStudentMove} />
+                <ChessBoard board={board} onMove={handleStudentMove} lastMove={lastMove} />
               </div>
 
               <div className="mt-3 min-h-[1.5rem] text-center text-xs">

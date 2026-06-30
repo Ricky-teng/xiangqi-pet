@@ -80,6 +80,15 @@ export interface ChessBoardProps {
    * 不影響其他既有用法（解題、對弈、回放都不需要這個 prop）。
    */
   highlightMove?: { from: string; to: string } | null;
+  /**
+   * 選用：標示「剛剛走的這一步」（起點+終點的格子各畫一個淡色外框）。
+   * 跟 highlightMove（分析建議的箭頭）是不同用途、可以同時存在：這個
+   * 是「剛剛實際發生的事」，highlightMove 是「引擎建議接下來怎麼走」。
+   * 主要解決「電腦走完棋，學生看不出電腦剛剛動了哪顆子」的問題——
+   * 棋子是瞬間換到新位置的（沒有滑動動畫），如果沒有額外標示，
+   * 在棋子比較密集的局面裡很容易看漏電腦剛剛走的是哪一步。
+   */
+  lastMove?: { from: string; to: string } | null;
 }
 
 function parseSquareLabel(square: string): { row: number; col: number } {
@@ -92,7 +101,7 @@ function parseSquareLabel(square: string): { row: number; col: number } {
 // 4. 主體元件
 // ============================================================
 
-export default function ChessBoard({ board, onMove, highlightMove }: ChessBoardProps) {
+export default function ChessBoard({ board, onMove, highlightMove, lastMove }: ChessBoardProps) {
   const [selectedFrom, setSelectedFrom] = useState<{ row: number; col: number } | null>(null);
 
   function handleCellClick(row: number, col: number) {
@@ -250,6 +259,29 @@ export default function ChessBoard({ board, onMove, highlightMove }: ChessBoardP
         >
           漢界
         </text>
+
+        {/* ---- 剛剛走的這一步：起點/終點各畫一個淡色方塊，解決電腦
+            走完棋、學生看不出剛剛動了哪顆子的問題（棋子是瞬間換位置，
+            沒有滑動動畫，密集局面很容易看漏）。畫在棋子下面（這段在
+            棋子渲染迴圈之前），不會蓋住棋子本身。 ---- */}
+        {lastMove
+          ? [parseSquareLabel(lastMove.from), parseSquareLabel(lastMove.to)].map((square, index) => {
+              const { x, y } = pointOf(square.row, square.col);
+              return (
+                <rect
+                  key={`last-move-${index}`}
+                  x={x - CELL * 0.42}
+                  y={y - CELL * 0.42}
+                  width={CELL * 0.84}
+                  height={CELL * 0.84}
+                  fill="#E8B84B"
+                  opacity={0.35}
+                  rx={CELL * 0.12}
+                  style={{ pointerEvents: "none" }}
+                />
+              );
+            })
+          : null}
 
         {/* ---- 交叉點：點擊熱區 + 選取高光 + 棋子 ---- */}
         {board.map((rowCells, rowIndex) =>

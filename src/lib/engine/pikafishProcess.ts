@@ -94,14 +94,14 @@ function toPikafishFen(appFen: string, sideToMove: "w" | "b"): string {
  */
 const LEVEL_SEARCH_CONFIG: Record<ComputerLevel, { depth: number; movetimeMs: number }> = {
   1: { depth: 1, movetimeMs: 100 },
-  2: { depth: 1, movetimeMs: 200 },
-  3: { depth: 3, movetimeMs: 350 },
-  4: { depth: 5, movetimeMs: 500 },
-  5: { depth: 6, movetimeMs: 700 },
-  6: { depth: 8, movetimeMs: 1200 },
-  7: { depth: 10, movetimeMs: 1800 },
-  8: { depth: 11, movetimeMs: 2400 },
-  9: { depth: 13, movetimeMs: 4000 },
+  2: { depth: 2, movetimeMs: 200 },
+  3: { depth: 4, movetimeMs: 350 },
+  4: { depth: 6, movetimeMs: 500 },
+  5: { depth: 8, movetimeMs: 800 },
+  6: { depth: 10, movetimeMs: 1200 },
+  7: { depth: 12, movetimeMs: 1800 },
+  8: { depth: 14, movetimeMs: 2600 },
+  9: { depth: 16, movetimeMs: 4000 },
   10: { depth: 18, movetimeMs: 8500 }, // 8.5秒是 Vercel Serverless Function 既安全又能發揮最高棋力的平衡點
 };
 
@@ -118,12 +118,12 @@ const LEVEL_SEARCH_CONFIG: Record<ComputerLevel, { depth: number; movetimeMs: nu
  * 選出來的「錯」是真正有意義的錯，不是純粹的隨機亂下。
  */
 const LEVEL_MULTIPV_CONFIG: Record<ComputerLevel, { multiPv: number; topChoiceProbability: number }> = {
-  1: { multiPv: 10, topChoiceProbability: 0.15 },
+  1: { multiPv: 8, topChoiceProbability: 0.15 },
   2: { multiPv: 6, topChoiceProbability: 0.3 },
   3: { multiPv: 5, topChoiceProbability: 0.45 },
-  4: { multiPv: 5, topChoiceProbability: 0.6 },
-  5: { multiPv: 4, topChoiceProbability: 0.75 },
-  6: { multiPv: 3, topChoiceProbability: 0.85 },
+  4: { multiPv: 4, topChoiceProbability: 0.6 },
+  5: { multiPv: 3, topChoiceProbability: 0.75 },
+  6: { multiPv: 2, topChoiceProbability: 0.85 },
   7: { multiPv: 1, topChoiceProbability: 1 },
   8: { multiPv: 1, topChoiceProbability: 1 },
   9: { multiPv: 1, topChoiceProbability: 1 },
@@ -138,10 +138,19 @@ function getNnueFilePath(): string {
   return path.join(process.cwd(), "vendor", "pikafish", "pikafish.nnue");
 }
 
-interface SearchResult {
+export interface SearchResult {
   move: string;
+  /** 一般局面的分數（百分兵值），都是「目前局面輪走方」的視角。
+   * 如果這個走法是強制將死（mateIn 不是 null），這裡會塞一個極端值
+   * （±30000 上下，越接近代表越快將死），純粹給「沒處理 mateIn」的
+   * 舊呼叫端＿一個合理的數值可以排序比較，新的呼叫端應該優先看
+   * mateIn 欄位，不要只看這個數字。 */
   scoreCp: number;
   depth: number;
+  /** 強制將死的步數（UCI 的 "score mate N"）：正數＝目前局面輪走的
+   *這方可以在 N 步內將死對方；負數＝這方會在 |N| 步內被將死。
+   * null＝目前看到的搜尋資訊裡沒有偵測到強制將死。 */
+  mateIn: number | null;
 }
 
 /**
@@ -228,16 +237,35 @@ async function runPikafishSearch(
 
       const lines = stdoutBuffer.split("\n");
       for (const line of lines) {
-        if (line.startsWith("info") && line.includes("score cp") && line.includes(" pv ")) {
+        const isScoreLine =
+          line.startsWith("info") && line.includes(" pv ") && (line.includes("score cp") || line.includes("score mate"));
+
+        if (isScoreLine) {
           const multipvMatch = line.match(/multipv (\d+)/);
           const depthMatch = line.match(/depth (\d+)/);
-          const scoreMatch = line.match(/score cp (-?\d+)/);
           const pvMatch = line.match(/ pv (\S+)/);
-          if (multipvMatch && depthMatch && scoreMatch && pvMatch) {
+          const cpMatch = line.match(/score cp (-?\d+)/);
+          const mateMatch = line.match(/score mate (-?\d+)/);
+
+          if (multipvMatch && depthMatch && pvMatch && (cpMatch || mateMatch)) {
+            const mateIn = mateMatch ? Number(mateMatch[1]) : null;
+            // 將死的局面沒有「score cp」這個欄位，這裡塞一個比任何正常
+            // 局面分數都極端的數值（±30000 上下），純粹給還只看 scoreCp
+            // 數字大小排序、沒有特別處理 mateIn 的舊邏輯一個合理的值可
+            // 以比較——越快將死（|mateIn| 越小）數值越極端。
+            const scoreCp = cpMatch
+              ? Number(cpMatch[1])
+              : mateIn === null
+                ? 0
+                : mateIn > 0
+                  ? 30000 - mateIn
+                  : -30000 - mateIn;
+
             candidatesByRank.set(Number(multipvMatch[1]), {
               move: pvMatch[1],
-              scoreCp: Number(scoreMatch[1]),
+              scoreCp,
               depth: Number(depthMatch[1]),
+              mateIn,
             });
           }
         }
@@ -293,7 +321,7 @@ function selectMoveFromCandidates(
   const sortedByRank = Array.from(candidatesByRank.entries()).sort(([rankA], [rankB]) => rankA - rankB);
 
   if (sortedByRank.length === 0) {
-    return { move: bestmoveToken, scoreCp: 0, depth: 0 };
+    return { move: bestmoveToken, scoreCp: 0, depth: 0, mateIn: null };
   }
 
   const topCandidate = sortedByRank[0][1];
@@ -325,7 +353,12 @@ export async function getPikafishMove(
   );
 
   const chosen = selectMoveFromCandidates(candidatesByRank, multiPvConfig, bestmoveToken);
-  return { move: fromPikafishMove(chosen.move), scoreCp: chosen.scoreCp, depth: chosen.depth };
+  return {
+    move: fromPikafishMove(chosen.move),
+    scoreCp: chosen.scoreCp,
+    depth: chosen.depth,
+    mateIn: chosen.mateIn,
+  };
 }
 
 /**
@@ -343,7 +376,7 @@ export async function analyzePosition(
 
   const top = candidatesByRank.get(1);
   if (top) {
-    return { move: fromPikafishMove(top.move), scoreCp: top.scoreCp, depth: top.depth };
+    return { move: fromPikafishMove(top.move), scoreCp: top.scoreCp, depth: top.depth, mateIn: top.mateIn };
   }
-  return { move: fromPikafishMove(bestmoveToken), scoreCp: 0, depth: 0 };
+  return { move: fromPikafishMove(bestmoveToken), scoreCp: 0, depth: 0, mateIn: null };
 }

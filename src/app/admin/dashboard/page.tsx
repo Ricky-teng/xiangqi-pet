@@ -47,7 +47,7 @@ import { CATALOG_ENTRIES } from "@/lib/pet/catalog";
 import ChessBoard from "@/components/ChessBoard";
 import { parseFen } from "@/lib/xiangqi/fen";
 import { toChineseNotation } from "@/lib/xiangqi/chineseNotation";
-import { usePositionAnalysis, toRedPerspectiveScore, formatScoreLabel } from "@/hooks/usePositionAnalysis";
+import { usePositionAnalysis, toRedPerspectiveScore, toRedPerspectiveMateIn, getScoreDisplay, SCORE_DISPLAY_STYLES } from "@/hooks/usePositionAnalysis";
 
 type FetchStatus = "loading" | "success" | "error";
 
@@ -514,12 +514,28 @@ function ReplayModal({ game, onClose }: { game: VsComputerGameDoc; onClose: () =
           </button>
         </div>
 
-        {/* 目前局面評分：開了自動分析之後，切換步數時會跟著更新 */}
+        {/* 目前局面評分：開了自動分析之後，切換步數時會跟著更新。
+            有強制將死時改用比較搶眼的底色，直接標示是哪一方有殺。 */}
         {analysis || isAnalyzing ? (
-          <div className="mt-3 rounded-2xl bg-[#1A1A2E] px-4 py-2 text-center">
-            <span className="text-sm font-extrabold text-[#FDF6E8]">
+          <div
+            className={[
+              "mt-3 rounded-2xl px-4 py-2 text-center",
+              analysis
+                ? SCORE_DISPLAY_STYLES[
+                    getScoreDisplay(
+                      toRedPerspectiveScore(analysis.scoreCp, sideToMoveAtStep),
+                      toRedPerspectiveMateIn(analysis.mateIn, sideToMoveAtStep)
+                    ).variant
+                  ]
+                : "bg-[#1A1A2E] text-[#FDF6E8]",
+            ].join(" ")}
+          >
+            <span className="text-sm font-extrabold">
               {analysis
-                ? formatScoreLabel(toRedPerspectiveScore(analysis.scoreCp, sideToMoveAtStep))
+                ? getScoreDisplay(
+                    toRedPerspectiveScore(analysis.scoreCp, sideToMoveAtStep),
+                    toRedPerspectiveMateIn(analysis.mateIn, sideToMoveAtStep)
+                  ).label
                 : "分析中…"}
             </span>
           </div>
@@ -533,6 +549,11 @@ function ReplayModal({ game, onClose }: { game: VsComputerGameDoc; onClose: () =
             onMove={() => {}}
             highlightMove={
               analysis ? { from: analysis.move.slice(0, 2), to: analysis.move.slice(2, 4) } : null
+            }
+            lastMove={
+              step > 0
+                ? { from: game.moveHistory[step - 1].slice(0, 2), to: game.moveHistory[step - 1].slice(2, 4) }
+                : null
             }
           />
         </div>

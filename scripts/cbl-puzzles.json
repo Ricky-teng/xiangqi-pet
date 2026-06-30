@@ -1,0 +1,8770 @@
+[
+  {
+    "id": "馬後炮_0",
+    "level": 1,
+    "title": "馬後炮 1",
+    "description": "馬後炮殺法練習",
+    "initialFen": "2e2a3/2H1k4/4e4/1C7/9/9/9/4E4/4r1hc1/3K2E2",
+    "moves": [
+      "b3b1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739108619,
+    "updatedAt": 1782739108619
+  },
+  {
+    "id": "馬後炮_1",
+    "level": 1,
+    "title": "馬後炮 2",
+    "description": "馬後炮殺法練習",
+    "initialFen": "2e6/3H1k3/4e4/C8/9/9/4c4/3hE4/9/3K2E2",
+    "moves": [
+      "a3a1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739108633,
+    "updatedAt": 1782739108633
+  },
+  {
+    "id": "馬後炮_2",
+    "level": 1,
+    "title": "馬後炮 3",
+    "description": "馬後炮殺法練習",
+    "initialFen": "2e6/4ak1H1/4e4/9/9/9/h3c4/4E3C/4p4/3K2E2",
+    "moves": [
+      "i7i1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739108646,
+    "updatedAt": 1782739108646
+  },
+  {
+    "id": "馬後炮_3",
+    "level": 1,
+    "title": "馬後炮 4",
+    "description": "馬後炮殺法練習",
+    "initialFen": "2ek5/4a4/3He4/4C4/9/9/h3c4/4EC3/4p4/3K2E2",
+    "moves": [
+      "e3d3"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739108658,
+    "updatedAt": 1782739108658
+  },
+  {
+    "id": "馬後炮_4",
+    "level": 1,
+    "title": "馬後炮 5",
+    "description": "馬後炮殺法練習",
+    "initialFen": "2e6/3k5/4ea3/3H5/9/4C4/h3c4/4EC3/4p4/3K2E2",
+    "moves": [
+      "e5d5"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739108669,
+    "updatedAt": 1782739108669
+  },
+  {
+    "id": "馬後炮_5",
+    "level": 1,
+    "title": "馬後炮 6",
+    "description": "馬後炮殺法練習",
+    "initialFen": "2e1k4/9/9/9/5H3/4C4/h2c5/4EC3/r3p4/3K2E2",
+    "moves": [
+      "f4e2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739108679,
+    "updatedAt": 1782739108679
+  },
+  {
+    "id": "馬後炮_6",
+    "level": 1,
+    "title": "馬後炮 7",
+    "description": "馬後炮殺法練習",
+    "initialFen": "9/4k4/5a2e/9/9/3HC4/2hc5/4EC3/r4p3/3K2E2",
+    "moves": [
+      "d5e3"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739108688,
+    "updatedAt": 1782739108688
+  },
+  {
+    "id": "馬後炮_7",
+    "level": 1,
+    "title": "馬後炮 8",
+    "description": "馬後炮殺法練習",
+    "initialFen": "4k3C/9/5a1He/9/9/9/2hc5/4E4/4p4/3K2E2",
+    "moves": [
+      "h2g0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739108698,
+    "updatedAt": 1782739108698
+  },
+  {
+    "id": "馬後炮_8",
+    "level": 1,
+    "title": "馬後炮 9",
+    "description": "馬後炮殺法練習",
+    "initialFen": "3k4C/4a4/6H2/9/9/9/1h1c5/4E4/4p4/3K2E2",
+    "moves": [
+      "g2f0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739108711,
+    "updatedAt": 1782739108711
+  },
+  {
+    "id": "馬後炮_9",
+    "level": 1,
+    "title": "馬後炮 10",
+    "description": "馬後炮殺法練習",
+    "initialFen": "9/4a4/5k2C/9/8H/9/1h1c5/4E4/4p4/3K2E2",
+    "moves": [
+      "i4h2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739108719,
+    "updatedAt": 1782739108719
+  },
+  {
+    "id": "馬後炮_10",
+    "level": 1,
+    "title": "馬後炮 11",
+    "description": "馬後炮殺法練習",
+    "initialFen": "9/2H1k4/9/9/9/9/1C7/4E4/5r3/4K4",
+    "moves": [
+      "b6b1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739108729,
+    "updatedAt": 1782739108729
+  },
+  {
+    "id": "馬後炮_11",
+    "level": 1,
+    "title": "馬後炮 12",
+    "description": "馬後炮殺法練習",
+    "initialFen": "9/3H1k3/9/9/9/9/2C6/4E4/7r1/4K4",
+    "moves": [
+      "c6c1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739108736,
+    "updatedAt": 1782739108736
+  },
+  {
+    "id": "馬後炮_12",
+    "level": 1,
+    "title": "馬後炮 13",
+    "description": "馬後炮殺法練習",
+    "initialFen": "5a3/1H1ka4/C8/9/9/9/9/3h5/4p4/5K3",
+    "moves": [
+      "a2a1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739108745,
+    "updatedAt": 1782739108745
+  },
+  {
+    "id": "馬後炮_13",
+    "level": 1,
+    "title": "馬後炮 14",
+    "description": "馬後炮殺法練習",
+    "initialFen": "3k5/9/3H5/9/9/9/1C7/4E3c/4K1h2/9",
+    "moves": [
+      "b6d6"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739108753,
+    "updatedAt": 1782739108753
+  },
+  {
+    "id": "馬後炮_14",
+    "level": 1,
+    "title": "馬後炮 15",
+    "description": "馬後炮殺法練習",
+    "initialFen": "3k1ae2/4a4/3He4/4C4/9/9/9/4E3h/5p3/4K3c",
+    "moves": [
+      "e3d3"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739108762,
+    "updatedAt": 1782739108762
+  },
+  {
+    "id": "馬後炮_15",
+    "level": 1,
+    "title": "馬後炮 16",
+    "description": "馬後炮殺法練習",
+    "initialFen": "5ae2/3k5/4e4/3H5/9/4C4/9/4E1h2/5p3/4K3c",
+    "moves": [
+      "e5d5"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739108770,
+    "updatedAt": 1782739108770
+  },
+  {
+    "id": "馬後炮_16",
+    "level": 1,
+    "title": "馬後炮 17",
+    "description": "馬後炮殺法練習",
+    "initialFen": "4k4/9/9/4C4/3H5/9/9/9/5pr2/4K4",
+    "moves": [
+      "d4e2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739108779,
+    "updatedAt": 1782739108779
+  },
+  {
+    "id": "馬後炮_17",
+    "level": 1,
+    "title": "馬後炮 18",
+    "description": "馬後炮殺法練習",
+    "initialFen": "5a3/4k4/9/9/2H6/4C4/9/4E4/5p1h1/4K3c",
+    "moves": [
+      "c4e3"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739108786,
+    "updatedAt": 1782739108786
+  },
+  {
+    "id": "馬後炮_18",
+    "level": 1,
+    "title": "馬後炮 19",
+    "description": "馬後炮殺法練習",
+    "initialFen": "9/5k3/9/9/7H1/5C3/1h7/3pE4/1c2K4/9",
+    "moves": [
+      "h4f3"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739108795,
+    "updatedAt": 1782739108795
+  },
+  {
+    "id": "馬後炮_19",
+    "level": 1,
+    "title": "馬後炮 20",
+    "description": "馬後炮殺法練習",
+    "initialFen": "4k3C/9/4e2H1/9/9/9/9/2h6/3p5/2c1K4",
+    "moves": [
+      "h2g0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739108802,
+    "updatedAt": 1782739108802
+  },
+  {
+    "id": "馬後炮_20",
+    "level": 1,
+    "title": "馬後炮 21",
+    "description": "馬後炮殺法練習",
+    "initialFen": "3k3C1/4a4/6H2/9/9/9/9/9/3p1r3/4K4",
+    "moves": [
+      "g2f0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739108810,
+    "updatedAt": 1782739108810
+  },
+  {
+    "id": "馬後炮_21",
+    "level": 2,
+    "title": "馬後炮 22",
+    "description": "馬後炮殺法練習",
+    "initialFen": "2eak4/9/9/3H1R3/9/5C3/9/9/4p1pr1/5K3",
+    "moves": [
+      "f3f0",
+      "e0f0",
+      "d3f2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739108835,
+    "updatedAt": 1782739108835
+  },
+  {
+    "id": "馬後炮_22",
+    "level": 2,
+    "title": "馬後炮 23",
+    "description": "馬後炮殺法練習",
+    "initialFen": "9/2H1k4/9/9/7H1/3C5/9/5K3/1r5r1/9",
+    "moves": [
+      "h4g2",
+      "e1d1",
+      "c1d3"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739108855,
+    "updatedAt": 1782739108855
+  },
+  {
+    "id": "馬後炮_23",
+    "level": 2,
+    "title": "馬後炮 24",
+    "description": "馬後炮殺法練習",
+    "initialFen": "9/C3k4/3H5/p4R3/7c1/9/9/4p4/5p3/rc2K4",
+    "moves": [
+      "f3e3",
+      "e1d1",
+      "d2b1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739108880,
+    "updatedAt": 1782739108880
+  },
+  {
+    "id": "馬後炮_24",
+    "level": 2,
+    "title": "馬後炮 25",
+    "description": "馬後炮殺法練習",
+    "initialFen": "2R6/4k2C1/3H5/9/9/9/5c3/4p4/3p1r3/4K4",
+    "moves": [
+      "c0e0",
+      "e1d1",
+      "d2f1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739108910,
+    "updatedAt": 1782739108910
+  },
+  {
+    "id": "馬後炮_25",
+    "level": 2,
+    "title": "馬後炮 26",
+    "description": "馬後炮殺法練習",
+    "initialFen": "5ke2/4a4/4e4/4C1H1C/9/9/9/9/1rp1p4/3K5",
+    "moves": [
+      "g3h1",
+      "f0e0",
+      "i3i0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739108930,
+    "updatedAt": 1782739108930
+  },
+  {
+    "id": "馬後炮_26",
+    "level": 2,
+    "title": "馬後炮 27",
+    "description": "馬後炮殺法練習",
+    "initialFen": "3a5/5k3/5aH2/2r6/8C/9/2r6/9/3p1p3/4K4",
+    "moves": [
+      "g2h0",
+      "f1f0",
+      "i4i0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739108948,
+    "updatedAt": 1782739108948
+  },
+  {
+    "id": "馬後炮_27",
+    "level": 2,
+    "title": "馬後炮 28",
+    "description": "馬後炮殺法練習",
+    "initialFen": "4kae2/3Ra4/3He4/8C/9/9/9/9/4r3r/5K3",
+    "moves": [
+      "d1d0",
+      "e0d0",
+      "i3d3"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739108966,
+    "updatedAt": 1782739108966
+  },
+  {
+    "id": "馬後炮_28",
+    "level": 2,
+    "title": "馬後炮 29",
+    "description": "馬後炮殺法練習",
+    "initialFen": "5R3/4k4/9/4C1H2/2e6/9/9/5p3/4p2r1/5K3",
+    "moves": [
+      "f0f1",
+      "e1e0",
+      "g3e2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739108993,
+    "updatedAt": 1782739108993
+  },
+  {
+    "id": "馬後炮_29",
+    "level": 2,
+    "title": "馬後炮 30",
+    "description": "馬後炮殺法練習",
+    "initialFen": "5k2C/2h3RH1/1r1h5/9/4c1e2/9/7r1/3pc4/4p4/3K5",
+    "moves": [
+      "g1g0",
+      "f0f1",
+      "i0i1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739109010,
+    "updatedAt": 1782739109010
+  },
+  {
+    "id": "馬後炮_30",
+    "level": 2,
+    "title": "馬後炮 31",
+    "description": "馬後炮殺法練習",
+    "initialFen": "3ak1e2/9/4e4/7H1/9/9/7C1/2h6/3rp4/c4K3",
+    "moves": [
+      "h3g1",
+      "e0e1",
+      "h6h1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739109028,
+    "updatedAt": 1782739109028
+  },
+  {
+    "id": "馬後炮_31",
+    "level": 2,
+    "title": "馬後炮 32",
+    "description": "馬後炮殺法練習",
+    "initialFen": "3ak1e2/4a4/4e4/4C2H1/9/9/9/2h6/3p5/c3K4",
+    "moves": [
+      "h3f2",
+      "e0f0",
+      "e3f3"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739109050,
+    "updatedAt": 1782739109050
+  },
+  {
+    "id": "馬後炮_32",
+    "level": 2,
+    "title": "馬後炮 33",
+    "description": "馬後炮殺法練習",
+    "initialFen": "3akae2/9/4e4/CH7/9/9/9/4E3h/5p3/4K3c",
+    "moves": [
+      "b3c1",
+      "e0e1",
+      "a3a1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739109066,
+    "updatedAt": 1782739109066
+  },
+  {
+    "id": "馬後炮_33",
+    "level": 2,
+    "title": "馬後炮 34",
+    "description": "馬後炮殺法練習",
+    "initialFen": "3aka3/9/9/5H1C1/9/9/6h2/4E4/5p3/4K3c",
+    "moves": [
+      "f3g1",
+      "e0e1",
+      "h3h1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739109085,
+    "updatedAt": 1782739109085
+  },
+  {
+    "id": "馬後炮_34",
+    "level": 2,
+    "title": "馬後炮 35",
+    "description": "馬後炮殺法練習",
+    "initialFen": "3aka3/9/4e4/3H5/9/C8/9/3h5/4p1p2/5K3",
+    "moves": [
+      "d3c1",
+      "e0e1",
+      "a5a1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739109108,
+    "updatedAt": 1782739109108
+  },
+  {
+    "id": "馬後炮_35",
+    "level": 2,
+    "title": "馬後炮 36",
+    "description": "馬後炮殺法練習",
+    "initialFen": "5a3/4a1H2/3k5/2H6/9/9/C8/9/3p1r3/4K4",
+    "moves": [
+      "c3b1",
+      "d2d1",
+      "a6a1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739109126,
+    "updatedAt": 1782739109126
+  },
+  {
+    "id": "馬後炮_36",
+    "level": 2,
+    "title": "馬後炮 37",
+    "description": "馬後炮殺法練習",
+    "initialFen": "4kae2/1H2a4/4e4/4C4/9/9/9/4E3h/5p3/4K3c",
+    "moves": [
+      "b1d2",
+      "e0d0",
+      "e3d3"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739109143,
+    "updatedAt": 1782739109143
+  },
+  {
+    "id": "馬後炮_37",
+    "level": 2,
+    "title": "馬後炮 38",
+    "description": "馬後炮殺法練習",
+    "initialFen": "2eak4/4a4/4e4/4C2H1/9/9/9/2h1E4/3p5/1c2K4",
+    "moves": [
+      "h3f2",
+      "e0f0",
+      "e3f3"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739109162,
+    "updatedAt": 1782739109162
+  },
+  {
+    "id": "馬後炮_38",
+    "level": 2,
+    "title": "馬後炮 39",
+    "description": "馬後炮殺法練習",
+    "initialFen": "3aka3/5PH2/9/8C/9/1h7/9/9/4p4/c2K5",
+    "moves": [
+      "f1e1",
+      "e0e1",
+      "i3i1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739109183,
+    "updatedAt": 1782739109183
+  },
+  {
+    "id": "馬後炮_39",
+    "level": 2,
+    "title": "馬後炮 40",
+    "description": "馬後炮殺法練習",
+    "initialFen": "2eak4/4aPH1C/4e4/9/9/9/9/9/4rr3/3K5",
+    "moves": [
+      "f1e1",
+      "e0f0",
+      "e1e0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739109201,
+    "updatedAt": 1782739109201
+  },
+  {
+    "id": "馬後炮_40",
+    "level": 2,
+    "title": "馬後炮 41",
+    "description": "馬後炮殺法練習",
+    "initialFen": "5k3/9/9/6H2/9/9/9/9/3r1p3/4K3C",
+    "moves": [
+      "g3h1",
+      "f0f1",
+      "i9i1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739109217,
+    "updatedAt": 1782739109217
+  },
+  {
+    "id": "馬後炮_41",
+    "level": 2,
+    "title": "馬後炮 42",
+    "description": "馬後炮殺法練習",
+    "initialFen": "3k5/9/3H5/9/9/9/C5r2/9/5p3/4K3c",
+    "moves": [
+      "d2b1",
+      "d0d1",
+      "a6a1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739109236,
+    "updatedAt": 1782739109236
+  },
+  {
+    "id": "馬後炮_42",
+    "level": 2,
+    "title": "馬後炮 43",
+    "description": "馬後炮殺法練習",
+    "initialFen": "2C1k4/4aP3/1rHa5/9/9/9/9/6h2/3p5/4K4",
+    "moves": [
+      "f1f0",
+      "e0f0",
+      "c2d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739109253,
+    "updatedAt": 1782739109253
+  },
+  {
+    "id": "馬後炮_43",
+    "level": 2,
+    "title": "馬後炮 44",
+    "description": "馬後炮殺法練習",
+    "initialFen": "3a5/5k3/5aH2/9/8C/9/9/9/3r1p3/4K4",
+    "moves": [
+      "g2h0",
+      "f1f0",
+      "i4i0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739109269,
+    "updatedAt": 1782739109269
+  },
+  {
+    "id": "馬後炮_44",
+    "level": 2,
+    "title": "馬後炮 45",
+    "description": "馬後炮殺法練習",
+    "initialFen": "2P1kae2/4aRH2/4e4/9/9/9/9/7C1/4p1rc1/3K2c2",
+    "moves": [
+      "f1e1",
+      "e0e1",
+      "h7h1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739109287,
+    "updatedAt": 1782739109287
+  },
+  {
+    "id": "馬後炮_45",
+    "level": 2,
+    "title": "馬後炮 46",
+    "description": "馬後炮殺法練習",
+    "initialFen": "9/3k5/e1C2R3/2H6/9/7h1/9/5p1r1/4p4/5K3",
+    "moves": [
+      "c2c1",
+      "d1d0",
+      "f2f0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739109338,
+    "updatedAt": 1782739109338
+  },
+  {
+    "id": "馬後炮_46",
+    "level": 3,
+    "title": "馬後炮 47",
+    "description": "馬後炮殺法練習",
+    "initialFen": "2eakce2/3Ra4/6H2/6C2/9/9/9/9/3p1p2r/4K4",
+    "moves": [
+      "g3g0",
+      "f0f1",
+      "d1d0",
+      "e0d0",
+      "g2f0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739109383,
+    "updatedAt": 1782739109383
+  },
+  {
+    "id": "馬後炮_47",
+    "level": 3,
+    "title": "馬後炮 48",
+    "description": "馬後炮殺法練習",
+    "initialFen": "5R3/6h2/2H1k4/2C6/1c7/1c5p1/1r5r1/2p3p2/3Khp3/9",
+    "moves": [
+      "c2d0",
+      "e2e1",
+      "f0f1",
+      "e1e0",
+      "c3c0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739109464,
+    "updatedAt": 1782739109464
+  },
+  {
+    "id": "馬後炮_48",
+    "level": 3,
+    "title": "馬後炮 49",
+    "description": "馬後炮殺法練習",
+    "initialFen": "4kae2/4a4/4e4/4CRH1C/9/9/9/9/1rp1p4/3K5",
+    "moves": [
+      "f3f0",
+      "e0f0",
+      "g3h1",
+      "f0e0",
+      "i3i0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739109492,
+    "updatedAt": 1782739109492
+  },
+  {
+    "id": "馬後炮_49",
+    "level": 2,
+    "title": "馬後炮 50",
+    "description": "馬後炮殺法練習",
+    "initialFen": "3akae2/3R4c/2rHe4/C8/2p3p2/9/9/4p4/1r1p1p3/4K4",
+    "moves": [
+      "a3e3",
+      "i1e1",
+      "d1e1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739109547,
+    "updatedAt": 1782739109547
+  },
+  {
+    "id": "馬後炮_50",
+    "level": 3,
+    "title": "馬後炮 51",
+    "description": "馬後炮殺法練習",
+    "initialFen": "C1R3e2/3k5/3a5/9/2H6/9/9/9/2p1p1pr1/2c2K3",
+    "moves": [
+      "c4b2",
+      "d1e1",
+      "c0e0",
+      "e1e0",
+      "b2c0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739109582,
+    "updatedAt": 1782739109582
+  },
+  {
+    "id": "馬後炮_51",
+    "level": 3,
+    "title": "馬後炮 52",
+    "description": "馬後炮殺法練習",
+    "initialFen": "2eak4/4aP3/4e4/6H2/4H4/9/9/3p1R3/4r1r2/3K5",
+    "moves": [
+      "e4d2",
+      "e1d2",
+      "f1f0",
+      "e0e1",
+      "f7f1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739109615,
+    "updatedAt": 1782739109615
+  },
+  {
+    "id": "馬後炮_52",
+    "level": 3,
+    "title": "馬後炮 53",
+    "description": "馬後炮殺法練習",
+    "initialFen": "3aHa1Ch/5k3/4e1H2/9/6p1r/5C3/9/9/2r1p4/3K5",
+    "moves": [
+      "g2f4",
+      "f1e1",
+      "f4d3",
+      "e1f1",
+      "e0f2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739109667,
+    "updatedAt": 1782739109667
+  },
+  {
+    "id": "馬後炮_53",
+    "level": 3,
+    "title": "馬後炮 54",
+    "description": "馬後炮殺法練習",
+    "initialFen": "2ea1ae2/5khHC/9/9/9/9/7C1/3p5/2p1pr3/3K5",
+    "moves": [
+      "h1g3",
+      "f1f2",
+      "g3e4",
+      "f2e2",
+      "h6e6"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739109711,
+    "updatedAt": 1782739109711
+  },
+  {
+    "id": "馬後炮_54",
+    "level": 3,
+    "title": "馬後炮 55",
+    "description": "馬後炮殺法練習",
+    "initialFen": "C1R2a3/3k2P2/3ae4/9/H1e6/9/2c6/3p5/4p2r1/3K5",
+    "moves": [
+      "a4b2",
+      "d1e1",
+      "c0e0",
+      "e1e0",
+      "b2c0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739109744,
+    "updatedAt": 1782739109744
+  },
+  {
+    "id": "馬後炮_55",
+    "level": 3,
+    "title": "馬後炮 56",
+    "description": "馬後炮殺法練習",
+    "initialFen": "4R4/5k3/1H7/9/9/9/9/C8/5r1r1/4K4",
+    "moves": [
+      "e0f0",
+      "f1f0",
+      "b2d1",
+      "f0f1",
+      "a7a1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739109779,
+    "updatedAt": 1782739109779
+  },
+  {
+    "id": "馬後炮_56",
+    "level": 3,
+    "title": "馬後炮 57",
+    "description": "馬後炮殺法練習",
+    "initialFen": "3ak4/5RH2/9/9/9/9/9/2h1EC3/1r1pA4/c3KAE2",
+    "moves": [
+      "f1d1",
+      "e0f0",
+      "d1d0",
+      "f0f1",
+      "g1f3"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739109839,
+    "updatedAt": 1782739109839
+  },
+  {
+    "id": "馬後炮_57",
+    "level": 3,
+    "title": "馬後炮 58",
+    "description": "馬後炮殺法練習",
+    "initialFen": "2ea1k3/9/9/3HR4/5C3/9/9/5p3/4p2r1/5K3",
+    "moves": [
+      "e3f3",
+      "f0e0",
+      "f3f0",
+      "e0f0",
+      "d3f2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739109873,
+    "updatedAt": 1782739109873
+  },
+  {
+    "id": "馬後炮_59",
+    "level": 3,
+    "title": "馬後炮 60",
+    "description": "馬後炮殺法練習",
+    "initialFen": "2ea1k3/4a4/5c3/1C3R1H1/9/1r6P/9/9/p8/c1EAKA3",
+    "moves": [
+      "f3f2",
+      "e1f2",
+      "b3f3",
+      "f2e1",
+      "h3f2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739113778,
+    "updatedAt": 1782739113778
+  },
+  {
+    "id": "馬後炮_60",
+    "level": 3,
+    "title": "馬後炮 61",
+    "description": "馬後炮殺法練習",
+    "initialFen": "C1H2ae2/3k3C1/3a5/9/9/9/3h5/9/1h1p1p3/c3K4",
+    "moves": [
+      "c0e1",
+      "d1d0",
+      "e1c2",
+      "d0d1",
+      "c2b0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739113852,
+    "updatedAt": 1782739113852
+  },
+  {
+    "id": "馬後炮_61",
+    "level": 3,
+    "title": "馬後炮 62",
+    "description": "馬後炮殺法練習",
+    "initialFen": "1Re1ka3/4a4/2r1e4/1H2C4/9/9/9/3p5/4p4/3K5",
+    "moves": [
+      "b0c0",
+      "c2c0",
+      "b3d2",
+      "e0d0",
+      "e3d3"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739113904,
+    "updatedAt": 1782739113904
+  },
+  {
+    "id": "馬後炮_62",
+    "level": 3,
+    "title": "馬後炮 63",
+    "description": "馬後炮殺法練習",
+    "initialFen": "4k4/7HC/5a1c1/3R5/9/9/9/3p5/1r2p4/3K5",
+    "moves": [
+      "h1f2",
+      "e0f0",
+      "d3d0",
+      "f0f1",
+      "f2h1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739113942,
+    "updatedAt": 1782739113942
+  },
+  {
+    "id": "馬後炮_63",
+    "level": 3,
+    "title": "馬後炮 64",
+    "description": "馬後炮殺法練習",
+    "initialFen": "2e1k1C2/2R1a4/4ecH2/3R5/9/9/9/9/1r1p1p3/4K4",
+    "moves": [
+      "c1c0",
+      "e1d0",
+      "c0d0",
+      "e0e1",
+      "d3d1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739113995,
+    "updatedAt": 1782739113995
+  },
+  {
+    "id": "馬後炮_64",
+    "level": 3,
+    "title": "馬後炮 65",
+    "description": "馬後炮殺法練習",
+    "initialFen": "3a1k3/4a1HH1/3c5/8C/9/9/7c1/2h6/3r5/4K4",
+    "moves": [
+      "g1e0",
+      "f0e0",
+      "h1f2",
+      "e0f0",
+      "i3f3"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739114032,
+    "updatedAt": 1782739114032
+  },
+  {
+    "id": "馬後炮_65",
+    "level": 3,
+    "title": "馬後炮 66",
+    "description": "馬後炮殺法練習",
+    "initialFen": "5ae2/3k3C1/4eah2/R5H1p/1r2c1p2/9/9/4E4/4A4/3AK4",
+    "moves": [
+      "a3d3",
+      "d1e1",
+      "g3i2",
+      "b4b9",
+      "i2g1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739114180,
+    "updatedAt": 1782739114180
+  },
+  {
+    "id": "馬後炮_66",
+    "level": 4,
+    "title": "馬後炮 67",
+    "description": "馬後炮殺法練習",
+    "initialFen": "3a1ke2/1R4H2/3ae4/9/9/5C3/3r5/3pp4/4p4/3K5",
+    "moves": [
+      "b1f1",
+      "f0e0",
+      "f1d1",
+      "e0f0",
+      "d1d0",
+      "f0f1",
+      "g1f3"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739116302,
+    "updatedAt": 1782739116302
+  },
+  {
+    "id": "馬後炮_67",
+    "level": 4,
+    "title": "馬後炮 68",
+    "description": "馬後炮殺法練習",
+    "initialFen": "3k1ae2/4a4/4e4/2H4C1/5P3/6p2/2p2c3/3AE4/h3A4/2E2K3",
+    "moves": [
+      "c3b1",
+      "d0e0",
+      "h3e3",
+      "g0i2",
+      "b1d2",
+      "e0d0",
+      "e3d3"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739118435,
+    "updatedAt": 1782739118435
+  },
+  {
+    "id": "馬後炮_68",
+    "level": 4,
+    "title": "馬後炮 69",
+    "description": "馬後炮殺法練習",
+    "initialFen": "2e2k1r1/3R5/e3R4/1h3H2C/4p4/9/9/5p1r1/4p4/5K3",
+    "moves": [
+      "e2e0",
+      "f0e0",
+      "f3g1",
+      "e0f0",
+      "g1e2",
+      "f0e0",
+      "i3e3"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739118671,
+    "updatedAt": 1782739118671
+  },
+  {
+    "id": "馬後炮_69",
+    "level": 4,
+    "title": "馬後炮 70",
+    "description": "馬後炮殺法練習",
+    "initialFen": "3R1H3/C3k3C/c8/9/9/9/9/5ph2/4p1r2/5K3",
+    "moves": [
+      "f0d1",
+      "e1e2",
+      "d1c3",
+      "e2e1",
+      "c3b1",
+      "e1e2",
+      "d0d2"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739118835,
+    "updatedAt": 1782739118835
+  },
+  {
+    "id": "馬後炮_70",
+    "level": 4,
+    "title": "馬後炮 71",
+    "description": "馬後炮殺法練習",
+    "initialFen": "3kc2h1/4P3H/9/9/9/3r5/9/4ECC2/4p1p2/3p1Kc2",
+    "moves": [
+      "g7g0",
+      "e0e7",
+      "f7f0",
+      "g9g0",
+      "f0h0",
+      "g0g1",
+      "i1g0"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739123412,
+    "updatedAt": 1782739123412
+  },
+  {
+    "id": "馬後炮_71",
+    "level": 4,
+    "title": "馬後炮 72",
+    "description": "馬後炮殺法練習",
+    "initialFen": "5a3/3ka4/4e4/4C4/C5e2/1H7/8h/4E4/3pAK2c/7c1",
+    "moves": [
+      "b5c3",
+      "d1d0",
+      "c3b1",
+      "d0e0",
+      "b1d2",
+      "e0d0",
+      "e3d3"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739126854,
+    "updatedAt": 1782739126854
+  },
+  {
+    "id": "馬後炮_72",
+    "level": 4,
+    "title": "馬後炮 73",
+    "description": "馬後炮殺法練習",
+    "initialFen": "3a2R2/5k3/5a3/9/7HC/9/2r6/c8/3p1p3/2h1K4",
+    "moves": [
+      "g0f0",
+      "f1f0",
+      "h4g2",
+      "f0f1",
+      "g2h0",
+      "f1f0",
+      "i4i0"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739128580,
+    "updatedAt": 1782739128580
+  },
+  {
+    "id": "馬後炮_73",
+    "level": 4,
+    "title": "馬後炮 74",
+    "description": "馬後炮殺法練習",
+    "initialFen": "H2a1a3/3k5/4e4/9/9/9/9/C8/4p1p1h/5K2c",
+    "moves": [
+      "a0b2",
+      "d1e1",
+      "b2d3",
+      "e1e0",
+      "d3c1",
+      "e0e1",
+      "a7a1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739128951,
+    "updatedAt": 1782739128951
+  },
+  {
+    "id": "馬後炮_74",
+    "level": 4,
+    "title": "馬後炮 75",
+    "description": "馬後炮殺法練習",
+    "initialFen": "5a3/4a1H2/3k5/9/9/2H6/9/C8/3r1p3/4K4",
+    "moves": [
+      "c5e4",
+      "d2d1",
+      "e4c3",
+      "d1d0",
+      "c3b1",
+      "d0d1",
+      "a7a1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739129050,
+    "updatedAt": 1782739129050
+  },
+  {
+    "id": "馬後炮_75",
+    "level": 4,
+    "title": "馬後炮 76",
+    "description": "馬後炮殺法練習",
+    "initialFen": "3ak4/4aRH2/4e1r2/9/9/7C1/9/9/2pp5/c3K4",
+    "moves": [
+      "f1e1",
+      "e0f0",
+      "e1e0",
+      "f0f1",
+      "h5h1",
+      "f1f2",
+      "e0f0"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739129214,
+    "updatedAt": 1782739129214
+  },
+  {
+    "id": "馬後炮_76",
+    "level": 4,
+    "title": "馬後炮 77",
+    "description": "馬後炮殺法練習",
+    "initialFen": "5ae2/3ka4/4e4/4C4/9/1H7/9/C4h3/4p3c/5K1c1",
+    "moves": [
+      "b5c3",
+      "d1d0",
+      "c3b1",
+      "d0e0",
+      "b1d2",
+      "e0d0",
+      "e3d3"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739131038,
+    "updatedAt": 1782739131038
+  },
+  {
+    "id": "馬後炮_77",
+    "level": 4,
+    "title": "馬後炮 78",
+    "description": "馬後炮殺法練習",
+    "initialFen": "3a2R2/5k3/5a3/9/7HC/9/1r7/2r6/3p1p3/4K4",
+    "moves": [
+      "g0f0",
+      "f1f0",
+      "h4g2",
+      "f0f1",
+      "g2h0",
+      "f1f0",
+      "i4i0"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739131093,
+    "updatedAt": 1782739131094
+  },
+  {
+    "id": "馬後炮_78",
+    "level": 4,
+    "title": "馬後炮 79",
+    "description": "馬後炮殺法練習",
+    "initialFen": "3a1a3/3k5/4e4/9/H8/C8/9/3h5/4p1p2/5K3",
+    "moves": [
+      "a4b2",
+      "d1e1",
+      "b2d3",
+      "e1e0",
+      "d3c1",
+      "e0e1",
+      "a5a1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739131320,
+    "updatedAt": 1782739131320
+  },
+  {
+    "id": "馬後炮_79",
+    "level": 4,
+    "title": "馬後炮 80",
+    "description": "馬後炮殺法練習",
+    "initialFen": "5a3/4a1H2/3k5/6H2/9/9/C8/9/3r1p3/4K4",
+    "moves": [
+      "g3e4",
+      "d2d1",
+      "e4c3",
+      "d1d0",
+      "c3b1",
+      "d0d1",
+      "a6a1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739131383,
+    "updatedAt": 1782739131383
+  },
+  {
+    "id": "馬後炮_80",
+    "level": 4,
+    "title": "馬後炮 81",
+    "description": "馬後炮殺法練習",
+    "initialFen": "4k4/4aRH2/4e1r2/9/9/7C1/9/2h6/3p5/4K4",
+    "moves": [
+      "f1e1",
+      "e0f0",
+      "e1e0",
+      "f0f1",
+      "h5h1",
+      "f1f2",
+      "e0f0"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739131596,
+    "updatedAt": 1782739131596
+  },
+  {
+    "id": "馬後炮_81",
+    "level": 3,
+    "title": "馬後炮 82",
+    "description": "馬後炮殺法練習",
+    "initialFen": "4k4/3P1c3/9/5H3/2eC2e2/4P4/3c1h3/4E4/2p1A4/3K1AE2",
+    "moves": [
+      "d1e1",
+      "e0f0",
+      "e1f1",
+      "f0f1",
+      "d4f4"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739132228,
+    "updatedAt": 1782739132228
+  },
+  {
+    "id": "馬後炮_82",
+    "level": 4,
+    "title": "馬後炮 83",
+    "description": "馬後炮殺法練習",
+    "initialFen": "CRek2e2/9/3a5/9/2H6/9/9/9/2p1p1pr1/2c2K3",
+    "moves": [
+      "b0c0",
+      "d0d1",
+      "c4b2",
+      "d1e1",
+      "c0e0",
+      "e1e0",
+      "b2c0"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739132347,
+    "updatedAt": 1782739132347
+  },
+  {
+    "id": "馬後炮_83",
+    "level": 4,
+    "title": "馬後炮 84",
+    "description": "馬後炮殺法練習",
+    "initialFen": "2eak3C/4a4/4e4/4CR2H/9/9/9/3p5/2r1p4/3K5",
+    "moves": [
+      "f3f0",
+      "e0f0",
+      "i3h1",
+      "f0e0",
+      "h1f2",
+      "e0f0",
+      "e3f3"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739132398,
+    "updatedAt": 1782739132398
+  },
+  {
+    "id": "馬後炮_84",
+    "level": 3,
+    "title": "馬後炮 85",
+    "description": "馬後炮殺法練習",
+    "initialFen": "4kaer1/4a4/4e4/p3C3p/4PR3/2Hr1p3/P5h1P/E8/9/1R1AKAEc1",
+    "moves": [
+      "b9b0",
+      "d5d0",
+      "c5b3",
+      "g0i2",
+      "b3c1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739137103,
+    "updatedAt": 1782739137103
+  },
+  {
+    "id": "馬後炮_85",
+    "level": 4,
+    "title": "馬後炮 86",
+    "description": "馬後炮殺法練習",
+    "initialFen": "1C1a5/4ak1H1/9/8p/9/9/9/EhpA5/6p2/c1EAK4",
+    "moves": [
+      "h1g3",
+      "f1f2",
+      "b0b1",
+      "e1d2",
+      "b1i1",
+      "d2e1",
+      "g3h1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739137633,
+    "updatedAt": 1782739137633
+  },
+  {
+    "id": "馬後炮_86",
+    "level": 4,
+    "title": "馬後炮 87",
+    "description": "馬後炮殺法練習",
+    "initialFen": "3k1ae2/4a4/4e4/2H4C1/5Pp2/9/2p2c3/2hAE4/9/2EA1K3",
+    "moves": [
+      "c3b1",
+      "d0e0",
+      "h3e3",
+      "g0i2",
+      "b1d2",
+      "e0d0",
+      "e3d3"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739140139,
+    "updatedAt": 1782739140139
+  },
+  {
+    "id": "馬後炮_87",
+    "level": 1,
+    "title": "馬後炮 88",
+    "description": "馬後炮殺法練習",
+    "initialFen": "r1ek1ar2/4a4/1c1He3h/p7p/9/4C1P2/P3P3P/3pE4/9/2EAKA1HR",
+    "moves": [
+      "e5d5"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739140146,
+    "updatedAt": 1782739140146
+  },
+  {
+    "id": "馬後炮_88",
+    "level": 1,
+    "title": "馬後炮 89",
+    "description": "馬後炮殺法練習",
+    "initialFen": "3a1ke2/4a4/4eH3/9/4C1h2/3pc1E2/9/3AE4/4A4/4K4",
+    "moves": [
+      "e4f4"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739140153,
+    "updatedAt": 1782739140153
+  },
+  {
+    "id": "馬後炮_89",
+    "level": 1,
+    "title": "馬後炮 90",
+    "description": "馬後炮殺法練習",
+    "initialFen": "5ae2/1H1ka4/4e4/C8/9/3pc1E2/9/3AE4/4A2r1/4K4",
+    "moves": [
+      "a3a1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739140160,
+    "updatedAt": 1782739140160
+  },
+  {
+    "id": "馬後炮_90",
+    "level": 1,
+    "title": "馬後炮 91",
+    "description": "馬後炮殺法練習",
+    "initialFen": "5ae2/3k5/4ea3/3H5/4C4/4cpE2/3p3h1/3AE4/4A4/4K4",
+    "moves": [
+      "e4d4"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739140168,
+    "updatedAt": 1782739140168
+  },
+  {
+    "id": "馬後炮_91",
+    "level": 2,
+    "title": "馬後炮 92",
+    "description": "馬後炮殺法練習",
+    "initialFen": "3aka3/9/9/5H1C1/9/9/9/4E1h2/5p3/4K3c",
+    "moves": [
+      "f3g1",
+      "e0e1",
+      "h3h1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739140188,
+    "updatedAt": 1782739140188
+  },
+  {
+    "id": "馬後炮_92",
+    "level": 2,
+    "title": "馬後炮 93",
+    "description": "馬後炮殺法練習",
+    "initialFen": "3akae2/9/4e4/7H1/8C/9/9/6h2/2pp5/4K4",
+    "moves": [
+      "h3g1",
+      "e0e1",
+      "i4i1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739140209,
+    "updatedAt": 1782739140209
+  },
+  {
+    "id": "馬後炮_93",
+    "level": 2,
+    "title": "馬後炮 94",
+    "description": "馬後炮殺法練習",
+    "initialFen": "3aR4/3k4C/3ae4/7H1/9/9/9/2h6/3r1p3/4K3c",
+    "moves": [
+      "e0e1",
+      "d1e1",
+      "h3g1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739140236,
+    "updatedAt": 1782739140236
+  },
+  {
+    "id": "馬後炮_94",
+    "level": 2,
+    "title": "馬後炮 95",
+    "description": "馬後炮殺法練習",
+    "initialFen": "3akah2/9/8e/3H5/9/3H5/2P6/4C4/3pp4/2c2KE2",
+    "moves": [
+      "d3e1",
+      "e0e1",
+      "d5e3"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739140259,
+    "updatedAt": 1782739140259
+  },
+  {
+    "id": "馬後炮_95",
+    "level": 2,
+    "title": "馬後炮 96",
+    "description": "馬後炮殺法練習",
+    "initialFen": "2ek1a3/4a4/4cc3/2H1C4/9/9/9/4E1h2/5p3/C3K1E2",
+    "moves": [
+      "c3b1",
+      "d0e0",
+      "a9a0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739140283,
+    "updatedAt": 1782739140283
+  },
+  {
+    "id": "馬後炮_96",
+    "level": 3,
+    "title": "馬後炮 97",
+    "description": "馬後炮殺法練習",
+    "initialFen": "2RHk4/9/1H7/9/1h7/9/C7r/9/2c1p4/2c2K3",
+    "moves": [
+      "d0c2",
+      "c8c0",
+      "a6a0",
+      "c0c1",
+      "b2c0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739140332,
+    "updatedAt": 1782739140332
+  },
+  {
+    "id": "馬後炮_97",
+    "level": 3,
+    "title": "馬後炮 98",
+    "description": "馬後炮殺法練習",
+    "initialFen": "2ek3r1/2P1a4/4c4/5H3/4C4/5R3/9/6p1E/4A4/1cEA1K3",
+    "moves": [
+      "f5d5",
+      "e1d2",
+      "c1c0",
+      "d0d1",
+      "d5d2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739140447,
+    "updatedAt": 1782739140447
+  },
+  {
+    "id": "馬後炮_98",
+    "level": 4,
+    "title": "馬後炮 99",
+    "description": "馬後炮殺法練習",
+    "initialFen": "3a1a3/3k5/4e4/9/H8/9/8h/C3E4/4p4/5K3",
+    "moves": [
+      "a4b2",
+      "d1e1",
+      "b2d3",
+      "e1e0",
+      "d3c1",
+      "e0e1",
+      "a7a1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739140728,
+    "updatedAt": 1782739140728
+  },
+  {
+    "id": "馬後炮_99",
+    "level": 4,
+    "title": "馬後炮 100",
+    "description": "馬後炮殺法練習",
+    "initialFen": "2e1k4/4aR3/c2ae4/1H7/9/9/9/4E4/2p1r4/1C1K2E2",
+    "moves": [
+      "b3c1",
+      "e0d0",
+      "b9b0",
+      "d0d1",
+      "f1e1",
+      "d1e1",
+      "b0b1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739140872,
+    "updatedAt": 1782739140872
+  },
+  {
+    "id": "馬後炮_100",
+    "level": 4,
+    "title": "馬後炮 101",
+    "description": "馬後炮殺法練習",
+    "initialFen": "3k5/2P1a4/3a5/4H4/9/9/8h/4C4/4p4/5K3",
+    "moves": [
+      "c1c0",
+      "d0e0",
+      "c0d0",
+      "e0d0",
+      "e3c2",
+      "d0d1",
+      "e7d7"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739141509,
+    "updatedAt": 1782739141509
+  },
+  {
+    "id": "馬後炮_101",
+    "level": 4,
+    "title": "馬後炮 102",
+    "description": "馬後炮殺法練習",
+    "initialFen": "2e2k3/9/3a1a3/3HR1C2/9/9/9/9/3p1p1h1/4KA3",
+    "moves": [
+      "e3e0",
+      "f0f1",
+      "e0f0",
+      "f1f0",
+      "g3f3",
+      "f2e1",
+      "d3f2"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739143593,
+    "updatedAt": 1782739143593
+  },
+  {
+    "id": "馬後炮_102",
+    "level": 4,
+    "title": "馬後炮 103",
+    "description": "馬後炮殺法練習",
+    "initialFen": "2e2k1r1/3R5/e3R4/1h3H2C/4p4/9/9/5p1r1/4p4/5K3",
+    "moves": [
+      "e2e0",
+      "f0e0",
+      "f3g1",
+      "e0f0",
+      "g1e2",
+      "f0e0",
+      "i3e3"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739143846,
+    "updatedAt": 1782739143846
+  },
+  {
+    "id": "馬後炮_103",
+    "level": 4,
+    "title": "馬後炮 104",
+    "description": "馬後炮殺法練習",
+    "initialFen": "2eak4/4a4/9/8H/9/9/5R2C/2hA5/3r1p3/2E1K4",
+    "moves": [
+      "f6f0",
+      "e0f0",
+      "i3h1",
+      "f0e0",
+      "h1f2",
+      "e0f0",
+      "i6f6"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739143901,
+    "updatedAt": 1782739143901
+  },
+  {
+    "id": "馬後炮_104",
+    "level": 4,
+    "title": "馬後炮 105",
+    "description": "馬後炮殺法練習",
+    "initialFen": "5a3/4k4/4ea1h1/9/4H4/4C4/3c5/6R2/2r1p4/3K2E2",
+    "moves": [
+      "g7g1",
+      "h2f1",
+      "g1f1",
+      "e1e0",
+      "e4d2",
+      "e0d0",
+      "e5d5"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739144257,
+    "updatedAt": 1782739144257
+  },
+  {
+    "id": "馬後炮_105",
+    "level": 4,
+    "title": "馬後炮 106",
+    "description": "馬後炮殺法練習",
+    "initialFen": "2eak1e2/5R3/6r2/4C1H2/3c5/9/9/9/1rp1p4/3K5",
+    "moves": [
+      "g3e2",
+      "d0e1",
+      "f1e1",
+      "e0f0",
+      "e1e0",
+      "f0f1",
+      "e0f0"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739144348,
+    "updatedAt": 1782739144348
+  },
+  {
+    "id": "馬後炮_106",
+    "level": 4,
+    "title": "馬後炮 107",
+    "description": "馬後炮殺法練習",
+    "initialFen": "2ea1k2C/4a4/4e2RH/9/4h4/9/9/3p5/2r1p4/3K5",
+    "moves": [
+      "i2h0",
+      "e2g0",
+      "h0g2",
+      "f0f1",
+      "h2h1",
+      "f1f2",
+      "i0i2"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739144407,
+    "updatedAt": 1782739144407
+  },
+  {
+    "id": "馬後炮_107",
+    "level": 4,
+    "title": "馬後炮 108",
+    "description": "馬後炮殺法練習",
+    "initialFen": "2eH5/4k3H/5a3/9/9/9/9/1h4p2/2p1C4/c2K2E2",
+    "moves": [
+      "i1g0",
+      "e1e0",
+      "g0f2",
+      "e0f0",
+      "f2h1",
+      "f0e0",
+      "d0e2"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739146669,
+    "updatedAt": 1782739146669
+  },
+  {
+    "id": "馬後炮_108",
+    "level": 4,
+    "title": "馬後炮 109",
+    "description": "馬後炮殺法練習",
+    "initialFen": "5ae2/CH7/3ak4/6R1p/1r7/5cE2/P3P1h1P/4E1h2/5c3/3AKA3",
+    "moves": [
+      "b1d0",
+      "e2e1",
+      "g3e3",
+      "g0e2",
+      "e3e2",
+      "e1d1",
+      "d0b1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739148549,
+    "updatedAt": 1782739148549
+  },
+  {
+    "id": "臥槽馬_0",
+    "level": 1,
+    "title": "臥槽馬 1",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "4ka3/4a4/9/3Hr4/9/9/7h1/9/4A4/3K1A3",
+    "moves": [
+      "d3c1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193151,
+    "updatedAt": 1782739193151
+  },
+  {
+    "id": "臥槽馬_1",
+    "level": 1,
+    "title": "臥槽馬 2",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "4ka3/4a4/9/1H1R5/9/4r4/7h1/9/4A4/2p1KA3",
+    "moves": [
+      "b3c1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193159,
+    "updatedAt": 1782739193159
+  },
+  {
+    "id": "臥槽馬_2",
+    "level": 1,
+    "title": "臥槽馬 3",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "3hka3/4a4/9/1H7/9/9/9/9/4p2r1/5K2h",
+    "moves": [
+      "b3c1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193171,
+    "updatedAt": 1782739193171
+  },
+  {
+    "id": "臥槽馬_3",
+    "level": 1,
+    "title": "臥槽馬 4",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2ehk4/4aP3/4ca3/1H7/9/9/9/4E4/9/5KE2",
+    "moves": [
+      "b3c1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193182,
+    "updatedAt": 1782739193182
+  },
+  {
+    "id": "臥槽馬_4",
+    "level": 1,
+    "title": "臥槽馬 5",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2e1ka3/C8/2h1ca3/1H7/9/9/9/4E4/9/3K2E2",
+    "moves": [
+      "b3c1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193191,
+    "updatedAt": 1782739193191
+  },
+  {
+    "id": "臥槽馬_5",
+    "level": 1,
+    "title": "臥槽馬 6",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2e1ka3/7R1/2h1ca3/1H7/9/9/9/4E4/4pr3/3K2E2",
+    "moves": [
+      "b3c1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193200,
+    "updatedAt": 1782739193200
+  },
+  {
+    "id": "臥槽馬_6",
+    "level": 1,
+    "title": "臥槽馬 7",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2P1k1e2/4a4/3ac4/7H1/9/9/9/4E4/4p4/5KE2",
+    "moves": [
+      "h3g1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193207,
+    "updatedAt": 1782739193207
+  },
+  {
+    "id": "臥槽馬_7",
+    "level": 1,
+    "title": "臥槽馬 8",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "3akae2/9/4e1H2/1H7/4h4/9/9/9/4p2r1/3K5",
+    "moves": [
+      "b3c1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193218,
+    "updatedAt": 1782739193218
+  },
+  {
+    "id": "臥槽馬_8",
+    "level": 1,
+    "title": "臥槽馬 9",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "3akae2/2HR5/4e4/9/9/9/9/5h3/4p2r1/3K5",
+    "moves": [
+      "d1i1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193230,
+    "updatedAt": 1782739193230
+  },
+  {
+    "id": "臥槽馬_9",
+    "level": 1,
+    "title": "臥槽馬 10",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2r1kae2/2HRa4/4e4/9/9/9/9/5h3/4p2r1/3K5",
+    "moves": [
+      "d1d0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193237,
+    "updatedAt": 1782739193237
+  },
+  {
+    "id": "臥槽馬_10",
+    "level": 1,
+    "title": "臥槽馬 11",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "4ka3/4a4/9/1H7/9/9/9/5h3/4p4/3K5",
+    "moves": [
+      "b3c1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193246,
+    "updatedAt": 1782739193246
+  },
+  {
+    "id": "臥槽馬_11",
+    "level": 1,
+    "title": "臥槽馬 12",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "4kae2/4a4/4e4/1H7/9/9/9/9/4p1h2/3K5",
+    "moves": [
+      "b3c1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193253,
+    "updatedAt": 1782739193253
+  },
+  {
+    "id": "臥槽馬_12",
+    "level": 1,
+    "title": "臥槽馬 13",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "3hka3/4a4/9/1H7/9/9/9/9/4p4/3K5",
+    "moves": [
+      "b3c1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193260,
+    "updatedAt": 1782739193260
+  },
+  {
+    "id": "臥槽馬_13",
+    "level": 1,
+    "title": "臥槽馬 14",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "3cka3/4a4/9/7H1/9/9/9/9/4p4/3K5",
+    "moves": [
+      "h3g1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193270,
+    "updatedAt": 1782739193270
+  },
+  {
+    "id": "臥槽馬_14",
+    "level": 1,
+    "title": "臥槽馬 15",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2eaka3/5P3/4ec3/1H7/9/1h7/9/9/4p4/3K5",
+    "moves": [
+      "b3c1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193281,
+    "updatedAt": 1782739193281
+  },
+  {
+    "id": "臥槽馬_15",
+    "level": 1,
+    "title": "臥槽馬 16",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "3akae2/7R1/4ec3/1H7/9/9/9/9/4pr3/3K5",
+    "moves": [
+      "b3c1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193293,
+    "updatedAt": 1782739193293
+  },
+  {
+    "id": "臥槽馬_16",
+    "level": 1,
+    "title": "臥槽馬 17",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "3ak1P2/4a4/4e4/1H7/9/9/9/9/4pr3/3K5",
+    "moves": [
+      "b3c1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193303,
+    "updatedAt": 1782739193303
+  },
+  {
+    "id": "臥槽馬_17",
+    "level": 1,
+    "title": "臥槽馬 18",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2eaka3/C8/4e4/1H7/9/9/9/5h3/4p4/5K1c1",
+    "moves": [
+      "b3c1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193313,
+    "updatedAt": 1782739193313
+  },
+  {
+    "id": "臥槽馬_18",
+    "level": 1,
+    "title": "臥槽馬 19",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "3akae2/9/4e1H2/1H7/4h4/9/9/9/4pr3/3K5",
+    "moves": [
+      "b3c1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193321,
+    "updatedAt": 1782739193321
+  },
+  {
+    "id": "臥槽馬_19",
+    "level": 1,
+    "title": "臥槽馬 20",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "4kae2/4a4/4e4/1H7/9/9/9/3A2r2/3C1p3/4K3c",
+    "moves": [
+      "b3c1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193329,
+    "updatedAt": 1782739193329
+  },
+  {
+    "id": "臥槽馬_20",
+    "level": 1,
+    "title": "臥槽馬 21",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "4kae2/4a4/4e4/1H7/3P5/3C5/9/8h/4p4/5K2c",
+    "moves": [
+      "b3c1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193336,
+    "updatedAt": 1782739193336
+  },
+  {
+    "id": "臥槽馬_21",
+    "level": 1,
+    "title": "臥槽馬 22",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "3ak1e2/4a4/4e4/1H7/9/5R3/9/9/4p1r2/3K4c",
+    "moves": [
+      "b3c1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193345,
+    "updatedAt": 1782739193345
+  },
+  {
+    "id": "臥槽馬_22",
+    "level": 1,
+    "title": "臥槽馬 23",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "4kae2/2HRa4/4e4/9/9/9/9/9/4p1p2/5K3",
+    "moves": [
+      "d1d2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193354,
+    "updatedAt": 1782739193354
+  },
+  {
+    "id": "臥槽馬_23",
+    "level": 1,
+    "title": "臥槽馬 24",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "3ak1e2/2HR5/4e4/9/9/9/1h7/5A3/r4p3/3AK4",
+    "moves": [
+      "d1f1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193365,
+    "updatedAt": 1782739193365
+  },
+  {
+    "id": "臥槽馬_24",
+    "level": 2,
+    "title": "臥槽馬 25",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "r2akae2/9/4e4/7H1/9/4c4/9/3RE4/1ch1A4/3K1AE2",
+    "moves": [
+      "h3g1",
+      "e0e1",
+      "d7d1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193382,
+    "updatedAt": 1782739193382
+  },
+  {
+    "id": "臥槽馬_25",
+    "level": 2,
+    "title": "臥槽馬 26",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "r2akae2/9/4e4/7H1/9/4c4/9/3RE4/1ch1A4/3K1AE2",
+    "moves": [
+      "h3g1",
+      "e0e1",
+      "d7d1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193399,
+    "updatedAt": 1782739193399
+  },
+  {
+    "id": "臥槽馬_26",
+    "level": 2,
+    "title": "臥槽馬 27",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "3a1ae2/2H1k4/4e4/9/9/4c4/9/3RE4/1rp1A4/3K1AE2",
+    "moves": [
+      "d7d1",
+      "e1e0",
+      "d1i1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193420,
+    "updatedAt": 1782739193420
+  },
+  {
+    "id": "臥槽馬_27",
+    "level": 2,
+    "title": "臥槽馬 28",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "4kae2/9/9/3H5/7R1/4c4/9/4E4/1rp1A4/3K1AE2",
+    "moves": [
+      "d3c1",
+      "e0e1",
+      "h4h1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193439,
+    "updatedAt": 1782739193439
+  },
+  {
+    "id": "臥槽馬_28",
+    "level": 2,
+    "title": "臥槽馬 29",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "4kae2/4aPH2/9/9/9/9/9/3RE4/1rp1A4/c2K1AE2",
+    "moves": [
+      "f1e1",
+      "e0e1",
+      "d7d1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193461,
+    "updatedAt": 1782739193461
+  },
+  {
+    "id": "臥槽馬_29",
+    "level": 2,
+    "title": "臥槽馬 30",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "3akce2/3Ra4/9/3H5/9/6E2/9/9/1rp1A4/3K1AE2",
+    "moves": [
+      "d1e1",
+      "d0e1",
+      "d3c1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193479,
+    "updatedAt": 1782739193479
+  },
+  {
+    "id": "臥槽馬_30",
+    "level": 2,
+    "title": "臥槽馬 31",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "3a2e2/3ka1H1C/4e2r1/3P5/9/9/9/9/4p1r2/5K3",
+    "moves": [
+      "d3d2",
+      "d1d2",
+      "g1f3"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193502,
+    "updatedAt": 1782739193502
+  },
+  {
+    "id": "臥槽馬_31",
+    "level": 2,
+    "title": "臥槽馬 32",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "5kr2/2HR5/5a3/2H6/6r2/9/9/3h5/4p4/5K3",
+    "moves": [
+      "c3e2",
+      "f0e0",
+      "d1i1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193519,
+    "updatedAt": 1782739193519
+  },
+  {
+    "id": "臥槽馬_32",
+    "level": 2,
+    "title": "臥槽馬 33",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "3a1a3/5kH2/4R4/4H4/3c5/9/3r5/3p5/4p4/3K5",
+    "moves": [
+      "e2e0",
+      "f1f2",
+      "g1h3"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193540,
+    "updatedAt": 1782739193540
+  },
+  {
+    "id": "臥槽馬_33",
+    "level": 2,
+    "title": "臥槽馬 34",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2e6/1CH1ak2c/4ea3/9/9/5R3/9/3p5/r1p1p4/3K5",
+    "moves": [
+      "f5f2",
+      "f1f2",
+      "c1d3"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193561,
+    "updatedAt": 1782739193561
+  },
+  {
+    "id": "臥槽馬_34",
+    "level": 2,
+    "title": "臥槽馬 35",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2eaka3/9/4ec3/CH7/9/9/9/3h5/4p4/5K3",
+    "moves": [
+      "b3c1",
+      "e0e1",
+      "a3a1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193577,
+    "updatedAt": 1782739193577
+  },
+  {
+    "id": "臥槽馬_35",
+    "level": 2,
+    "title": "臥槽馬 36",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2eaka3/9/4e4/7HC/9/9/9/5h3/4p4/3K5",
+    "moves": [
+      "h3g1",
+      "e0e1",
+      "i3i1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193595,
+    "updatedAt": 1782739193595
+  },
+  {
+    "id": "臥槽馬_36",
+    "level": 2,
+    "title": "臥槽馬 37",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "4kae2/9/4e4/1H7/9/5R3/9/9/4p1p2/5K2c",
+    "moves": [
+      "b3c1",
+      "e0d0",
+      "f5d5"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193611,
+    "updatedAt": 1782739193611
+  },
+  {
+    "id": "臥槽馬_37",
+    "level": 2,
+    "title": "臥槽馬 38",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2eakae2/9/9/1H7/9/9/9/9/1r2p4/3K3R1",
+    "moves": [
+      "b3c1",
+      "e0e1",
+      "h9h1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193630,
+    "updatedAt": 1782739193630
+  },
+  {
+    "id": "臥槽馬_38",
+    "level": 2,
+    "title": "臥槽馬 39",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "H3k4/9/9/9/9/6R2/9/4E4/1r1p5/c3K4",
+    "moves": [
+      "a0c1",
+      "e0f0",
+      "g5f5"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193652,
+    "updatedAt": 1782739193652
+  },
+  {
+    "id": "臥槽馬_39",
+    "level": 2,
+    "title": "臥槽馬 40",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "5ae2/2H1k4/4e4/9/9/3R5/9/9/2p1p4/3K5",
+    "moves": [
+      "d5d1",
+      "e1e0",
+      "d1i1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193676,
+    "updatedAt": 1782739193676
+  },
+  {
+    "id": "臥槽馬_40",
+    "level": 2,
+    "title": "臥槽馬 41",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2eaka1r1/9/r3e4/1H3R3/9/9/9/2h6/1c2A4/3A1K3",
+    "moves": [
+      "b3c1",
+      "e0e1",
+      "f3f1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193694,
+    "updatedAt": 1782739193694
+  },
+  {
+    "id": "臥槽馬_41",
+    "level": 2,
+    "title": "臥槽馬 42",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2raka3/5PH2/4e4/3R5/9/9/9/6h2/4Ar3/3K4c",
+    "moves": [
+      "f1e1",
+      "e0e1",
+      "d3d1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193719,
+    "updatedAt": 1782739193719
+  },
+  {
+    "id": "臥槽馬_42",
+    "level": 2,
+    "title": "臥槽馬 43",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "3akr3/2R1a4/9/3H5/9/9/9/6h2/4p4/3K5",
+    "moves": [
+      "c1e1",
+      "d0e1",
+      "d3c1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193738,
+    "updatedAt": 1782739193738
+  },
+  {
+    "id": "臥槽馬_43",
+    "level": 3,
+    "title": "臥槽馬 44",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "3ak1e2/4aP3/4e4/7H1/9/9/9/9/3rr4/5K1C1",
+    "moves": [
+      "f1f0",
+      "e1f0",
+      "h3g1",
+      "e0e1",
+      "h9h1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193768,
+    "updatedAt": 1782739193768
+  },
+  {
+    "id": "臥槽馬_44",
+    "level": 3,
+    "title": "臥槽馬 45",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2eak1eRC/4a4/9/3r1H3/9/9/9/3p5/2r1p4/3K5",
+    "moves": [
+      "h0g0",
+      "e1f0",
+      "f3g1",
+      "e0e1",
+      "i0i1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193850,
+    "updatedAt": 1782739193850
+  },
+  {
+    "id": "臥槽馬_45",
+    "level": 3,
+    "title": "臥槽馬 46",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2ea1k3/4R4/4e4/5H3/9/2R6/9/4p4/3p1p2r/4K4",
+    "moves": [
+      "e1e0",
+      "f0f1",
+      "f3h2",
+      "f1f2",
+      "e0f0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193896,
+    "updatedAt": 1782739193896
+  },
+  {
+    "id": "臥槽馬_46",
+    "level": 3,
+    "title": "臥槽馬 47",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2H6/4P4/5k1c1/9/5H3/2R2pE2/4P4/4K4/1hrppprh1/9",
+    "moves": [
+      "f4d3",
+      "f2e2",
+      "d3c1",
+      "e2f2",
+      "c5f5"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739193997,
+    "updatedAt": 1782739193997
+  },
+  {
+    "id": "臥槽馬_47",
+    "level": 2,
+    "title": "臥槽馬 48",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2ea1k3/6P2/4ea3/3H5/1C7/9/1h7/9/1p2p4/c2K5",
+    "moves": [
+      "b4f4",
+      "f2e1",
+      "d3f2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739194086,
+    "updatedAt": 1782739194086
+  },
+  {
+    "id": "臥槽馬_48",
+    "level": 3,
+    "title": "臥槽馬 49",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "3a1k3/1C4H2/e8/4H4/9/9/9/9/2p1p4/3K5",
+    "moves": [
+      "g1e2",
+      "d0e1",
+      "e3g2",
+      "f0e0",
+      "e2c1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739194148,
+    "updatedAt": 1782739194148
+  },
+  {
+    "id": "臥槽馬_50",
+    "level": 3,
+    "title": "臥槽馬 51",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "1h1akae2/9/4e4/p1CHp3p/9/P5R2/4P4/4E4/4Ap3/crEAK4",
+    "moves": [
+      "c3c0",
+      "e2c0",
+      "d3c1",
+      "e0e1",
+      "g5g1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739201699,
+    "updatedAt": 1782739201699
+  },
+  {
+    "id": "臥槽馬_51",
+    "level": 3,
+    "title": "臥槽馬 52",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2ek1a3/2H1a4/2h1ec3/2C2R3/9/9/9/9/3p3r1/4K4",
+    "moves": [
+      "f3d3",
+      "e1d2",
+      "d3d2",
+      "f2d2",
+      "c3d3"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739201737,
+    "updatedAt": 1782739201737
+  },
+  {
+    "id": "臥槽馬_52",
+    "level": 3,
+    "title": "臥槽馬 53",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "5a3/4a2C1/3k4e/9/3H2e2/1r7/9/2C6/1r2p4/c4K3",
+    "moves": [
+      "c7d7",
+      "b5d5",
+      "d4f3",
+      "d2e2",
+      "f3g1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739201797,
+    "updatedAt": 1782739201797
+  },
+  {
+    "id": "臥槽馬_53",
+    "level": 3,
+    "title": "臥槽馬 54",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "3akr3/2R1a2c1/9/1H1H5/9/9/9/6h2/4p4/3K5",
+    "moves": [
+      "c1e1",
+      "d0e1",
+      "d3c1",
+      "h1c1",
+      "b3c1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739201835,
+    "updatedAt": 1782739201835
+  },
+  {
+    "id": "臥槽馬_54",
+    "level": 3,
+    "title": "臥槽馬 55",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "3ak1e2/4a4/4e4/1H3P3/4C4/9/9/2h1E4/3pA4/c3KAE2",
+    "moves": [
+      "b3c1",
+      "e0f0",
+      "e4f4",
+      "e1f2",
+      "f3f2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739201900,
+    "updatedAt": 1782739201900
+  },
+  {
+    "id": "臥槽馬_55",
+    "level": 3,
+    "title": "臥槽馬 56",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2eak4/9/4e4/7H1/9/9/9/4ER3/3rp4/2E2K3",
+    "moves": [
+      "h3g1",
+      "e0e1",
+      "f7f1",
+      "e1e0",
+      "f1d1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739201932,
+    "updatedAt": 1782739201932
+  },
+  {
+    "id": "臥槽馬_56",
+    "level": 2,
+    "title": "臥槽馬 57",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "3k4C/9/e2a4e/2H6/9/4R4/9/9/4p1pr1/3p1K3",
+    "moves": [
+      "c3e2",
+      "d0e0",
+      "e2f0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739201977,
+    "updatedAt": 1782739201977
+  },
+  {
+    "id": "臥槽馬_57",
+    "level": 3,
+    "title": "臥槽馬 58",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2ek1a3/2H1a4/2h1ec3/5R1C1/9/9/9/9/3p1p1r1/4K4",
+    "moves": [
+      "f3d3",
+      "e1d2",
+      "d3d2",
+      "f2d2",
+      "h3d3"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739202021,
+    "updatedAt": 1782739202021
+  },
+  {
+    "id": "臥槽馬_58",
+    "level": 3,
+    "title": "臥槽馬 59",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "1h1akae2/9/4e4/p2Hp3p/9/2C3R2/P1P1P4/4E4/1r2Ap3/1cEAK4",
+    "moves": [
+      "c5c0",
+      "e2c0",
+      "d3c1",
+      "e0e1",
+      "g5g1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739206429,
+    "updatedAt": 1782739206429
+  },
+  {
+    "id": "臥槽馬_59",
+    "level": 4,
+    "title": "臥槽馬 60",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2eaka2H/5P3/4e4/2R6/9/9/9/9/1r1pA4/c3K4",
+    "moves": [
+      "f1e1",
+      "d0e1",
+      "i0g1",
+      "e0d0",
+      "c3d3",
+      "e1d2",
+      "d3d2"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739206528,
+    "updatedAt": 1782739206528
+  },
+  {
+    "id": "臥槽馬_61",
+    "level": 3,
+    "title": "臥槽馬 62",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2eak4/4a2H1/4e4/5H3/9/9/9/2h6/1r7/c3K4",
+    "moves": [
+      "f3g1",
+      "e0f0",
+      "g1e2",
+      "f0e0",
+      "e2c1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739206639,
+    "updatedAt": 1782739206639
+  },
+  {
+    "id": "臥槽馬_62",
+    "level": 3,
+    "title": "臥槽馬 63",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "3c1ae2/4k4/4eP3/5H3/2h6/7C1/9/9/4p4/3p1K3",
+    "moves": [
+      "f2f1",
+      "e1e0",
+      "f1e1",
+      "f0e1",
+      "f3g1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739206698,
+    "updatedAt": 1782739206698
+  },
+  {
+    "id": "臥槽馬_63",
+    "level": 2,
+    "title": "臥槽馬 64",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2ea1k3/6P2/4ea3/3H5/8C/9/9/9/2p1p4/c2K5",
+    "moves": [
+      "i4f4",
+      "f2e1",
+      "d3f2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739206805,
+    "updatedAt": 1782739206805
+  },
+  {
+    "id": "臥槽馬_65",
+    "level": 3,
+    "title": "臥槽馬 66",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "H2k1a3/5P3/3a5/9/9/9/9/4R4/C3Hpr1c/2p1K1p2",
+    "moves": [
+      "a8d8",
+      "d2e1",
+      "e7d7",
+      "d0e0",
+      "a0c1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739209269,
+    "updatedAt": 1782739209269
+  },
+  {
+    "id": "臥槽馬_66",
+    "level": 4,
+    "title": "臥槽馬 67",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "5k3/4R4/4eaP2/3HP4/9/9/9/9/2cpp1p1r/3C1K3",
+    "moves": [
+      "e1f1",
+      "f0f1",
+      "g2f2",
+      "f1f0",
+      "f2f1",
+      "f0e0",
+      "d3c1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739209380,
+    "updatedAt": 1782739209380
+  },
+  {
+    "id": "臥槽馬_67",
+    "level": 3,
+    "title": "臥槽馬 68",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "5a1C1/3ka4/4e4/1R5H1/2e6/9/9/5p3/2r1p4/5K3",
+    "moves": [
+      "h0h1",
+      "d1d0",
+      "b3b0",
+      "e2c0",
+      "b0c0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739209508,
+    "updatedAt": 1782739209508
+  },
+  {
+    "id": "臥槽馬_68",
+    "level": 3,
+    "title": "臥槽馬 69",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "5a1C1/3ka4/1R2e4/7H1/2e6/9/9/5p3/2r1p4/5K3",
+    "moves": [
+      "h0h1",
+      "d1d0",
+      "b2b0",
+      "e2c0",
+      "b0c0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739209608,
+    "updatedAt": 1782739209608
+  },
+  {
+    "id": "臥槽馬_69",
+    "level": 4,
+    "title": "臥槽馬 70",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "1c1k1Pe2/6H2/4e4/9/2RP5/9/9/9/4p1rC1/3p1K3",
+    "moves": [
+      "c4c0",
+      "e2c0",
+      "f0e0",
+      "d0d1",
+      "h8h1",
+      "d1d2",
+      "d4d3"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739209707,
+    "updatedAt": 1782739209707
+  },
+  {
+    "id": "臥槽馬_70",
+    "level": 4,
+    "title": "臥槽馬 71",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "3ak1e2/3Pa4/4e4/3HR4/9/9/5hp2/9/7r1/4K3c",
+    "moves": [
+      "d1e1",
+      "d0e1",
+      "d3c1",
+      "e0f0",
+      "e3f3",
+      "e1f2",
+      "f3f2"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739209792,
+    "updatedAt": 1782739209792
+  },
+  {
+    "id": "臥槽馬_71",
+    "level": 4,
+    "title": "臥槽馬 72",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "4kae2/4a4/3ce4/2P4H1/9/6E2/2C6/4E1h2/4A2r1/3AK3c",
+    "moves": [
+      "h3g1",
+      "e0d0",
+      "c6d6",
+      "d2c2",
+      "c3d3",
+      "c2d2",
+      "d3d2"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739209869,
+    "updatedAt": 1782739209869
+  },
+  {
+    "id": "臥槽馬_72",
+    "level": 4,
+    "title": "臥槽馬 73",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "3k1ae2/2H1a4/4e4/2P6/9/9/9/3A3p1/2C2p1h1/3K4c",
+    "moves": [
+      "c8d8",
+      "e1d2",
+      "d7e8",
+      "d2e1",
+      "c3d3",
+      "e1d2",
+      "d3d2"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739210309,
+    "updatedAt": 1782739210309
+  },
+  {
+    "id": "臥槽馬_73",
+    "level": 4,
+    "title": "臥槽馬 74",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "3ak1e2/4a4/4e1r2/1H1R5/9/3R5/9/5h3/4p4/3K5",
+    "moves": [
+      "d3d0",
+      "e1d0",
+      "b3c1",
+      "e0f0",
+      "d5f5",
+      "g2f2",
+      "f5f2"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739210624,
+    "updatedAt": 1782739210624
+  },
+  {
+    "id": "臥槽馬_74",
+    "level": 4,
+    "title": "臥槽馬 75",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2e1ka3/4a4/2h1ec3/3H1R2C/9/9/9/4E4/3p4r/4K4",
+    "moves": [
+      "d3c1",
+      "e0d0",
+      "f3d3",
+      "e1d2",
+      "d3d2",
+      "f2d2",
+      "i3d3"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739210748,
+    "updatedAt": 1782739210748
+  },
+  {
+    "id": "臥槽馬_75",
+    "level": 4,
+    "title": "臥槽馬 76",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "3ak1e2/3Pa4/4e4/3HR4/9/9/9/6h2/7r1/4K3c",
+    "moves": [
+      "d1e1",
+      "d0e1",
+      "d3c1",
+      "e0f0",
+      "e3f3",
+      "e1f2",
+      "f3f2"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739210826,
+    "updatedAt": 1782739210826
+  },
+  {
+    "id": "臥槽馬_76",
+    "level": 4,
+    "title": "臥槽馬 77",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "4kae2/4a4/3ce4/2P4H1/9/6E2/2C6/4E2h1/4A1r2/3AK3c",
+    "moves": [
+      "h3g1",
+      "e0d0",
+      "c6d6",
+      "d2c2",
+      "c3d3",
+      "c2d2",
+      "d3d2"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739210896,
+    "updatedAt": 1782739210896
+  },
+  {
+    "id": "臥槽馬_77",
+    "level": 4,
+    "title": "臥槽馬 78",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "3k1aer1/2H1a4/4e4/2P6/9/9/9/3A5/2C2p3/3K4c",
+    "moves": [
+      "c8d8",
+      "e1d2",
+      "d7e8",
+      "d2e1",
+      "c3d3",
+      "e1d2",
+      "d3d2"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739210987,
+    "updatedAt": 1782739210987
+  },
+  {
+    "id": "臥槽馬_78",
+    "level": 4,
+    "title": "臥槽馬 79",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2e1ka3/4a4/4e4/6rH1/R3C1h2/8C/4c4/4E4/1r2A4/4KAE2",
+    "moves": [
+      "i5i0",
+      "g3g0",
+      "h3g1",
+      "e0d0",
+      "a4d4",
+      "e1d2",
+      "d4d2"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739211155,
+    "updatedAt": 1782739211155
+  },
+  {
+    "id": "臥槽馬_79",
+    "level": 4,
+    "title": "臥槽馬 80",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "3ak1e2/3Pa4/2r1e4/CH7/9/9/9/3h5/4p4/2c2K3",
+    "moves": [
+      "a3a0",
+      "c2c0",
+      "d1d0",
+      "e1d0",
+      "b3c1",
+      "e0e1",
+      "a0a1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739212067,
+    "updatedAt": 1782739212067
+  },
+  {
+    "id": "臥槽馬_80",
+    "level": 4,
+    "title": "臥槽馬 81",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2e1ka3/4a4/2h1ec3/CH3R3/9/9/9/4p4/3p4r/4K4",
+    "moves": [
+      "b3c1",
+      "e0d0",
+      "f3d3",
+      "e1d2",
+      "d3d2",
+      "f2d2",
+      "a3d3"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739212179,
+    "updatedAt": 1782739212179
+  },
+  {
+    "id": "臥槽馬_81",
+    "level": 4,
+    "title": "臥槽馬 82",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "3k1ae2/2H1aR3/9/pC6p/2p3p2/9/P5P1P/4ER3/3rA4/2E1KA1rc",
+    "moves": [
+      "f1f0",
+      "e1f0",
+      "f7f0",
+      "d0d1",
+      "b3b1",
+      "d1d2",
+      "f0d0"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739212318,
+    "updatedAt": 1782739212318
+  },
+  {
+    "id": "臥槽馬_83",
+    "level": 4,
+    "title": "臥槽馬 84",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2eakh3/8R/4e4/6cH1/2h6/9/9/4E4/4p4/3K2E2",
+    "moves": [
+      "h3g1",
+      "e0e1",
+      "g1f3",
+      "e1e0",
+      "i1e1",
+      "d0e1",
+      "f3g1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739315884,
+    "updatedAt": 1782739315884
+  },
+  {
+    "id": "臥槽馬_85",
+    "level": 1,
+    "title": "臥槽馬 86",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2c1kae2/4a4/4e4/p2H2p1p/1H7/9/P6rP/5R3/3KA4/5A3",
+    "moves": [
+      "d3c1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739316023,
+    "updatedAt": 1782739316023
+  },
+  {
+    "id": "臥槽馬_86",
+    "level": 1,
+    "title": "臥槽馬 87",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2eak4/4a4/4e2c1/1r1Hh3p/p8/5r1hP/P1p6/R3CC3/4A4/2EAK1E1R",
+    "moves": [
+      "d3c1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739316031,
+    "updatedAt": 1782739316031
+  },
+  {
+    "id": "臥槽馬_87",
+    "level": 1,
+    "title": "臥槽馬 88",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "3ak1e2/4a4/4e4/RH2P3p/3C2p2/9/3rc4/4E2h1/4A4/3A1KE2",
+    "moves": [
+      "b3c1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739316038,
+    "updatedAt": 1782739316038
+  },
+  {
+    "id": "臥槽馬_88",
+    "level": 1,
+    "title": "臥槽馬 89",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2eak4/c3a4/4e4/1H6p/9/2E6/9/2h1EA3/3p1C3/4K1p2",
+    "moves": [
+      "b3c1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739316045,
+    "updatedAt": 1782739316045
+  },
+  {
+    "id": "臥槽馬_89",
+    "level": 1,
+    "title": "臥槽馬 90",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2P1kae2/4a3c/4e4/7H1/9/2E1C4/9/4EA3/3p1p3/2h1K4",
+    "moves": [
+      "h3g1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739316053,
+    "updatedAt": 1782739316053
+  },
+  {
+    "id": "臥槽馬_90",
+    "level": 2,
+    "title": "臥槽馬 91",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "4kae2/9/4e4/7H1/9/2E6/1p4h2/3AEA3/7C1/4K3c",
+    "moves": [
+      "h3g1",
+      "e0d0",
+      "h8d8"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739316071,
+    "updatedAt": 1782739316071
+  },
+  {
+    "id": "臥槽馬_91",
+    "level": 2,
+    "title": "臥槽馬 92",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "5ae2/9/4k4/1H7/8R/2E6/1p7/3AEAh2/5p3/4K3c",
+    "moves": [
+      "b3c1",
+      "e2e1",
+      "i4i1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739316095,
+    "updatedAt": 1782739316095
+  },
+  {
+    "id": "臥槽馬_92",
+    "level": 2,
+    "title": "臥槽馬 93",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "3k1ae2/2H1a4/4c4/9/8R/2E6/1p7/4EAh2/3CApr2/4K3c",
+    "moves": [
+      "i4d4",
+      "e2d2",
+      "d4d2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739316122,
+    "updatedAt": 1782739316122
+  },
+  {
+    "id": "臥槽馬_93",
+    "level": 4,
+    "title": "臥槽馬 94",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "3ak1e2/3Pa4/4e4/3HR4/9/9/9/9/4p1r2/3K5",
+    "moves": [
+      "d1e1",
+      "d0e1",
+      "d3c1",
+      "e0f0",
+      "e3f3",
+      "e1f2",
+      "f3f2"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739316183,
+    "updatedAt": 1782739316183
+  },
+  {
+    "id": "臥槽馬_94",
+    "level": 2,
+    "title": "臥槽馬 95",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "1r1a1ae2/4k1HR1/1Ch1e1h1r/p3p1p1p/c1p6/9/P1P3P1P/2H1E4/4A4/1R2KAE2",
+    "moves": [
+      "g1e2",
+      "e1e0",
+      "e2c1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739316214,
+    "updatedAt": 1782739316214
+  },
+  {
+    "id": "臥槽馬_95",
+    "level": 3,
+    "title": "臥槽馬 96",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "4k4/4a4/4H4/p2R4p/2e3r2/9/9/4p4/4A3c/3K1A3",
+    "moves": [
+      "e2c1",
+      "e0f0",
+      "d3f3",
+      "e1f2",
+      "f3f2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739316291,
+    "updatedAt": 1782739316291
+  },
+  {
+    "id": "臥槽馬_96",
+    "level": 3,
+    "title": "臥槽馬 97",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2r1kae2/2c1a4/4e2cr/p2Hph3/6php/3R5/PC2P1P1P/3CE1H2/4A4/R3KAE2",
+    "moves": [
+      "b6b0",
+      "e1d0",
+      "d3c1",
+      "e0e1",
+      "b0b1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739316683,
+    "updatedAt": 1782739316683
+  },
+  {
+    "id": "臥槽馬_97",
+    "level": 2,
+    "title": "臥槽馬 98",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "4k4/9/3R5/1H7/9/9/9/1r2p4/3K5/9",
+    "moves": [
+      "b3c1",
+      "e0f0",
+      "d2f2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739316744,
+    "updatedAt": 1782739316744
+  },
+  {
+    "id": "臥槽馬_98",
+    "level": 3,
+    "title": "臥槽馬 99",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "4ka3/4a4/4e4/3H5/9/5R3/9/5p2E/4p3c/5K1c1",
+    "moves": [
+      "d3c1",
+      "e0d0",
+      "f5d5",
+      "e1d2",
+      "d5d2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739316801,
+    "updatedAt": 1782739316801
+  },
+  {
+    "id": "臥槽馬_99",
+    "level": 3,
+    "title": "臥槽馬 100",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2eak4/9/4e4/7H1/9/9/9/4ER3/3rp4/2E2K3",
+    "moves": [
+      "h3g1",
+      "e0e1",
+      "f7f1",
+      "e1e0",
+      "f1d1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739316840,
+    "updatedAt": 1782739316840
+  },
+  {
+    "id": "臥槽馬_100",
+    "level": 3,
+    "title": "臥槽馬 101",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2e1kac2/4aRH2/2h1e4/2Cr4p/4p4/p8/9/4E4/4A4/2EAK4",
+    "moves": [
+      "f1f3",
+      "e0d0",
+      "f3d3",
+      "e1d2",
+      "d3d2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739316908,
+    "updatedAt": 1782739316908
+  },
+  {
+    "id": "臥槽馬_101",
+    "level": 3,
+    "title": "臥槽馬 102",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "3a1ke2/C2Ra4/4cc3/pH2p3p/2P2Rp2/6r2/8P/7r1/1h2A4/2E1KA3",
+    "moves": [
+      "d1d0",
+      "e1d0",
+      "f4f2",
+      "f0e0",
+      "b3c1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739317136,
+    "updatedAt": 1782739317136
+  },
+  {
+    "id": "臥槽馬_102",
+    "level": 4,
+    "title": "臥槽馬 103",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "4kae2/4a4/H1h3h1c/p3p3p/2P3e2/1c3r3/P3P3P/3CC4/4A4/1RE1KAE2",
+    "moves": [
+      "a2c1",
+      "e0d0",
+      "d7d8",
+      "f5f9",
+      "e9f9",
+      "d0d1",
+      "e7d7"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739317653,
+    "updatedAt": 1782739317653
+  },
+  {
+    "id": "臥槽馬_103",
+    "level": 3,
+    "title": "臥槽馬 104",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "C1eaka1R1/9/4e4/2p3p1p/5H3/4r4/P7P/3A5/3K4c/9",
+    "moves": [
+      "f4d3",
+      "e5e9",
+      "d3f2",
+      "e0e1",
+      "h0h1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739350351,
+    "updatedAt": 1782739350351
+  },
+  {
+    "id": "臥槽馬_104",
+    "level": 4,
+    "title": "臥槽馬 105",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "H2aka3/9/e7h/4P3c/3R2p2/9/9/4E4/5Ch2/2EAKA2r",
+    "moves": [
+      "a0c1",
+      "e0e1",
+      "e3e2",
+      "e1f1",
+      "d4f4",
+      "i3f3",
+      "f4f3"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739350551,
+    "updatedAt": 1782739350551
+  },
+  {
+    "id": "臥槽馬_105",
+    "level": 3,
+    "title": "臥槽馬 106",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2e1k4/4aP3/4e4/7H1/9/5R3/9/9/2r1p4/5K3",
+    "moves": [
+      "f1f0",
+      "e1f0",
+      "h3g1",
+      "e0d0",
+      "f5d5"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739350612,
+    "updatedAt": 1782739350612
+  },
+  {
+    "id": "臥槽馬_106",
+    "level": 4,
+    "title": "臥槽馬 107",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2eakh3/8R/4e4/6cH1/2h6/9/9/4E4/4p4/3K2E2",
+    "moves": [
+      "h3g1",
+      "e0e1",
+      "g1f3",
+      "e1e0",
+      "i1e1",
+      "d0e1",
+      "f3g1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739351625,
+    "updatedAt": 1782739351625
+  },
+  {
+    "id": "臥槽馬_107",
+    "level": 4,
+    "title": "臥槽馬 108",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2eak3C/4a4/4e4/3r1H1R1/9/9/9/3p5/2r1p4/3K5",
+    "moves": [
+      "h3h0",
+      "e2g0",
+      "h0g0",
+      "e1f0",
+      "f3g1",
+      "e0e1",
+      "i0i1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739351779,
+    "updatedAt": 1782739351779
+  },
+  {
+    "id": "臥槽馬_108",
+    "level": 4,
+    "title": "臥槽馬 109",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "2R3H2/1c3k3/4Ha3/9/4P1e1h/9/9/3pp4/4r4/3K5",
+    "moves": [
+      "c0f0",
+      "f1e1",
+      "f0f2",
+      "e1e0",
+      "e2c1",
+      "e0d0",
+      "f2d2"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739352026,
+    "updatedAt": 1782739352026
+  },
+  {
+    "id": "臥槽馬_109",
+    "level": 2,
+    "title": "臥槽馬 110",
+    "description": "臥槽馬殺法練習",
+    "initialFen": "3ak1e2/1r2a4/9/2pH5/4P1ehp/C1P2R3/P1c5P/4E4/4A4/1c1K1AE2",
+    "moves": [
+      "a5a0",
+      "b1b0",
+      "d3c1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739352056,
+    "updatedAt": 1782739352056
+  },
+  {
+    "id": "掛角馬_0",
+    "level": 1,
+    "title": "掛角馬 1",
+    "description": "掛角馬殺法練習",
+    "initialFen": "2P1ka3/4a4/9/9/2H6/9/9/9/5p2r/4K4",
+    "moves": [
+      "c4d2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739375684,
+    "updatedAt": 1782739375684
+  },
+  {
+    "id": "掛角馬_1",
+    "level": 1,
+    "title": "掛角馬 2",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3cka3/4a4/9/9/4H4/9/9/9/5p2r/4K4",
+    "moves": [
+      "e4f2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739375692,
+    "updatedAt": 1782739375692
+  },
+  {
+    "id": "掛角馬_2",
+    "level": 1,
+    "title": "掛角馬 3",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3aka3/4h4/4c4/9/6H2/9/9/4E4/4A4/3K1AE2",
+    "moves": [
+      "g4f2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739375704,
+    "updatedAt": 1782739375704
+  },
+  {
+    "id": "掛角馬_3",
+    "level": 1,
+    "title": "掛角馬 4",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3ak4/4a4/9/5C3/6H2/9/9/2h6/3p5/c1EAKAE2",
+    "moves": [
+      "g4f2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739375713,
+    "updatedAt": 1782739375713
+  },
+  {
+    "id": "掛角馬_4",
+    "level": 1,
+    "title": "掛角馬 5",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3akae2/R8/4e4/9/4H4/9/9/9/1r1pA4/4KA3",
+    "moves": [
+      "e4f2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739375723,
+    "updatedAt": 1782739375723
+  },
+  {
+    "id": "掛角馬_5",
+    "level": 1,
+    "title": "掛角馬 6",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3a1ae2/4k4/3He4/2R6/9/9/9/9/1r1pA4/4KA3",
+    "moves": [
+      "c3c1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739375731,
+    "updatedAt": 1782739375731
+  },
+  {
+    "id": "掛角馬_6",
+    "level": 1,
+    "title": "掛角馬 7",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3akae2/9/4e1H2/9/4H1h2/9/9/9/1r1pA4/4KA3",
+    "moves": [
+      "e4d2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739375740,
+    "updatedAt": 1782739375740
+  },
+  {
+    "id": "掛角馬_7",
+    "level": 1,
+    "title": "掛角馬 8",
+    "description": "掛角馬殺法練習",
+    "initialFen": "5ae2/C3k4/1P1He4/9/6h2/9/9/9/1r1pA4/3AK4",
+    "moves": [
+      "b2b1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739375750,
+    "updatedAt": 1782739375750
+  },
+  {
+    "id": "掛角馬_8",
+    "level": 1,
+    "title": "掛角馬 9",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3k1ae2/9/4eH1P1/9/9/9/9/3A1p2r/2C6/3AK4",
+    "moves": [
+      "c8d8"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739375760,
+    "updatedAt": 1782739375760
+  },
+  {
+    "id": "掛角馬_9",
+    "level": 1,
+    "title": "掛角馬 10",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3ak1e2/3R5/3He2P1/9/9/9/9/3A5/5p2r/3AK4",
+    "moves": [
+      "d1f1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739375771,
+    "updatedAt": 1782739375771
+  },
+  {
+    "id": "掛角馬_10",
+    "level": 1,
+    "title": "掛角馬 11",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3hka3/4a4/9/9/2H6/9/9/9/9/4K4",
+    "moves": [
+      "c4d2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739375780,
+    "updatedAt": 1782739375780
+  },
+  {
+    "id": "掛角馬_11",
+    "level": 1,
+    "title": "掛角馬 12",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3cka3/4a4/9/9/4H4/9/9/9/9/4K4",
+    "moves": [
+      "e4f2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739375788,
+    "updatedAt": 1782739375788
+  },
+  {
+    "id": "掛角馬_12",
+    "level": 1,
+    "title": "掛角馬 13",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3cka3/4a4/9/9/4H4/9/9/9/9/4K4",
+    "moves": [
+      "e4f2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739375796,
+    "updatedAt": 1782739375796
+  },
+  {
+    "id": "掛角馬_13",
+    "level": 1,
+    "title": "掛角馬 14",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3ak4/4a4/9/5C3/6H2/9/9/2h6/3p5/c3K4",
+    "moves": [
+      "g4f2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739375808,
+    "updatedAt": 1782739375808
+  },
+  {
+    "id": "掛角馬_14",
+    "level": 1,
+    "title": "掛角馬 15",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3akae2/R8/4e4/9/4H4/9/9/6h2/5r3/4K4",
+    "moves": [
+      "e4d2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739375816,
+    "updatedAt": 1782739375816
+  },
+  {
+    "id": "掛角馬_15",
+    "level": 1,
+    "title": "掛角馬 16",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3a1ae2/4k4/3He4/2R6/9/9/9/7r1/5p3/4K3c",
+    "moves": [
+      "c3c1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739375825,
+    "updatedAt": 1782739375825
+  },
+  {
+    "id": "掛角馬_16",
+    "level": 1,
+    "title": "掛角馬 17",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3akae2/9/4e1r2/5H3/4H4/9/9/9/9/4K3c",
+    "moves": [
+      "e4d2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739375832,
+    "updatedAt": 1782739375832
+  },
+  {
+    "id": "掛角馬_17",
+    "level": 1,
+    "title": "掛角馬 18",
+    "description": "掛角馬殺法練習",
+    "initialFen": "5ae2/C3k4/1P1He4/9/9/9/9/3h5/4p4/3c1K3",
+    "moves": [
+      "b2b1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739375842,
+    "updatedAt": 1782739375842
+  },
+  {
+    "id": "掛角馬_18",
+    "level": 1,
+    "title": "掛角馬 19",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3k1ae2/9/4eH3/1R7/9/9/9/4Eh3/4r4/5K3",
+    "moves": [
+      "b3d3"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739375855,
+    "updatedAt": 1782739375855
+  },
+  {
+    "id": "掛角馬_19",
+    "level": 1,
+    "title": "掛角馬 20",
+    "description": "掛角馬殺法練習",
+    "initialFen": "2eak4/3R5/3He4/9/9/9/9/9/2rp1r3/4K4",
+    "moves": [
+      "d1f1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739375866,
+    "updatedAt": 1782739375866
+  },
+  {
+    "id": "掛角馬_20",
+    "level": 2,
+    "title": "掛角馬 21",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3aka3/9/4e4/9/4H4/9/2h6/4E2R1/1r1pA4/4KAE2",
+    "moves": [
+      "e4f2",
+      "e0e1",
+      "h7h1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739375892,
+    "updatedAt": 1782739375892
+  },
+  {
+    "id": "掛角馬_21",
+    "level": 2,
+    "title": "掛角馬 22",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3ak1e2/3PaP3/4e4/5H3/9/9/9/9/4rr3/3K5",
+    "moves": [
+      "d1d0",
+      "e1d0",
+      "f3d2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739375914,
+    "updatedAt": 1782739375914
+  },
+  {
+    "id": "掛角馬_22",
+    "level": 2,
+    "title": "掛角馬 23",
+    "description": "掛角馬殺法練習",
+    "initialFen": "4ka3/4h4/4e4/7R1/4H4/9/9/4E4/1r1pA4/4KAE2",
+    "moves": [
+      "e4f2",
+      "e0d0",
+      "h3d3"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739375938,
+    "updatedAt": 1782739375938
+  },
+  {
+    "id": "掛角馬_23",
+    "level": 2,
+    "title": "掛角馬 24",
+    "description": "掛角馬殺法練習",
+    "initialFen": "4ka3/7H1/4e4/7R1/9/9/9/4E4/1r1pA4/4KAE2",
+    "moves": [
+      "h1f2",
+      "e0d0",
+      "h3d3"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739375962,
+    "updatedAt": 1782739375962
+  },
+  {
+    "id": "掛角馬_24",
+    "level": 2,
+    "title": "掛角馬 25",
+    "description": "掛角馬殺法練習",
+    "initialFen": "4kae2/4a4/9/1H7/9/9/9/hC3A3/1r1p5/4KAE2",
+    "moves": [
+      "b3d2",
+      "e0d0",
+      "b7d7"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739375986,
+    "updatedAt": 1782739375986
+  },
+  {
+    "id": "掛角馬_25",
+    "level": 2,
+    "title": "掛角馬 26",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3aka3/C8/1P2e4/1H7/9/9/9/h4A3/1r1p5/4KAE2",
+    "moves": [
+      "b3d2",
+      "e0e1",
+      "b2b1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739376006,
+    "updatedAt": 1782739376006
+  },
+  {
+    "id": "掛角馬_26",
+    "level": 2,
+    "title": "掛角馬 27",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3a1k3/4a4/9/1H7/9/4R4/9/5A3/2rp5/c3KAE2",
+    "moves": [
+      "e5f5",
+      "e1f2",
+      "f5f2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739376027,
+    "updatedAt": 1782739376027
+  },
+  {
+    "id": "掛角馬_27",
+    "level": 2,
+    "title": "掛角馬 28",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3ak4/3PaP3/9/3H5/9/9/9/9/2r1p4/c4KE2",
+    "moves": [
+      "f1f0",
+      "e1f0",
+      "d3f2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739376049,
+    "updatedAt": 1782739376049
+  },
+  {
+    "id": "掛角馬_28",
+    "level": 2,
+    "title": "掛角馬 29",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3ak4/1H1PaP3/9/9/9/9/9/4E4/2rp5/c3K4",
+    "moves": [
+      "d1d0",
+      "e1d0",
+      "b1d2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739376072,
+    "updatedAt": 1782739376072
+  },
+  {
+    "id": "掛角馬_29",
+    "level": 2,
+    "title": "掛角馬 30",
+    "description": "掛角馬殺法練習",
+    "initialFen": "r1H1k3C/4a4/4h1H2/9/3R5/9/6h2/2pp5/4p4/r1cK5",
+    "moves": [
+      "d4d0",
+      "e1d0",
+      "c0d2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739376101,
+    "updatedAt": 1782739376101
+  },
+  {
+    "id": "掛角馬_30",
+    "level": 2,
+    "title": "掛角馬 31",
+    "description": "掛角馬殺法練習",
+    "initialFen": "4kae2/4h4/4e4/5R3/4H4/9/9/4E1h2/4A2r1/2EAK3c",
+    "moves": [
+      "e4f2",
+      "e0d0",
+      "f3d3"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739376123,
+    "updatedAt": 1782739376123
+  },
+  {
+    "id": "掛角馬_31",
+    "level": 2,
+    "title": "掛角馬 32",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3akae2/9/4e4/9/4H4/1R7/9/6h2/5r3/4K4",
+    "moves": [
+      "e4d2",
+      "e0e1",
+      "b5b1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739376146,
+    "updatedAt": 1782739376146
+  },
+  {
+    "id": "掛角馬_32",
+    "level": 2,
+    "title": "掛角馬 33",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3akae2/9/4e4/9/4H4/9/3R5/1r7/2r1A4/3K1A3",
+    "moves": [
+      "e4f2",
+      "e0e1",
+      "d6d1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739376167,
+    "updatedAt": 1782739376167
+  },
+  {
+    "id": "掛角馬_33",
+    "level": 2,
+    "title": "掛角馬 34",
+    "description": "掛角馬殺法練習",
+    "initialFen": "4kae2/7H1/4e4/9/9/2R6/9/4E1h2/3pA2r1/4KAE1c",
+    "moves": [
+      "h1f2",
+      "e0d0",
+      "c5d5"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739376187,
+    "updatedAt": 1782739376187
+  },
+  {
+    "id": "掛角馬_34",
+    "level": 2,
+    "title": "掛角馬 35",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3ak4/4a4/9/7H1/9/7C1/9/9/2rp5/c3K4",
+    "moves": [
+      "h3f2",
+      "e0f0",
+      "h5f5"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739376209,
+    "updatedAt": 1782739376209
+  },
+  {
+    "id": "掛角馬_35",
+    "level": 2,
+    "title": "掛角馬 36",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3akae2/C8/1P2e4/9/4H4/9/9/3h5/4p4/3c1K3",
+    "moves": [
+      "e4f2",
+      "e0e1",
+      "b2b1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739376228,
+    "updatedAt": 1782739376228
+  },
+  {
+    "id": "掛角馬_36",
+    "level": 2,
+    "title": "掛角馬 37",
+    "description": "掛角馬殺法練習",
+    "initialFen": "2e1ka3/4a4/4e4/1H2C4/9/9/9/9/2rp5/4K4",
+    "moves": [
+      "b3d2",
+      "e0d0",
+      "e3d3"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739376246,
+    "updatedAt": 1782739376246
+  },
+  {
+    "id": "掛角馬_37",
+    "level": 2,
+    "title": "掛角馬 38",
+    "description": "掛角馬殺法練習",
+    "initialFen": "2e1ka3/4a4/4e4/9/4H4/4C4/9/9/5pr2/4K4",
+    "moves": [
+      "e4d2",
+      "e0d0",
+      "e5d5"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739376266,
+    "updatedAt": 1782739376266
+  },
+  {
+    "id": "掛角馬_38",
+    "level": 2,
+    "title": "掛角馬 39",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3k1a1R1/4a4/5H3/4R4/9/9/9/9/3rA4/1crAK4",
+    "moves": [
+      "h0f0",
+      "e1f0",
+      "e3e0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739376291,
+    "updatedAt": 1782739376291
+  },
+  {
+    "id": "掛角馬_39",
+    "level": 2,
+    "title": "掛角馬 40",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3P1k3/4a4/3HRa3/9/9/9/9/9/1rr6/c2K5",
+    "moves": [
+      "e2f2",
+      "e1f2",
+      "d0e0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739376315,
+    "updatedAt": 1782739376315
+  },
+  {
+    "id": "掛角馬_40",
+    "level": 2,
+    "title": "掛角馬 41",
+    "description": "掛角馬殺法練習",
+    "initialFen": "2ea1k3/4a4/9/9/2H1R4/9/9/6h2/2r2p3/4K4",
+    "moves": [
+      "e4f4",
+      "e1f2",
+      "f4f2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739376340,
+    "updatedAt": 1782739376340
+  },
+  {
+    "id": "掛角馬_41",
+    "level": 2,
+    "title": "掛角馬 42",
+    "description": "掛角馬殺法練習",
+    "initialFen": "4kae2/1H1PaP3/4e4/9/9/9/4c2h1/4E4/3pA4/3AK1E2",
+    "moves": [
+      "d1d0",
+      "e1d0",
+      "b1d2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739376359,
+    "updatedAt": 1782739376359
+  },
+  {
+    "id": "掛角馬_42",
+    "level": 3,
+    "title": "掛角馬 43",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3ak1e2/4a4/h3e4/1H7/9/9/9/3R3R1/2r1r4/3K5",
+    "moves": [
+      "d7d0",
+      "e1d0",
+      "b3d2",
+      "e0f0",
+      "h7f7"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739376410,
+    "updatedAt": 1782739376410
+  },
+  {
+    "id": "掛角馬_43",
+    "level": 3,
+    "title": "掛角馬 44",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3ak1e2/4aR1H1/4e4/9/9/9/9/9/1r1r5/4K2R1",
+    "moves": [
+      "f1f0",
+      "e1f0",
+      "h1f2",
+      "e0e1",
+      "h9h1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739376448,
+    "updatedAt": 1782739376448
+  },
+  {
+    "id": "掛角馬_44",
+    "level": 3,
+    "title": "掛角馬 45",
+    "description": "掛角馬殺法練習",
+    "initialFen": "4ka3/3Pa2H1/3ce4/2R6/2e6/2C6/9/5p3/4p4/3p1K3",
+    "moves": [
+      "c3c0",
+      "e1d0",
+      "c5e5",
+      "e2g0",
+      "h1f2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739376622,
+    "updatedAt": 1782739376622
+  },
+  {
+    "id": "掛角馬_45",
+    "level": 3,
+    "title": "掛角馬 46",
+    "description": "掛角馬殺法練習",
+    "initialFen": "4ka2r/1H2a4/4e4/9/9/7R1/9/9/4p1p2/3R1K3",
+    "moves": [
+      "d9d0",
+      "e1d0",
+      "b1d2",
+      "e0e1",
+      "h5h1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739376674,
+    "updatedAt": 1782739376674
+  },
+  {
+    "id": "掛角馬_46",
+    "level": 3,
+    "title": "掛角馬 47",
+    "description": "掛角馬殺法練習",
+    "initialFen": "2e1ka3/4a2H1/4e4/9/9/2R2R3/9/4E4/3p1p1r1/4K3c",
+    "moves": [
+      "f5f0",
+      "e1f0",
+      "h1f2",
+      "e0d0",
+      "c5d5"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739376717,
+    "updatedAt": 1782739376717
+  },
+  {
+    "id": "掛角馬_47",
+    "level": 3,
+    "title": "掛角馬 48",
+    "description": "掛角馬殺法練習",
+    "initialFen": "4ka1R1/4a4/9/4R4/6H2/9/9/2h1E4/3rA4/crEAK4",
+    "moves": [
+      "g4f2",
+      "e0d0",
+      "h0f0",
+      "e1f0",
+      "e3e0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739376857,
+    "updatedAt": 1782739376857
+  },
+  {
+    "id": "掛角馬_48",
+    "level": 3,
+    "title": "掛角馬 49",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3ak1e2/4a4/h3e4/1H7/9/9/9/3R3R1/2r1p4/c2K5",
+    "moves": [
+      "d7d0",
+      "e1d0",
+      "b3d2",
+      "e0f0",
+      "h7f7"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739376904,
+    "updatedAt": 1782739376904
+  },
+  {
+    "id": "掛角馬_49",
+    "level": 3,
+    "title": "掛角馬 50",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3hkae2/4a4/4e4/p1PR4p/4Hrp2/9/PR6P/9/1cr1A2c1/1H1K2E2",
+    "moves": [
+      "d3d0",
+      "e1d0",
+      "e4d2",
+      "e0e1",
+      "b6b1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739376971,
+    "updatedAt": 1782739376971
+  },
+  {
+    "id": "掛角馬_50",
+    "level": 2,
+    "title": "掛角馬 51",
+    "description": "掛角馬殺法練習",
+    "initialFen": "9/3k1P3/4eH3/9/6e2/9/9/3h5/4p1r2/2R2K2c",
+    "moves": [
+      "f1e1",
+      "d1d2",
+      "f2e4"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739377008,
+    "updatedAt": 1782739377008
+  },
+  {
+    "id": "掛角馬_51",
+    "level": 3,
+    "title": "掛角馬 52",
+    "description": "掛角馬殺法練習",
+    "initialFen": "4ka3/2P1a4/e3e2c1/7H1/9/6C2/9/6h2/2p2p3/4K4",
+    "moves": [
+      "g5g0",
+      "e2g0",
+      "h3f2",
+      "e0d0",
+      "c1d1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739377069,
+    "updatedAt": 1782739377069
+  },
+  {
+    "id": "掛角馬_52",
+    "level": 3,
+    "title": "掛角馬 53",
+    "description": "掛角馬殺法練習",
+    "initialFen": "2e1ka3/4aR1H1/4e4/9/9/2R6/9/4E4/5p1r1/4K3c",
+    "moves": [
+      "f1f0",
+      "e1f0",
+      "h1f2",
+      "e0d0",
+      "c5d5"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739377107,
+    "updatedAt": 1782739377107
+  },
+  {
+    "id": "掛角馬_53",
+    "level": 3,
+    "title": "掛角馬 54",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3k3C1/2P1a3H/3c5/9/9/9/9/9/3rp4/5K3",
+    "moves": [
+      "i1g0",
+      "e1f0",
+      "g0f2",
+      "f0e1",
+      "c1c0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739377133,
+    "updatedAt": 1782739377133
+  },
+  {
+    "id": "掛角馬_54",
+    "level": 3,
+    "title": "掛角馬 55",
+    "description": "掛角馬殺法練習",
+    "initialFen": "4ka1R1/4a4/9/4R4/6H2/9/9/9/3rA4/1crAK4",
+    "moves": [
+      "g4f2",
+      "e0d0",
+      "h0f0",
+      "e1f0",
+      "e3e0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739377172,
+    "updatedAt": 1782739377172
+  },
+  {
+    "id": "掛角馬_55",
+    "level": 3,
+    "title": "掛角馬 56",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3ak4/4a1P2/1c2e3e/1H7/9/2C6/9/9/5p3/2h1K4",
+    "moves": [
+      "c5c0",
+      "e2c0",
+      "b3d2",
+      "e0f0",
+      "g1f1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739377241,
+    "updatedAt": 1782739377241
+  },
+  {
+    "id": "掛角馬_56",
+    "level": 3,
+    "title": "掛角馬 57",
+    "description": "掛角馬殺法練習",
+    "initialFen": "2eak1r2/4a4/4e4/pH1Rh2Rp/6p2/3hH1P2/P1r5P/E2C5/4A4/c3KAE2",
+    "moves": [
+      "d3d0",
+      "e1d0",
+      "b3d2",
+      "e0f0",
+      "h3f3"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739378126,
+    "updatedAt": 1782739378126
+  },
+  {
+    "id": "掛角馬_57",
+    "level": 3,
+    "title": "掛角馬 58",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3hkae2/4a4/4e4/p1PR4p/4H1p2/9/PR6P/5r3/1cr4c1/1H1K1AE2",
+    "moves": [
+      "d3d0",
+      "e1d0",
+      "e4d2",
+      "e0e1",
+      "b6b1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739378182,
+    "updatedAt": 1782739378182
+  },
+  {
+    "id": "掛角馬_58",
+    "level": 3,
+    "title": "掛角馬 59",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3ak1e2/4a4/7c1/p7p/2H3eh1/P6H1/1r6P/3A1C3/4K4/5A3",
+    "moves": [
+      "c4d2",
+      "e0f0",
+      "h5f4",
+      "h2f2",
+      "f4g2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739378259,
+    "updatedAt": 1782739378259
+  },
+  {
+    "id": "掛角馬_59",
+    "level": 2,
+    "title": "掛角馬 60",
+    "description": "掛角馬殺法練習",
+    "initialFen": "2eaka3/9/4e4/4R4/4Hh3/9/9/7R1/1r2r4/3K5",
+    "moves": [
+      "e3e2",
+      "d0e1",
+      "e4f2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739378302,
+    "updatedAt": 1782739378302
+  },
+  {
+    "id": "掛角馬_60",
+    "level": 3,
+    "title": "掛角馬 61",
+    "description": "掛角馬殺法練習",
+    "initialFen": "9/3k1P3/4eH3/9/9/9/9/3h5/4r1p2/2R2K3",
+    "moves": [
+      "f1e1",
+      "d1d2",
+      "f2e4",
+      "e8e4",
+      "c9c2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739378343,
+    "updatedAt": 1782739378343
+  },
+  {
+    "id": "掛角馬_61",
+    "level": 3,
+    "title": "掛角馬 62",
+    "description": "掛角馬殺法練習",
+    "initialFen": "2e1ka3/4a4/4e3h/9/4H4/2R3R2/9/9/1r1p1p3/4K4",
+    "moves": [
+      "c5c0",
+      "e1d0",
+      "e4f2",
+      "e0e1",
+      "c0c1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739378636,
+    "updatedAt": 1782739378636
+  },
+  {
+    "id": "掛角馬_62",
+    "level": 4,
+    "title": "掛角馬 63",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3a1ke2/4a1HH1/4e4/9/9/9/9/9/2hr1p3/4K3C",
+    "moves": [
+      "g1e2",
+      "f0e0",
+      "e2g1",
+      "e0f0",
+      "g1h3",
+      "f0e0",
+      "h3f2"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739378753,
+    "updatedAt": 1782739378753
+  },
+  {
+    "id": "掛角馬_63",
+    "level": 4,
+    "title": "掛角馬 64",
+    "description": "掛角馬殺法練習",
+    "initialFen": "9/4k4/2HHe4/5cR2/9/9/9/1r1p5/4p4/3K5",
+    "moves": [
+      "g3g1",
+      "f3f1",
+      "d2e4",
+      "e1e0",
+      "g1g0",
+      "f1f0",
+      "e4f2"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739378906,
+    "updatedAt": 1782739378906
+  },
+  {
+    "id": "掛角馬_64",
+    "level": 4,
+    "title": "掛角馬 65",
+    "description": "掛角馬殺法練習",
+    "initialFen": "2eak3c/4a4/4e4/9/2H1R4/2C6/9/4E1h2/2r2p3/4K1E2",
+    "moves": [
+      "c5c0",
+      "e2c0",
+      "c4d2",
+      "e0f0",
+      "e4f4",
+      "e1f2",
+      "f4f2"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739379103,
+    "updatedAt": 1782739379103
+  },
+  {
+    "id": "掛角馬_65",
+    "level": 3,
+    "title": "掛角馬 66",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3ak3r/1H1Ra4/9/9/4H1e2/6E2/9/3A1Ah2/5r3/2E1K3c",
+    "moves": [
+      "e4f2",
+      "e0f0",
+      "f2h1",
+      "f0e0",
+      "d1d0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739379199,
+    "updatedAt": 1782739379199
+  },
+  {
+    "id": "掛角馬_66",
+    "level": 4,
+    "title": "掛角馬 67",
+    "description": "掛角馬殺法練習",
+    "initialFen": "2eaka3/1R7/4e4/4R4/4H4/9/9/4E1h2/4Ap1r1/2EAK3c",
+    "moves": [
+      "e3e2",
+      "d0e1",
+      "e4f2",
+      "e0d0",
+      "e2d2",
+      "e1d2",
+      "b1d1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739379290,
+    "updatedAt": 1782739379290
+  },
+  {
+    "id": "掛角馬_68",
+    "level": 4,
+    "title": "掛角馬 69",
+    "description": "掛角馬殺法練習",
+    "initialFen": "2eak4/4a4/4e4/2r1C2H1/9/4c4/8C/3p5/2r1p4/3K5",
+    "moves": [
+      "h3f2",
+      "e0f0",
+      "i6f6",
+      "e5f5",
+      "e3f3",
+      "c3f3",
+      "f6f3"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739380301,
+    "updatedAt": 1782739380301
+  },
+  {
+    "id": "掛角馬_69",
+    "level": 2,
+    "title": "掛角馬 70",
+    "description": "掛角馬殺法練習",
+    "initialFen": "9/r2k5/1R1ae4/3H5/2e6/1C7/9/3h1p3/9/5K3",
+    "moves": [
+      "b2d2",
+      "d1d2",
+      "b5d5"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739380406,
+    "updatedAt": 1782739380406
+  },
+  {
+    "id": "掛角馬_70",
+    "level": 4,
+    "title": "掛角馬 71",
+    "description": "掛角馬殺法練習",
+    "initialFen": "2eak4/4a4/4e4/9/2H1R4/2C6/9/6h2/2r2p3/4K4",
+    "moves": [
+      "c5c0",
+      "e2c0",
+      "c4d2",
+      "e0f0",
+      "e4f4",
+      "e1f2",
+      "f4f2"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739380481,
+    "updatedAt": 1782739380481
+  },
+  {
+    "id": "掛角馬_71",
+    "level": 3,
+    "title": "掛角馬 72",
+    "description": "掛角馬殺法練習",
+    "initialFen": "R2akar2/1HC6/9/9/9/9/9/6prE/3pA4/3A1KE2",
+    "moves": [
+      "c1c0",
+      "e0e1",
+      "a0a1",
+      "h7h9",
+      "b1d0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739381570,
+    "updatedAt": 1782739381570
+  },
+  {
+    "id": "掛角馬_72",
+    "level": 4,
+    "title": "掛角馬 73",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3ak1e2/4aR3/4e4/5H3/9/8R/9/9/1r1p1p3/4K4",
+    "moves": [
+      "f1e1",
+      "d0e1",
+      "f3g1",
+      "e0f0",
+      "i5f5",
+      "e1f2",
+      "f5f2"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739381661,
+    "updatedAt": 1782739381661
+  },
+  {
+    "id": "掛角馬_74",
+    "level": 3,
+    "title": "掛角馬 75",
+    "description": "掛角馬殺法練習",
+    "initialFen": "4kae2/1H1ca4/4e4/3R5/9/2R6/9/4E4/4Arr2/2EAK3c",
+    "moves": [
+      "c5c0",
+      "e1d0",
+      "c0d0",
+      "e0e1",
+      "d3d1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739382331,
+    "updatedAt": 1782739382331
+  },
+  {
+    "id": "掛角馬_75",
+    "level": 3,
+    "title": "掛角馬 76",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3ak3r/1H1Ra4/9/9/4H1e2/9/9/3A2h2/6r2/4K3c",
+    "moves": [
+      "e4f2",
+      "e0f0",
+      "f2h1",
+      "f0e0",
+      "d1d0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739382393,
+    "updatedAt": 1782739382393
+  },
+  {
+    "id": "掛角馬_76",
+    "level": 4,
+    "title": "掛角馬 77",
+    "description": "掛角馬殺法練習",
+    "initialFen": "2eaka3/1R7/4e4/4R4/4H4/9/9/6h2/5p1rc/4K4",
+    "moves": [
+      "e3e2",
+      "d0e1",
+      "e4f2",
+      "e0d0",
+      "e2d2",
+      "e1d2",
+      "b1d1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739382470,
+    "updatedAt": 1782739382470
+  },
+  {
+    "id": "掛角馬_77",
+    "level": 4,
+    "title": "掛角馬 78",
+    "description": "掛角馬殺法練習",
+    "initialFen": "2eak1e2/4a4/5c3/4P4/2H1C4/9/9/6h2/3p3r1/4K4",
+    "moves": [
+      "c4d2",
+      "e0f0",
+      "e4f4",
+      "f2i2",
+      "e3f3",
+      "i2f2",
+      "f3f2"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739382542,
+    "updatedAt": 1782739382542
+  },
+  {
+    "id": "掛角馬_79",
+    "level": 1,
+    "title": "掛角馬 80",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3ckae2/2PR5/4e4/7Hp/2r6/8P/4p4/9/9/4KAr2",
+    "moves": [
+      "h3f2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739383519,
+    "updatedAt": 1782739383519
+  },
+  {
+    "id": "掛角馬_80",
+    "level": 1,
+    "title": "掛角馬 81",
+    "description": "掛角馬殺法練習",
+    "initialFen": "1R1rka3/4a4/4e4/2p2H2p/4CP3/2P6/6r1P/3pE3E/9/3AKA3",
+    "moves": [
+      "f3d2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739383528,
+    "updatedAt": 1782739383528
+  },
+  {
+    "id": "掛角馬_81",
+    "level": 1,
+    "title": "掛角馬 82",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3akae2/4h4/9/3H5/3c5/2E3E2/8p/3A5/9/4KA3",
+    "moves": [
+      "d3f2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739383535,
+    "updatedAt": 1782739383535
+  },
+  {
+    "id": "掛角馬_82",
+    "level": 1,
+    "title": "掛角馬 83",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3akhe2/4a4/9/5H3/5r3/2E3E2/8p/3A5/9/4KA3",
+    "moves": [
+      "f3d2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739383545,
+    "updatedAt": 1782739383545
+  },
+  {
+    "id": "掛角馬_83",
+    "level": 1,
+    "title": "掛角馬 84",
+    "description": "掛角馬殺法練習",
+    "initialFen": "c2ak1e2/4a4/4e4/9/4H2h1/2EpC1E2/9/3A5/4A4/5K3",
+    "moves": [
+      "e4d2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739383552,
+    "updatedAt": 1782739383552
+  },
+  {
+    "id": "掛角馬_84",
+    "level": 3,
+    "title": "掛角馬 85",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3akae2/9/4c4/pR3Hr1p/9/3h5/P7P/2r1ER3/4A4/4KA3",
+    "moves": [
+      "f3d2",
+      "e0e1",
+      "b3b1",
+      "c7c1",
+      "b1c1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739383600,
+    "updatedAt": 1782739383600
+  },
+  {
+    "id": "掛角馬_85",
+    "level": 3,
+    "title": "掛角馬 86",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3akae2/9/4c4/pR3Hr1p/9/3h5/P7P/2r1ER3/4A4/4KA3",
+    "moves": [
+      "f3d2",
+      "e0e1",
+      "b3b1",
+      "c7c1",
+      "b1c1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739383643,
+    "updatedAt": 1782739383643
+  },
+  {
+    "id": "掛角馬_86",
+    "level": 2,
+    "title": "掛角馬 87",
+    "description": "掛角馬殺法練習",
+    "initialFen": "2e1kae2/1H2a4/9/4p4/P7C/2c3E2/8P/2h1C4/4A4/1c2KAE2",
+    "moves": [
+      "b1d2",
+      "e0d0",
+      "i4d4"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739383663,
+    "updatedAt": 1782739383663
+  },
+  {
+    "id": "掛角馬_87",
+    "level": 2,
+    "title": "掛角馬 88",
+    "description": "掛角馬殺法練習",
+    "initialFen": "2ea1a1r1/4k4/2R1e4/p1p5p/4H4/9/P1r5P/h4C3/4A4/3A1KR2",
+    "moves": [
+      "c2c1",
+      "e1e0",
+      "e4f2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739383686,
+    "updatedAt": 1782739383686
+  },
+  {
+    "id": "掛角馬_88",
+    "level": 2,
+    "title": "掛角馬 89",
+    "description": "掛角馬殺法練習",
+    "initialFen": "r1e1kar2/4a4/1c2e3h/p7p/4H4/4C1P2/P3P3P/3pE4/9/2EAKA1HR",
+    "moves": [
+      "e4d2",
+      "e0d0",
+      "e5d5"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739383711,
+    "updatedAt": 1782739383711
+  },
+  {
+    "id": "掛角馬_89",
+    "level": 2,
+    "title": "掛角馬 90",
+    "description": "掛角馬殺法練習",
+    "initialFen": "4k4/5cR2/2H1e4/9/4H4/9/9/1r1p5/4p4/3K5",
+    "moves": [
+      "g1g0",
+      "f1f0",
+      "e4f2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739383731,
+    "updatedAt": 1782739383731
+  },
+  {
+    "id": "掛角馬_90",
+    "level": 2,
+    "title": "掛角馬 91",
+    "description": "掛角馬殺法練習",
+    "initialFen": "4kae2/4a4/1c2e2c1/3R3H1/1h7/r2CC4/5p3/4E4/4A4/2EAK4",
+    "moves": [
+      "d3d2",
+      "a5a9",
+      "h3f2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739383804,
+    "updatedAt": 1782739383804
+  },
+  {
+    "id": "掛角馬_91",
+    "level": 2,
+    "title": "掛角馬 92",
+    "description": "掛角馬殺法練習",
+    "initialFen": "2e1ka3/1H1PaP3/4e4/9/9/2E6/1p5p1/5Ah2/4A4/4K4",
+    "moves": [
+      "d1d0",
+      "e1d0",
+      "b1d2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739383820,
+    "updatedAt": 1782739383820
+  },
+  {
+    "id": "掛角馬_92",
+    "level": 2,
+    "title": "掛角馬 93",
+    "description": "掛角馬殺法練習",
+    "initialFen": "2ea5/5k3/3He1P2/9/9/6R2/9/4E4/2r2p3/4K4",
+    "moves": [
+      "g2f2",
+      "f1f2",
+      "g5f5"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739383880,
+    "updatedAt": 1782739383880
+  },
+  {
+    "id": "掛角馬_93",
+    "level": 3,
+    "title": "掛角馬 94",
+    "description": "掛角馬殺法練習",
+    "initialFen": "1reak4/1H1Ra4/cR2e1H2/9/9/9/9/4E4/4Ap1r1/2EAK4",
+    "moves": [
+      "d1d0",
+      "e1d0",
+      "b2e2",
+      "d0e1",
+      "e2e1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739383937,
+    "updatedAt": 1782739383937
+  },
+  {
+    "id": "掛角馬_94",
+    "level": 3,
+    "title": "掛角馬 95",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3ak1e2/4a4/4e4/3RC1H2/9/3c2P2/rh2p3P/4E4/4A4/3AK1E2",
+    "moves": [
+      "g3h1",
+      "a6a9",
+      "h1f2",
+      "e0f0",
+      "e3f3"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739433067,
+    "updatedAt": 1782739433067
+  },
+  {
+    "id": "掛角馬_95",
+    "level": 2,
+    "title": "掛角馬 96",
+    "description": "掛角馬殺法練習",
+    "initialFen": "2r1kae2/4a4/1c2e4/pH2R3p/7h1/4P2p1/P4RcrP/3CE4/4A4/2EAK1C2",
+    "moves": [
+      "g9g0",
+      "e2g0",
+      "b3d2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739433103,
+    "updatedAt": 1782739433103
+  },
+  {
+    "id": "掛角馬_96",
+    "level": 2,
+    "title": "掛角馬 97",
+    "description": "掛角馬殺法練習",
+    "initialFen": "1RH1k4/3P3rC/6h2/9/9/9/9/4p4/3p5/c1rAK4",
+    "moves": [
+      "d1e1",
+      "h1e1",
+      "c0d2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739433189,
+    "updatedAt": 1782739433189
+  },
+  {
+    "id": "掛角馬_97",
+    "level": 3,
+    "title": "掛角馬 98",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3ak4/9/2h6/p1p2Hr2/1r2C4/4R1P2/P8/4E4/9/3AKAE2",
+    "moves": [
+      "f3d2",
+      "e0f0",
+      "e5f5",
+      "g3f3",
+      "f5f3"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739433324,
+    "updatedAt": 1782739433324
+  },
+  {
+    "id": "掛角馬_98",
+    "level": 3,
+    "title": "掛角馬 99",
+    "description": "掛角馬殺法練習",
+    "initialFen": "4k4/4a4/3a5/5C1H1/9/3r5/7R1/9/1c3p3/2p1K4",
+    "moves": [
+      "h3f2",
+      "e0d0",
+      "h6h0",
+      "e1f0",
+      "h0f0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739433375,
+    "updatedAt": 1782739433375
+  },
+  {
+    "id": "掛角馬_99",
+    "level": 3,
+    "title": "掛角馬 100",
+    "description": "掛角馬殺法練習",
+    "initialFen": "3ak4/4a2H1/4c4/9/9/1R7/9/9/2p1r4/3K1R3",
+    "moves": [
+      "f9f0",
+      "e1f0",
+      "h1f2",
+      "e0e1",
+      "b5b1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739433431,
+    "updatedAt": 1782739433431
+  },
+  {
+    "id": "掛角馬_100",
+    "level": 4,
+    "title": "掛角馬 101",
+    "description": "掛角馬殺法練習",
+    "initialFen": "2eaka3/1R7/4e4/4R4/4H4/9/9/4E4/5pr2/4K2c1",
+    "moves": [
+      "e3e2",
+      "d0e1",
+      "e4f2",
+      "e0d0",
+      "e2d2",
+      "e1d2",
+      "b1d1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739433516,
+    "updatedAt": 1782739433516
+  },
+  {
+    "id": "掛角馬_101",
+    "level": 3,
+    "title": "掛角馬 102",
+    "description": "掛角馬殺法練習",
+    "initialFen": "2r1kae2/4a4/3ce4/pHR1p3p/7h1/4P2p1/P4RcrP/3CE4/4A4/2EAK1C2",
+    "moves": [
+      "c3c0",
+      "e1d0",
+      "b3d2",
+      "e0e1",
+      "c0c1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739433921,
+    "updatedAt": 1782739433921
+  },
+  {
+    "id": "掛角馬_102",
+    "level": 4,
+    "title": "掛角馬 103",
+    "description": "掛角馬殺法練習",
+    "initialFen": "9/3kh4/e8/H2H5/9/9/9/C5r1C/3p1p3/2R1K4",
+    "moves": [
+      "a7d7",
+      "g7d7",
+      "d3f2",
+      "d1d0",
+      "c9c0",
+      "e1c0",
+      "a3c2"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739434558,
+    "updatedAt": 1782739434558
+  },
+  {
+    "id": "掛角馬_103",
+    "level": 4,
+    "title": "掛角馬 104",
+    "description": "掛角馬殺法練習",
+    "initialFen": "2eaka3/1R7/4e4/4R4/4H4/9/9/6hr1/3p1p3/4K3c",
+    "moves": [
+      "e3e2",
+      "d0e1",
+      "e4f2",
+      "e0d0",
+      "e2d2",
+      "e1d2",
+      "b1d1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739434637,
+    "updatedAt": 1782739434637
+  },
+  {
+    "id": "掛角馬_104",
+    "level": 4,
+    "title": "掛角馬 105",
+    "description": "掛角馬殺法練習",
+    "initialFen": "2eaka3/1R7/4e4/4R4/4H4/9/9/6hr1/3p1p3/4K3c",
+    "moves": [
+      "e3e2",
+      "d0e1",
+      "e4f2",
+      "e0d0",
+      "e2d2",
+      "e1d2",
+      "b1d1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739434717,
+    "updatedAt": 1782739434717
+  },
+  {
+    "id": "掛角馬_105",
+    "level": 4,
+    "title": "掛角馬 106",
+    "description": "掛角馬殺法練習",
+    "initialFen": "2eak2C1/4a4/4e2H1/9/9/9/9/1R2E4/2r1p4/3K5",
+    "moves": [
+      "h2g0",
+      "e1f0",
+      "g0f2",
+      "e0e1",
+      "b7b1",
+      "c8c1",
+      "b1c1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739434822,
+    "updatedAt": 1782739434822
+  },
+  {
+    "id": "掛角馬_106",
+    "level": 3,
+    "title": "掛角馬 107",
+    "description": "掛角馬殺法練習",
+    "initialFen": "r3ka3/4aR1H1/9/9/4H1e2/9/9/9/3p5/4K4",
+    "moves": [
+      "e4d2",
+      "e0d0",
+      "d2b1",
+      "d0e0",
+      "f1f0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739434879,
+    "updatedAt": 1782739434879
+  },
+  {
+    "id": "釣魚馬_0",
+    "level": 1,
+    "title": "釣魚馬 1",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "4k4/9/9/9/1H7/9/9/9/9/5K3",
+    "moves": [
+      "b4c2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638271,
+    "updatedAt": 1782739638271
+  },
+  {
+    "id": "釣魚馬_1",
+    "level": 1,
+    "title": "釣魚馬 2",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "4ka3/3P5/2H1eh3/9/9/9/4c4/4E4/4A4/4KA3",
+    "moves": [
+      "d1d0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638278,
+    "updatedAt": 1782739638278
+  },
+  {
+    "id": "釣魚馬_2",
+    "level": 1,
+    "title": "釣魚馬 3",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "4kae2/9/2H2h3/1R7/9/9/4c4/4E4/4A4/4KA3",
+    "moves": [
+      "b3b0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638287,
+    "updatedAt": 1782739638287
+  },
+  {
+    "id": "釣魚馬_3",
+    "level": 1,
+    "title": "釣魚馬 4",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "3ak1e2/9/2H2h3/9/9/9/3Rc1r2/4E4/4A4/4KA3",
+    "moves": [
+      "d6d0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638294,
+    "updatedAt": 1782739638294
+  },
+  {
+    "id": "釣魚馬_4",
+    "level": 1,
+    "title": "釣魚馬 5",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "C1Pak4/9/2H1eh3/9/9/9/4c1r2/4E4/4A4/4KA3",
+    "moves": [
+      "c0d0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638303,
+    "updatedAt": 1782739638303
+  },
+  {
+    "id": "釣魚馬_5",
+    "level": 1,
+    "title": "釣魚馬 6",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "9/3k5/2H1eh3/9/9/9/R3c1r2/4E4/4A4/4KA3",
+    "moves": [
+      "a6d6"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638314,
+    "updatedAt": 1782739638314
+  },
+  {
+    "id": "釣魚馬_6",
+    "level": 1,
+    "title": "釣魚馬 7",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "3aR4/5k3/6H2/9/9/9/9/6h2/5r3/4K4",
+    "moves": [
+      "e0f0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638325,
+    "updatedAt": 1782739638325
+  },
+  {
+    "id": "釣魚馬_7",
+    "level": 1,
+    "title": "釣魚馬 8",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "9/9/4k1H2/9/1R7/9/9/6h2/4Ar3/4K4",
+    "moves": [
+      "b4b2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638335,
+    "updatedAt": 1782739638335
+  },
+  {
+    "id": "釣魚馬_8",
+    "level": 1,
+    "title": "釣魚馬 9",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "1R3a3/3k5/2H6/9/9/9/9/4E4/4Apr2/4K3c",
+    "moves": [
+      "b0d0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638342,
+    "updatedAt": 1782739638342
+  },
+  {
+    "id": "釣魚馬_9",
+    "level": 1,
+    "title": "釣魚馬 10",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "5a3/3k5/2H6/1R7/9/9/6h2/9/4r4/5K3",
+    "moves": [
+      "b3d3"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638350,
+    "updatedAt": 1782739638350
+  },
+  {
+    "id": "釣魚馬_10",
+    "level": 1,
+    "title": "釣魚馬 11",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "4k4/9/9/9/7H1/9/9/9/9/3K5",
+    "moves": [
+      "h4g2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638361,
+    "updatedAt": 1782739638361
+  },
+  {
+    "id": "釣魚馬_11",
+    "level": 1,
+    "title": "釣魚馬 12",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "4ka3/9/2H2a3/1R7/9/9/9/4E1h2/4Ar3/2EAK3c",
+    "moves": [
+      "b3b0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638372,
+    "updatedAt": 1782739638372
+  },
+  {
+    "id": "釣魚馬_12",
+    "level": 1,
+    "title": "釣魚馬 13",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "1R1aka3/9/2H6/9/9/9/9/4E1h2/3p1r3/4K1E2",
+    "moves": [
+      "b0d0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638382,
+    "updatedAt": 1782739638382
+  },
+  {
+    "id": "釣魚馬_13",
+    "level": 1,
+    "title": "釣魚馬 14",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "3aka3/9/2H6/3R5/9/9/9/4E1h2/3p1r3/3AK4",
+    "moves": [
+      "d3d0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638393,
+    "updatedAt": 1782739638393
+  },
+  {
+    "id": "釣魚馬_14",
+    "level": 1,
+    "title": "釣魚馬 15",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "3aka3/3P5/2H6/9/9/7h1/9/9/4p4/5K3",
+    "moves": [
+      "d1d0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638404,
+    "updatedAt": 1782739638404
+  },
+  {
+    "id": "釣魚馬_15",
+    "level": 1,
+    "title": "釣魚馬 16",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "4ka3/3P5/2H6/9/9/9/9/9/4Ar1h1/4K3c",
+    "moves": [
+      "d1d0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638415,
+    "updatedAt": 1782739638415
+  },
+  {
+    "id": "釣魚馬_16",
+    "level": 1,
+    "title": "釣魚馬 17",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "C3ka3/2P6/2H6/9/9/9/9/4E1h2/4Ar3/2EAK3c",
+    "moves": [
+      "c1c0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638423,
+    "updatedAt": 1782739638423
+  },
+  {
+    "id": "釣魚馬_17",
+    "level": 1,
+    "title": "釣魚馬 18",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "4Ra3/3k5/2H6/9/9/9/9/4E1h2/5r3/4K4",
+    "moves": [
+      "e0d0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638433,
+    "updatedAt": 1782739638433
+  },
+  {
+    "id": "釣魚馬_18",
+    "level": 2,
+    "title": "釣魚馬 19",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "4kae2/4a4/2H1c4/9/9/9/9/4E4/4A4/1R1AK1Er1",
+    "moves": [
+      "b9b0",
+      "e1d0",
+      "b0d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638457,
+    "updatedAt": 1782739638457
+  },
+  {
+    "id": "釣魚馬_19",
+    "level": 2,
+    "title": "釣魚馬 20",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "3ak1e2/3Pa4/2H3r2/9/9/3R5/9/4E4/4A2p1/3A1K2c",
+    "moves": [
+      "d1d0",
+      "e1d0",
+      "d5d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638480,
+    "updatedAt": 1782739638480
+  },
+  {
+    "id": "釣魚馬_20",
+    "level": 2,
+    "title": "釣魚馬 21",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "3a1k3/7R1/3ac4/4H4/9/9/9/4E4/4Ap2r/3AK3c",
+    "moves": [
+      "e3g2",
+      "f0e0",
+      "h1h0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638503,
+    "updatedAt": 1782739638503
+  },
+  {
+    "id": "釣魚馬_21",
+    "level": 2,
+    "title": "釣魚馬 22",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "3a1k3/9/3a5/9/5H3/4R4/9/4E4/4Ap2r/3AK3c",
+    "moves": [
+      "f4g2",
+      "f0f1",
+      "e5f5"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638527,
+    "updatedAt": 1782739638527
+  },
+  {
+    "id": "釣魚馬_22",
+    "level": 1,
+    "title": "釣魚馬 23",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "C3ka3/2P1a4/2H1c4/9/9/9/9/2h1E4/3pA4/4KAE1C",
+    "moves": [
+      "i9i0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638536,
+    "updatedAt": 1782739638536
+  },
+  {
+    "id": "釣魚馬_23",
+    "level": 2,
+    "title": "釣魚馬 24",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "3k1a3/2R6/2Ha5/9/9/2E6/9/2c3h2/3p1p3/4KAE1c",
+    "moves": [
+      "c1c0",
+      "d0d1",
+      "c0d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638556,
+    "updatedAt": 1782739638556
+  },
+  {
+    "id": "釣魚馬_24",
+    "level": 2,
+    "title": "釣魚馬 25",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "3ak4/3PaP3/2H1e4/3h5/9/2E6/9/4E4/4p2r1/5K2c",
+    "moves": [
+      "f1f0",
+      "e1f0",
+      "d1d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638574,
+    "updatedAt": 1782739638574
+  },
+  {
+    "id": "釣魚馬_25",
+    "level": 2,
+    "title": "釣魚馬 26",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "3a1R3/4k4/4e4/9/3H5/2E6/9/4E4/4p2r1/5K2c",
+    "moves": [
+      "d4c2",
+      "e1d1",
+      "f0d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638595,
+    "updatedAt": 1782739638595
+  },
+  {
+    "id": "釣魚馬_26",
+    "level": 2,
+    "title": "釣魚馬 27",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "2ea1R3/4k4/4e4/9/1H7/9/9/3p5/1r2p4/5K3",
+    "moves": [
+      "b4c2",
+      "e1d1",
+      "f0d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638612,
+    "updatedAt": 1782739638612
+  },
+  {
+    "id": "釣魚馬_27",
+    "level": 2,
+    "title": "釣魚馬 28",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "2ek5/9/9/6R2/1He2H3/1h3h3/6c2/3C5/4p1r2/3p1K3",
+    "moves": [
+      "b4c2",
+      "d0e0",
+      "g3g0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638638,
+    "updatedAt": 1782739638638
+  },
+  {
+    "id": "釣魚馬_28",
+    "level": 2,
+    "title": "釣魚馬 29",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "4ka3/4a4/2H2c3/1R7/9/9/9/4E1h2/5r3/2E1K4",
+    "moves": [
+      "b3b0",
+      "e1d0",
+      "b0d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638659,
+    "updatedAt": 1782739638659
+  },
+  {
+    "id": "釣魚馬_29",
+    "level": 2,
+    "title": "釣魚馬 30",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "3ak4/4a4/2H6/3R5/3R5/9/9/9/4p1r2/5K2c",
+    "moves": [
+      "d3d0",
+      "e1d0",
+      "d4d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638681,
+    "updatedAt": 1782739638681
+  },
+  {
+    "id": "釣魚馬_30",
+    "level": 2,
+    "title": "釣魚馬 31",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "2ea1k3/7R1/4c4/4H4/9/9/9/4E4/2rrA4/c3KAE2",
+    "moves": [
+      "e3g2",
+      "f0e0",
+      "h1h0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638700,
+    "updatedAt": 1782739638700
+  },
+  {
+    "id": "釣魚馬_31",
+    "level": 2,
+    "title": "釣魚馬 32",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "3k1a3/9/9/9/1H7/4R4/9/4E1h2/5r3/4K4",
+    "moves": [
+      "b4c2",
+      "d0d1",
+      "e5d5"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638723,
+    "updatedAt": 1782739638723
+  },
+  {
+    "id": "釣魚馬_32",
+    "level": 2,
+    "title": "釣魚馬 33",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "3k1ae2/9/9/9/3H5/R8/9/4E1h2/5r3/4K4",
+    "moves": [
+      "d4c2",
+      "d0e0",
+      "a5a0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638750,
+    "updatedAt": 1782739638750
+  },
+  {
+    "id": "釣魚馬_33",
+    "level": 2,
+    "title": "釣魚馬 34",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "3k2e2/9/8e/9/3H5/1R7/6h2/9/4r4/5K3",
+    "moves": [
+      "d4c2",
+      "d0e0",
+      "b5b0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638766,
+    "updatedAt": 1782739638766
+  },
+  {
+    "id": "釣魚馬_34",
+    "level": 2,
+    "title": "釣魚馬 35",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "C3ka3/2P1a4/2H6/9/9/9/6p2/5K3/4r4/9",
+    "moves": [
+      "c1c0",
+      "e1d0",
+      "c0d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638781,
+    "updatedAt": 1782739638781
+  },
+  {
+    "id": "釣魚馬_35",
+    "level": 2,
+    "title": "釣魚馬 36",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "3a1k3/6R2/5aH2/9/9/9/9/9/5rr2/4K4",
+    "moves": [
+      "g1g0",
+      "f0f1",
+      "g0f0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638802,
+    "updatedAt": 1782739638802
+  },
+  {
+    "id": "釣魚馬_36",
+    "level": 2,
+    "title": "釣魚馬 37",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "3ak1e2/3PaP3/2H1e4/3h5/9/9/9/9/4r4/5K3",
+    "moves": [
+      "f1f0",
+      "e1f0",
+      "d1d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638825,
+    "updatedAt": 1782739638825
+  },
+  {
+    "id": "釣魚馬_37",
+    "level": 2,
+    "title": "釣魚馬 38",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "2eak1e2/3Pa2R1/2H6/9/9/9/9/4E4/3rp4/2E2K3",
+    "moves": [
+      "d1e1",
+      "d0e1",
+      "h1e1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638843,
+    "updatedAt": 1782739638843
+  },
+  {
+    "id": "釣魚馬_38",
+    "level": 2,
+    "title": "釣魚馬 39",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "2e6/4k4/4e4/4H4/9/5R3/9/9/r3p4/3K5",
+    "moves": [
+      "e3g2",
+      "e1e0",
+      "f5f0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638866,
+    "updatedAt": 1782739638866
+  },
+  {
+    "id": "釣魚馬_39",
+    "level": 2,
+    "title": "釣魚馬 40",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "2ea1R3/4k4/4e4/9/3H5/9/9/6h2/5K3/6r2",
+    "moves": [
+      "d4c2",
+      "e1d1",
+      "f0d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638888,
+    "updatedAt": 1782739638888
+  },
+  {
+    "id": "釣魚馬_40",
+    "level": 3,
+    "title": "釣魚馬 41",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "2eaka3/9/4e4/9/1H7/9/5R3/3p5/1r2p4/5K3",
+    "moves": [
+      "f6f0",
+      "e0e1",
+      "b4c2",
+      "e1d1",
+      "f0d0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638921,
+    "updatedAt": 1782739638921
+  },
+  {
+    "id": "釣魚馬_41",
+    "level": 3,
+    "title": "釣魚馬 42",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "1R1ak1e2/4aP3/4e4/4H4/9/7h1/6r2/9/4p4/5K2c",
+    "moves": [
+      "f1e1",
+      "e0e1",
+      "e3c2",
+      "e1e0",
+      "b0d0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638961,
+    "updatedAt": 1782739638961
+  },
+  {
+    "id": "釣魚馬_42",
+    "level": 2,
+    "title": "釣魚馬 43",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "4ka2R/6R2/3a2H2/9/2e6/9/9/3p5/2r1p4/3K3c1",
+    "moves": [
+      "i0f0",
+      "e0f0",
+      "g1e1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739638983,
+    "updatedAt": 1782739638983
+  },
+  {
+    "id": "釣魚馬_43",
+    "level": 3,
+    "title": "釣魚馬 44",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "6e2/3k5/4e4/p3H4/9/8R/9/9/r3p4/5K3",
+    "moves": [
+      "i5d5",
+      "d1e1",
+      "e3c2",
+      "e1e0",
+      "d5d0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739639019,
+    "updatedAt": 1782739639019
+  },
+  {
+    "id": "釣魚馬_44",
+    "level": 3,
+    "title": "釣魚馬 45",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "3a1ae2/5k3/4e4/5H3/5R3/6P2/9/5A3/5K3/6rhc",
+    "moves": [
+      "f3h4",
+      "f1e1",
+      "h4g2",
+      "e1e0",
+      "f4f0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739639085,
+    "updatedAt": 1782739639085
+  },
+  {
+    "id": "釣魚馬_45",
+    "level": 3,
+    "title": "釣魚馬 46",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "2ea1k3/9/4e4/3R5/5H3/9/9/2h1E4/2r6/1rEAKA3",
+    "moves": [
+      "d3d0",
+      "f0f1",
+      "f4g2",
+      "b9a9",
+      "d0f0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739643622,
+    "updatedAt": 1782739643622
+  },
+  {
+    "id": "釣魚馬_47",
+    "level": 3,
+    "title": "釣魚馬 48",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "2e6/5k3/4e4/4H4/9/1R7/h8/9/r3p4/3K5",
+    "moves": [
+      "b5f5",
+      "f1e1",
+      "e3g2",
+      "e1e0",
+      "f5f0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739716671,
+    "updatedAt": 1782739716671
+  },
+  {
+    "id": "釣魚馬_48",
+    "level": 2,
+    "title": "釣魚馬 49",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "5a3/3k5/4c4/4H4/9/9/R8/9/4p2r1/5K3",
+    "moves": [
+      "a6a1",
+      "d1d2",
+      "e3c4"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739716706,
+    "updatedAt": 1782739716706
+  },
+  {
+    "id": "釣魚馬_49",
+    "level": 3,
+    "title": "釣魚馬 50",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "3k1ae2/R3a4/4e4/9/3H5/9/4P3P/4E1h2/5r3/4K4",
+    "moves": [
+      "d4c2",
+      "d0e0",
+      "a1a0",
+      "e1d0",
+      "a0d0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739716769,
+    "updatedAt": 1782739716769
+  },
+  {
+    "id": "釣魚馬_50",
+    "level": 3,
+    "title": "釣魚馬 51",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "3k1ae2/R3a4/4e4/9/3H5/9/9/6h2/5r3/4K4",
+    "moves": [
+      "d4c2",
+      "d0e0",
+      "a1a0",
+      "e1d0",
+      "a0d0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739716808,
+    "updatedAt": 1782739716808
+  },
+  {
+    "id": "釣魚馬_51",
+    "level": 3,
+    "title": "釣魚馬 52",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "9/3k5/4c4/4H4/9/5R3/9/9/4p2r1/5K3",
+    "moves": [
+      "f5f1",
+      "d1d0",
+      "e3c2",
+      "d0e0",
+      "f1f0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739716849,
+    "updatedAt": 1782739716849
+  },
+  {
+    "id": "釣魚馬_52",
+    "level": 3,
+    "title": "釣魚馬 53",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "1R1ak1e2/4aP3/4e4/4H4/9/9/9/9/4p1r2/5K2c",
+    "moves": [
+      "f1e1",
+      "e0e1",
+      "e3c2",
+      "e1e0",
+      "b0d0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739716888,
+    "updatedAt": 1782739716888
+  },
+  {
+    "id": "釣魚馬_53",
+    "level": 3,
+    "title": "釣魚馬 54",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "3ak4/2R6/e1H2a3/3R5/9/9/9/3p5/2r2p3/3K3c1",
+    "moves": [
+      "d3d0",
+      "e0d0",
+      "c1c0",
+      "d0d1",
+      "c0d0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739716932,
+    "updatedAt": 1782739716932
+  },
+  {
+    "id": "釣魚馬_54",
+    "level": 2,
+    "title": "釣魚馬 55",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "9/3Rak3/6H2/9/9/4rC3/9/3p5/1r2p4/c2K5",
+    "moves": [
+      "d1e1",
+      "e5e1",
+      "g2f4"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739716989,
+    "updatedAt": 1782739716989
+  },
+  {
+    "id": "釣魚馬_55",
+    "level": 3,
+    "title": "釣魚馬 56",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "2e6/5k3/4e4/4H4/9/1R7/9/9/r3p4/3K5",
+    "moves": [
+      "b5f5",
+      "f1e1",
+      "e3g2",
+      "e1e0",
+      "f5f0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739717029,
+    "updatedAt": 1782739717029
+  },
+  {
+    "id": "釣魚馬_56",
+    "level": 3,
+    "title": "釣魚馬 57",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "2Rakae2/6h2/3P2H2/8p/9/9/4r4/9/9/3K5",
+    "moves": [
+      "c0d0",
+      "e0d0",
+      "d2d1",
+      "d0e0",
+      "d1d0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739717066,
+    "updatedAt": 1782739717066
+  },
+  {
+    "id": "釣魚馬_57",
+    "level": 3,
+    "title": "釣魚馬 58",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "2ea1a3/3k5/4e4/3H5/3R5/9/9/3A2h2/3K5/6r1c",
+    "moves": [
+      "d3b4",
+      "d1e1",
+      "b4c2",
+      "e1e0",
+      "d4d0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739717192,
+    "updatedAt": 1782739717192
+  },
+  {
+    "id": "釣魚馬_60",
+    "level": 4,
+    "title": "釣魚馬 61",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "2eak4/4a4/4e4/9/1H7/5R3/5R3/3p5/1r2p4/5K3",
+    "moves": [
+      "f5f0",
+      "e1f0",
+      "f6f0",
+      "e0e1",
+      "b4c2",
+      "e1d1",
+      "f0d0"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739847611,
+    "updatedAt": 1782739847611
+  },
+  {
+    "id": "釣魚馬_61",
+    "level": 3,
+    "title": "釣魚馬 62",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "1rPa1k3/4a2R1/8e/8H/6e1R/9/9/9/2p1p4/3K5",
+    "moves": [
+      "i3g2",
+      "f0e0",
+      "h1h0",
+      "e1f0",
+      "h0f0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739847686,
+    "updatedAt": 1782739847686
+  },
+  {
+    "id": "釣魚馬_62",
+    "level": 4,
+    "title": "釣魚馬 63",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "5k3/3R5/9/9/6H2/9/9/2h6/2r1p4/3K2E2",
+    "moves": [
+      "d1d0",
+      "f0f1",
+      "g4e3",
+      "f1e1",
+      "e3g2",
+      "e1f1",
+      "d0f0"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739847735,
+    "updatedAt": 1782739847735
+  },
+  {
+    "id": "釣魚馬_63",
+    "level": 4,
+    "title": "釣魚馬 64",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "2e1kae2/3Ra4/9/p3p3p/5H3/3R5/P1h1P3P/4E4/1rr1A4/c2K1AE2",
+    "moves": [
+      "d1d0",
+      "e1d0",
+      "d5d0",
+      "e0e1",
+      "f4g2",
+      "e1f1",
+      "d0f0"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739847796,
+    "updatedAt": 1782739847796
+  },
+  {
+    "id": "釣魚馬_64",
+    "level": 3,
+    "title": "釣魚馬 65",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "3ak3C/4a1P2/8H/4p4/9/9/4P4/2h6/3p5/1c2K4",
+    "moves": [
+      "g1g0",
+      "e1f0",
+      "i2g1",
+      "e0e1",
+      "i0i1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739847852,
+    "updatedAt": 1782739847852
+  },
+  {
+    "id": "釣魚馬_65",
+    "level": 4,
+    "title": "釣魚馬 66",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "3ak1e2/4aP2C/6H1h/9/9/9/9/3hE4/2p1p4/1c3K3",
+    "moves": [
+      "i1i0",
+      "i2h0",
+      "f1f0",
+      "e1f0",
+      "i0g0",
+      "f0e1",
+      "g2f0"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739848410,
+    "updatedAt": 1782739848410
+  },
+  {
+    "id": "釣魚馬_66",
+    "level": 3,
+    "title": "釣魚馬 67",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "2ea1k3/9/4c2R1/4H4/9/9/9/2h1E4/1r1pA4/c3KAE2",
+    "moves": [
+      "h2h0",
+      "f0f1",
+      "h0h1",
+      "f1f2",
+      "e3g4"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739848486,
+    "updatedAt": 1782739848486
+  },
+  {
+    "id": "釣魚馬_67",
+    "level": 3,
+    "title": "釣魚馬 68",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "2ea1a3/5k3/8C/9/9/1hEH5/3R5/4E4/pr2A4/c2K1A3",
+    "moves": [
+      "d5e3",
+      "f1e1",
+      "e3g2",
+      "e1e0",
+      "d6d0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739848651,
+    "updatedAt": 1782739848651
+  },
+  {
+    "id": "釣魚馬_68",
+    "level": 4,
+    "title": "釣魚馬 69",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "3akae2/9/4e4/1R1R5/3H5/9/9/3p5/4pr3/3K5",
+    "moves": [
+      "d3d0",
+      "e0e1",
+      "d4f3",
+      "e1f1",
+      "f3h2",
+      "f1e1",
+      "b3b1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739848713,
+    "updatedAt": 1782739848713
+  },
+  {
+    "id": "釣魚馬_69",
+    "level": 2,
+    "title": "釣魚馬 70",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "5a3/3ka4/4c4/4H4/9/9/9/9/4p2r1/R4K3",
+    "moves": [
+      "a9a1",
+      "d1d2",
+      "e3c4"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739848754,
+    "updatedAt": 1782739848754
+  },
+  {
+    "id": "釣魚馬_70",
+    "level": 4,
+    "title": "釣魚馬 71",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "5k3/3R5/9/9/6H2/9/9/9/1rp1p4/3K5",
+    "moves": [
+      "d1d0",
+      "f0f1",
+      "g4e3",
+      "f1e1",
+      "e3g2",
+      "e1f1",
+      "d0f0"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739848794,
+    "updatedAt": 1782739848794
+  },
+  {
+    "id": "釣魚馬_71",
+    "level": 4,
+    "title": "釣魚馬 72",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "2e1kae2/3Ra4/9/p3p3p/5H3/3R5/P3P3P/4E4/1rr1A4/c2K1AE2",
+    "moves": [
+      "d1d0",
+      "e1d0",
+      "d5d0",
+      "e0e1",
+      "f4g2",
+      "e1f1",
+      "d0f0"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739848858,
+    "updatedAt": 1782739848858
+  },
+  {
+    "id": "釣魚馬_72",
+    "level": 4,
+    "title": "釣魚馬 73",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "3ak3C/4a1P2/8H/4p4/9/9/4P4/9/2p2pr2/1c2K4",
+    "moves": [
+      "i2h0",
+      "e1f0",
+      "h0g2",
+      "f0e1",
+      "g1g0",
+      "e1f0",
+      "g0f0"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739848906,
+    "updatedAt": 1782739848906
+  },
+  {
+    "id": "釣魚馬_73",
+    "level": 4,
+    "title": "釣魚馬 74",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "3ak1e2/4aP2C/6H1h/9/9/9/9/9/3rp4/5K3",
+    "moves": [
+      "i1i0",
+      "i2h0",
+      "f1f0",
+      "e1f0",
+      "i0g0",
+      "f0e1",
+      "g2f0"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739848947,
+    "updatedAt": 1782739848947
+  },
+  {
+    "id": "釣魚馬_74",
+    "level": 3,
+    "title": "釣魚馬 75",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "2ea1k3/9/4c2R1/4H4/9/9/9/4E4/2rpA4/c3KAE2",
+    "moves": [
+      "h2h0",
+      "f0f1",
+      "h0h1",
+      "f1f2",
+      "e3g4"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739849023,
+    "updatedAt": 1782739849023
+  },
+  {
+    "id": "釣魚馬_75",
+    "level": 3,
+    "title": "釣魚馬 76",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "2ea1a3/5k3/8C/9/9/3H5/3R5/1p7/3KA4/cr3A3",
+    "moves": [
+      "d5e3",
+      "f1e1",
+      "e3g2",
+      "e1e0",
+      "d6d0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739851544,
+    "updatedAt": 1782739851544
+  },
+  {
+    "id": "釣魚馬_77",
+    "level": 4,
+    "title": "釣魚馬 78",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "3aka3/9/4e4/5R2R/p5eHP/4r4/9/9/4A4/1cEAK1E1r",
+    "moves": [
+      "f3f0",
+      "e0e1",
+      "h4g2",
+      "e1d1",
+      "f0f1",
+      "d0e1",
+      "i3d3"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739851955,
+    "updatedAt": 1782739851955
+  },
+  {
+    "id": "釣魚馬_78",
+    "level": 1,
+    "title": "釣魚馬 79",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "C3k1e2/3Pa4/2Hae4/6p1p/5h3/8h/P8/5A3/4A4/4K4",
+    "moves": [
+      "c2d0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739851962,
+    "updatedAt": 1782739851962
+  },
+  {
+    "id": "釣魚馬_79",
+    "level": 1,
+    "title": "釣魚馬 80",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "3akae2/9/4e1H2/1H7/4h4/9/9/9/4pr3/3K5",
+    "moves": [
+      "b3c1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739851969,
+    "updatedAt": 1782739851969
+  },
+  {
+    "id": "釣魚馬_80",
+    "level": 1,
+    "title": "釣魚馬 81",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "4k4/9/9/9/7H1/9/9/9/9/3K5",
+    "moves": [
+      "h4g2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739851976,
+    "updatedAt": 1782739851976
+  },
+  {
+    "id": "釣魚馬_81",
+    "level": 1,
+    "title": "釣魚馬 82",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "3k5/4P4/9/9/1H7/9/9/5h3/4p4/5K3",
+    "moves": [
+      "b4c2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739851983,
+    "updatedAt": 1782739851983
+  },
+  {
+    "id": "釣魚馬_82",
+    "level": 2,
+    "title": "釣魚馬 83",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "2ea1k3/7R1/4c4/4H4/9/9/9/4E4/2rrA4/c3KAE2",
+    "moves": [
+      "e3g2",
+      "f0e0",
+      "h1h0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739851998,
+    "updatedAt": 1782739851998
+  },
+  {
+    "id": "釣魚馬_83",
+    "level": 2,
+    "title": "釣魚馬 84",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "5k3/4P4/9/9/9/1r5H1/9/2h1c4/3p5/4KC3",
+    "moves": [
+      "h5f4",
+      "e7f7",
+      "f4g2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739852013,
+    "updatedAt": 1782739852013
+  },
+  {
+    "id": "釣魚馬_84",
+    "level": 2,
+    "title": "釣魚馬 85",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "2ea1a3/4k4/9/4H4/9/3R5/9/5h3/4r4/3K5",
+    "moves": [
+      "e3g2",
+      "e1e0",
+      "d5d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739852029,
+    "updatedAt": 1782739852029
+  },
+  {
+    "id": "釣魚馬_85",
+    "level": 2,
+    "title": "釣魚馬 86",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "2eak4/h3a4/4e1H2/p1P4R1/9/9/P3ph3/C7E/9/2rAKA3",
+    "moves": [
+      "h3h0",
+      "e1f0",
+      "h0f0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739852110,
+    "updatedAt": 1782739852110
+  },
+  {
+    "id": "釣魚馬_86",
+    "level": 2,
+    "title": "釣魚馬 87",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "4kaehr/4a4/2H1e4/p1p1p1p1p/4c4/2P3P2/P4r2P/2c1C4/4A4/1REAK1E1R",
+    "moves": [
+      "b9b0",
+      "e1d0",
+      "b0d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739852138,
+    "updatedAt": 1782739852138
+  },
+  {
+    "id": "釣魚馬_87",
+    "level": 3,
+    "title": "釣魚馬 88",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "1H2k4/3Ra4/C3e4/p3p3p/9/9/P7P/3Arh3/5K1c1/9",
+    "moves": [
+      "a2a0",
+      "e1d0",
+      "b0c2",
+      "d0e1",
+      "c2d0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739852173,
+    "updatedAt": 1782739852173
+  },
+  {
+    "id": "釣魚馬_90",
+    "level": 3,
+    "title": "釣魚馬 91",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "2e1ka1R1/4aR3/4e4/4H4/9/9/1r7/9/4p4/3K5",
+    "moves": [
+      "f1e1",
+      "e0e1",
+      "e3g2",
+      "e1e0",
+      "h0f0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739865289,
+    "updatedAt": 1782739865289
+  },
+  {
+    "id": "釣魚馬_91",
+    "level": 3,
+    "title": "釣魚馬 92",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "4k4/3Pa4/4e4/9/2e2H3/7R1/9/9/2rp5/4KA3",
+    "moves": [
+      "d1e1",
+      "e0e1",
+      "f4g2",
+      "e1e0",
+      "h5h0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739865326,
+    "updatedAt": 1782739865326
+  },
+  {
+    "id": "釣魚馬_92",
+    "level": 3,
+    "title": "釣魚馬 93",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "4k4/3P2P2/2Haea2e/9/9/9/9/E2A5/4A4/1c3K3",
+    "moves": [
+      "g1f1",
+      "d2e1",
+      "d1e1",
+      "f2e1",
+      "f1e1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739865433,
+    "updatedAt": 1782739865433
+  },
+  {
+    "id": "釣魚馬_93",
+    "level": 3,
+    "title": "釣魚馬 94",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "1h1ak4/4a1P2/1c2e4/1HC6/2e6/6E2/9/9/3p1p3/2EAKA3",
+    "moves": [
+      "c3c0",
+      "e2c0",
+      "b3d2",
+      "e0f0",
+      "g1g0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739865478,
+    "updatedAt": 1782739865478
+  },
+  {
+    "id": "釣魚馬_94",
+    "level": 3,
+    "title": "釣魚馬 95",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "9/3k5/4c4/4H4/9/6R2/9/5p3/4r4/5K3",
+    "moves": [
+      "g5g1",
+      "d1d0",
+      "e3c2",
+      "d0e0",
+      "g1g0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739865507,
+    "updatedAt": 1782739865507
+  },
+  {
+    "id": "釣魚馬_95",
+    "level": 3,
+    "title": "釣魚馬 96",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "c1e1k1P2/3Ra4/2Ha5/2R6/9/7C1/4p4/4E4/1r4r2/1cEAK4",
+    "moves": [
+      "h5h0",
+      "e1f0",
+      "c3e3",
+      "d2e1",
+      "d1e1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739865804,
+    "updatedAt": 1782739865804
+  },
+  {
+    "id": "釣魚馬_96",
+    "level": 3,
+    "title": "釣魚馬 97",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "1H2kah1C/9/9/7R1/9/9/9/1r1p5/4p4/3K5",
+    "moves": [
+      "h3e3",
+      "e0d0",
+      "b0c2",
+      "d0d1",
+      "e3d3"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739865831,
+    "updatedAt": 1782739865831
+  },
+  {
+    "id": "釣魚馬_97",
+    "level": 4,
+    "title": "釣魚馬 98",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "2erka3/9/9/2R2R2H/9/9/9/3AE4/1r2p4/3K2E2",
+    "moves": [
+      "f3f0",
+      "e0e1",
+      "i3g2",
+      "e1d1",
+      "f0f1",
+      "d1d2",
+      "c3c2"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739866038,
+    "updatedAt": 1782739866038
+  },
+  {
+    "id": "釣魚馬_98",
+    "level": 4,
+    "title": "釣魚馬 99",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "C3kae2/2P1a4/H8/9/9/9/9/3pE4/2r6/2EK5",
+    "moves": [
+      "a2b0",
+      "e1d0",
+      "b0c2",
+      "d0e1",
+      "c1c0",
+      "e1d0",
+      "c0d0"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739866088,
+    "updatedAt": 1782739866088
+  },
+  {
+    "id": "釣魚馬_99",
+    "level": 4,
+    "title": "釣魚馬 100",
+    "description": "釣魚馬殺法練習",
+    "initialFen": "2ea1k3/3Pa1R2/5rH2/2h6/9/9/9/9/6r2/C3K4",
+    "moves": [
+      "g1g0",
+      "f0f1",
+      "d1e1",
+      "d0e1",
+      "a9a1",
+      "c3d1",
+      "g0f0"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739866195,
+    "updatedAt": 1782739866195
+  },
+  {
+    "id": "鐵門栓_0",
+    "level": 1,
+    "title": "鐵門栓 1",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "2e1ka3/4a4/4e4/2R1C4/9/9/9/9/4p3r/5K3",
+    "moves": [
+      "c3c0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739915923,
+    "updatedAt": 1782739915923
+  },
+  {
+    "id": "鐵門栓_1",
+    "level": 1,
+    "title": "鐵門栓 2",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "c3ka3/4a4/4e4/3RC4/2e6/9/2h6/9/4p3r/3K5",
+    "moves": [
+      "d3d0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739915932,
+    "updatedAt": 1782739915932
+  },
+  {
+    "id": "鐵門栓_2",
+    "level": 1,
+    "title": "鐵門栓 3",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "R2ckae2/4a4/4e4/4C4/9/9/9/9/4p3r/3K5",
+    "moves": [
+      "a0d0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739915939,
+    "updatedAt": 1782739915939
+  },
+  {
+    "id": "鐵門栓_3",
+    "level": 1,
+    "title": "鐵門栓 4",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "2P1kae2/4a4/4e4/3RC4/9/9/9/9/4p3r/5K3",
+    "moves": [
+      "c0d0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739915947,
+    "updatedAt": 1782739915947
+  },
+  {
+    "id": "鐵門栓_4",
+    "level": 1,
+    "title": "鐵門栓 5",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "2P1kae2/4a4/4e4/3RC4/9/9/9/9/4p3r/5K3",
+    "moves": [
+      "c0d0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739915955,
+    "updatedAt": 1782739915955
+  },
+  {
+    "id": "鐵門栓_5",
+    "level": 1,
+    "title": "鐵門栓 6",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "2P1kae2/4a4/4ec3/4C4/9/9/9/9/4p3r/3K5",
+    "moves": [
+      "c0d0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739915964,
+    "updatedAt": 1782739915964
+  },
+  {
+    "id": "鐵門栓_6",
+    "level": 1,
+    "title": "鐵門栓 7",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "4kae2/1H1Pa4/4ec3/4C4/9/9/9/9/4p3r/5K3",
+    "moves": [
+      "d1d0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739915975,
+    "updatedAt": 1782739915975
+  },
+  {
+    "id": "鐵門栓_7",
+    "level": 1,
+    "title": "鐵門栓 8",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "4kae2/3PaP3/4e4/4C4/9/9/9/9/c3p3r/5K3",
+    "moves": [
+      "f1f0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739915983,
+    "updatedAt": 1782739915983
+  },
+  {
+    "id": "鐵門栓_8",
+    "level": 1,
+    "title": "鐵門栓 9",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "C3kae2/2P1a4/4e4/4C4/9/9/9/9/c3p3r/5K3",
+    "moves": [
+      "c1c0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739915990,
+    "updatedAt": 1782739915990
+  },
+  {
+    "id": "鐵門栓_9",
+    "level": 1,
+    "title": "鐵門栓 10",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "4kae2/3Pa4/4e4/4C4/9/9/9/9/3cp3r/3C1K3",
+    "moves": [
+      "d1d0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916000,
+    "updatedAt": 1782739916000
+  },
+  {
+    "id": "鐵門栓_10",
+    "level": 1,
+    "title": "鐵門栓 11",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "2eak4/4a4/4e4/4C2R1/9/9/3rc4/4E4/3rA4/4KAE2",
+    "moves": [
+      "h3h0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916007,
+    "updatedAt": 1782739916007
+  },
+  {
+    "id": "鐵門栓_11",
+    "level": 1,
+    "title": "鐵門栓 12",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "4kae2/4a4/4eh3/4C4/9/9/9/6h2/5p3/R3K3c",
+    "moves": [
+      "a9a0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916014,
+    "updatedAt": 1782739916014
+  },
+  {
+    "id": "鐵門栓_12",
+    "level": 1,
+    "title": "鐵門栓 13",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "3ak1eR1/4a4/4e4/4C4/9/9/4c4/2h1E4/3rA4/4KAE2",
+    "moves": [
+      "h0g0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916022,
+    "updatedAt": 1782739916022
+  },
+  {
+    "id": "鐵門栓_13",
+    "level": 1,
+    "title": "鐵門栓 14",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "2eak4/4aR3/4e4/4CR3/9/9/4c4/2h1E4/1r1rA4/4KAE2",
+    "moves": [
+      "f1f0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916029,
+    "updatedAt": 1782739916029
+  },
+  {
+    "id": "鐵門栓_14",
+    "level": 1,
+    "title": "鐵門栓 15",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "2eak4/4a4/4e4/4C4/9/5R3/9/2h6/1r1pA4/c4K3",
+    "moves": [
+      "f5f0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916036,
+    "updatedAt": 1782739916036
+  },
+  {
+    "id": "鐵門栓_15",
+    "level": 1,
+    "title": "鐵門栓 16",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "2eak4/4a4/4e1H2/4C4/9/5R3/9/2h6/1c1p5/c3KA3",
+    "moves": [
+      "f5f0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916043,
+    "updatedAt": 1782739916043
+  },
+  {
+    "id": "鐵門栓_16",
+    "level": 1,
+    "title": "鐵門栓 17",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "4kae2/3Pa4/4e4/4C4/9/9/9/9/2p1p4/3K5",
+    "moves": [
+      "d1d0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916050,
+    "updatedAt": 1782739916050
+  },
+  {
+    "id": "鐵門栓_17",
+    "level": 1,
+    "title": "鐵門栓 18",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "2eak4/4aP3/4e4/4CR3/9/9/9/2h1E4/3rA4/c3KAE2",
+    "moves": [
+      "f1f0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916057,
+    "updatedAt": 1782739916057
+  },
+  {
+    "id": "鐵門栓_18",
+    "level": 1,
+    "title": "鐵門栓 19",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "2eak4/4aP3/4e1H2/4C4/9/9/4c4/2h1E4/3rA4/4KAE2",
+    "moves": [
+      "f1f0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916064,
+    "updatedAt": 1782739916064
+  },
+  {
+    "id": "鐵門栓_19",
+    "level": 1,
+    "title": "鐵門栓 20",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "2e1ka3/3PaP3/4e4/4C4/9/9/9/9/4p1r2/5K3",
+    "moves": [
+      "f1f0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916071,
+    "updatedAt": 1782739916071
+  },
+  {
+    "id": "鐵門栓_20",
+    "level": 1,
+    "title": "鐵門栓 21",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "2eak3C/4a1P2/4e1c2/4C4/9/9/9/2h6/1p7/4KA3",
+    "moves": [
+      "g1g0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916078,
+    "updatedAt": 1782739916078
+  },
+  {
+    "id": "鐵門栓_21",
+    "level": 1,
+    "title": "鐵門栓 22",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "2eak4/4aP3/4e4/4C4/9/9/9/2h2A3/3p1C3/c3K4",
+    "moves": [
+      "f1f0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916085,
+    "updatedAt": 1782739916085
+  },
+  {
+    "id": "鐵門栓_22",
+    "level": 2,
+    "title": "鐵門栓 23",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "r3kae2/3Ra4/4c4/9/9/3RC4/9/4E1H2/2r1A4/3K1AE1c",
+    "moves": [
+      "d1d0",
+      "a0d0",
+      "d5d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916101,
+    "updatedAt": 1782739916101
+  },
+  {
+    "id": "鐵門栓_23",
+    "level": 2,
+    "title": "鐵門栓 24",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "2r1kae2/4a4/H3c4/3R5/9/4C4/9/4E1H2/1r2A4/3K1AE1c",
+    "moves": [
+      "a2c1",
+      "c0c1",
+      "d3d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916119,
+    "updatedAt": 1782739916119
+  },
+  {
+    "id": "鐵門栓_24",
+    "level": 2,
+    "title": "鐵門栓 25",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "4ka3/9/9/2R6/9/9/4P4/6C2/1rp1A4/3K1AE1c",
+    "moves": [
+      "g7e7",
+      "f0e1",
+      "c3c0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916136,
+    "updatedAt": 1782739916136
+  },
+  {
+    "id": "鐵門栓_25",
+    "level": 2,
+    "title": "鐵門栓 26",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "4ka3/4a4/8e/5R3/9/7C1/4P4/4C4/1rp1A4/3K1AE1c",
+    "moves": [
+      "h5h0",
+      "i2g0",
+      "f3f0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916153,
+    "updatedAt": 1782739916153
+  },
+  {
+    "id": "鐵門栓_26",
+    "level": 2,
+    "title": "鐵門栓 27",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "4k4/3Pa4/5a2e/9/9/9/4P4/4C4/1rp1A4/3K1AE1c",
+    "moves": [
+      "d1d0",
+      "e0f0",
+      "e7f7"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916167,
+    "updatedAt": 1782739916167
+  },
+  {
+    "id": "鐵門栓_27",
+    "level": 2,
+    "title": "鐵門栓 28",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "4kae2/4a4/4e4/9/3RC4/9/4P2r1/4E4/4Ap3/4KAE1c",
+    "moves": [
+      "e9d9",
+      "h6h9",
+      "d4d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916247,
+    "updatedAt": 1782739916247
+  },
+  {
+    "id": "鐵門栓_28",
+    "level": 2,
+    "title": "鐵門栓 29",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "3k1ae2/4a4/3He4/4C2r1/3R5/9/4P4/4E4/2r1Ap3/4KAE1c",
+    "moves": [
+      "d2b1",
+      "d0e0",
+      "d4d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916267,
+    "updatedAt": 1782739916267
+  },
+  {
+    "id": "鐵門栓_29",
+    "level": 3,
+    "title": "鐵門栓 30",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "1r1k1ae2/4a4/3He4/2r1C4/3R5/9/4P4/4E4/4Ap3/3K1AE1c",
+    "moves": [
+      "d2c0",
+      "c3d3",
+      "d4d3",
+      "e1d2",
+      "d3d2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916315,
+    "updatedAt": 1782739916315
+  },
+  {
+    "id": "鐵門栓_30",
+    "level": 2,
+    "title": "鐵門栓 31",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "3akae1r/4h4/4e1h2/p1R5p/4C1p2/2PR5/P3P3P/2rA2H2/9/1cEAK1E2",
+    "moves": [
+      "c3d3",
+      "c7c9",
+      "d3d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916405,
+    "updatedAt": 1782739916405
+  },
+  {
+    "id": "鐵門栓_31",
+    "level": 2,
+    "title": "鐵門栓 32",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "1re1ka2r/4a4/h3e2c1/p1p1C1p2/8p/9/P1P1P1P1P/3RE2CR/4A4/1c2KAE2",
+    "moves": [
+      "e9d9",
+      "b0b8",
+      "d7d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916449,
+    "updatedAt": 1782739916449
+  },
+  {
+    "id": "鐵門栓_32",
+    "level": 2,
+    "title": "鐵門栓 33",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "r3kae2/4a4/4e4/4C4/9/3R5/4c4/3RE4/4Apr2/3K1AE2",
+    "moves": [
+      "d5d0",
+      "a0d0",
+      "d7d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916466,
+    "updatedAt": 1782739916466
+  },
+  {
+    "id": "鐵門栓_33",
+    "level": 2,
+    "title": "鐵門栓 34",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "2r1kae2/3Pa4/4e4/4C3p/9/3R5/9/9/4A1r1c/3K1A3",
+    "moves": [
+      "d1d0",
+      "c0d0",
+      "d5d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916483,
+    "updatedAt": 1782739916483
+  },
+  {
+    "id": "鐵門栓_34",
+    "level": 2,
+    "title": "鐵門栓 35",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "2r1kae2/4a4/H3e4/3RC4/9/9/9/9/5p1c1/2EK5",
+    "moves": [
+      "a2c1",
+      "c0c1",
+      "d3d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916500,
+    "updatedAt": 1782739916500
+  },
+  {
+    "id": "鐵門栓_35",
+    "level": 2,
+    "title": "鐵門栓 36",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "4ka3/9/9/4p4/9/2R6/9/6C2/1r2p4/3K5",
+    "moves": [
+      "g7e7",
+      "f0e1",
+      "c5c0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916522,
+    "updatedAt": 1782739916522
+  },
+  {
+    "id": "鐵門栓_36",
+    "level": 2,
+    "title": "鐵門栓 37",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "4ka3/4a4/4e3e/7C1/9/5R3/9/4C4/1h1rA4/c3KAE2",
+    "moves": [
+      "h3h0",
+      "i2g0",
+      "f5f0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916541,
+    "updatedAt": 1782739916541
+  },
+  {
+    "id": "鐵門栓_37",
+    "level": 2,
+    "title": "鐵門栓 38",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "4k4/4aP3/3a5/4p4/9/7h1/9/4C4/4p4/5K3",
+    "moves": [
+      "f1f0",
+      "e0d0",
+      "e7d7"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916556,
+    "updatedAt": 1782739916556
+  },
+  {
+    "id": "鐵門栓_38",
+    "level": 2,
+    "title": "鐵門栓 39",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "4kae2/4a4/4e1r2/4C4/3R5/9/7h1/4E4/4A4/4KAE2",
+    "moves": [
+      "e9d9",
+      "g2g9",
+      "d4d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916653,
+    "updatedAt": 1782739916653
+  },
+  {
+    "id": "鐵門栓_39",
+    "level": 1,
+    "title": "鐵門栓 40",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "3k1ae2/4a4/3He4/4C4/9/3R5/9/9/4p1r2/5K2c",
+    "moves": [
+      "e3d3"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916660,
+    "updatedAt": 1782739916660
+  },
+  {
+    "id": "鐵門栓_40",
+    "level": 1,
+    "title": "鐵門栓 41",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "1r1k1ae2/4a4/3He4/4C4/9/3R5/9/9/4p1r2/3K4c",
+    "moves": [
+      "e3d3"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916668,
+    "updatedAt": 1782739916668
+  },
+  {
+    "id": "鐵門栓_41",
+    "level": 3,
+    "title": "鐵門栓 42",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "3ak1e2/3Pa4/4e4/4C4/3R5/9/1r5h1/4E4/4Ap3/4KAE1c",
+    "moves": [
+      "d1d0",
+      "e0f0",
+      "d4f4",
+      "e1f2",
+      "f4f2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916709,
+    "updatedAt": 1782739916709
+  },
+  {
+    "id": "鐵門栓_42",
+    "level": 3,
+    "title": "鐵門栓 43",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "2r1kae2/4a4/4e1h2/3R5/9/3R5/4p4/4C1C2/1h1KA4/2r2AE2",
+    "moves": [
+      "g7g0",
+      "e2g0",
+      "d3d0",
+      "c0d0",
+      "d5d0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916830,
+    "updatedAt": 1782739916830
+  },
+  {
+    "id": "鐵門栓_43",
+    "level": 3,
+    "title": "鐵門栓 44",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "4kae2/4a3c/4e4/1H2C2r1/9/3R5/9/4E4/2h3r2/5KE2",
+    "moves": [
+      "b3d2",
+      "e0d0",
+      "d2b1",
+      "d0e0",
+      "d5d0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916873,
+    "updatedAt": 1782739916873
+  },
+  {
+    "id": "鐵門栓_44",
+    "level": 3,
+    "title": "鐵門栓 45",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "1r2kae2/1H2a4/4e4/4C2r1/3R5/9/9/5h3/4p4/3K4c",
+    "moves": [
+      "b1d2",
+      "e0d0",
+      "d2c0",
+      "e1d2",
+      "d4d2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739916914,
+    "updatedAt": 1782739916914
+  },
+  {
+    "id": "鐵門栓_47",
+    "level": 3,
+    "title": "鐵門栓 48",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "3akae2/3R5/4e1r2/6C2/9/9/7h1/4E4/5pp2/3K2E2",
+    "moves": [
+      "g3a3",
+      "g2g7",
+      "a3a0",
+      "d0e1",
+      "d1d0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739917788,
+    "updatedAt": 1782739917788
+  },
+  {
+    "id": "鐵門栓_50",
+    "level": 3,
+    "title": "鐵門栓 51",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "3k2e2/1R2aP3/3ae4/4C4/9/9/4c4/4E4/r4r3/3K2E2",
+    "moves": [
+      "b1b0",
+      "e2c0",
+      "b0c0",
+      "d0d1",
+      "e3d3"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739933055,
+    "updatedAt": 1782739933055
+  },
+  {
+    "id": "鐵門栓_51",
+    "level": 3,
+    "title": "鐵門栓 52",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "3ak1e2/3Pa4/4e4/4C4/3R5/9/1r5h1/4E4/4Ap3/4KAE2",
+    "moves": [
+      "d1d0",
+      "e0f0",
+      "d4f4",
+      "e1f2",
+      "f4f2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739933096,
+    "updatedAt": 1782739933096
+  },
+  {
+    "id": "鐵門栓_52",
+    "level": 3,
+    "title": "鐵門栓 53",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "r3kae2/4a4/4e1c2/3R5/9/3R5/4p4/4C1C2/3KA4/2r2AE2",
+    "moves": [
+      "g7g0",
+      "e2g0",
+      "d3d0",
+      "a0d0",
+      "d5d0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739933231,
+    "updatedAt": 1782739933231
+  },
+  {
+    "id": "鐵門栓_53",
+    "level": 3,
+    "title": "鐵門栓 54",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "4kae2/4a3c/4e4/1H2C2r1/9/3R5/9/9/4p1r2/5K3",
+    "moves": [
+      "b3d2",
+      "e0d0",
+      "d2b1",
+      "d0e0",
+      "d5d0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739933265,
+    "updatedAt": 1782739933265
+  },
+  {
+    "id": "鐵門栓_54",
+    "level": 3,
+    "title": "鐵門栓 55",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "1r2kae2/1H2a4/4e4/4C4/3R5/4h4/9/9/4p2r1/3K4c",
+    "moves": [
+      "b1d2",
+      "e0d0",
+      "d2c0",
+      "e1d2",
+      "d4d2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739933328,
+    "updatedAt": 1782739933328
+  },
+  {
+    "id": "鐵門栓_55",
+    "level": 2,
+    "title": "鐵門栓 56",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "2h1kae2/4ac3/4e4/1R3H3/8p/4C4/5r1h1/4E4/4A4/4KAE2",
+    "moves": [
+      "f3d2",
+      "e0d0",
+      "e5d5"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739933368,
+    "updatedAt": 1782739933368
+  },
+  {
+    "id": "鐵門栓_57",
+    "level": 3,
+    "title": "鐵門栓 58",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "r1ea1k3/4a1P2/r3e4/5C3/9/4C4/9/5K3/4p4/9",
+    "moves": [
+      "g1f1",
+      "f0e0",
+      "f3a3",
+      "a2a3",
+      "f1f0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739935237,
+    "updatedAt": 1782739935237
+  },
+  {
+    "id": "鐵門栓_58",
+    "level": 2,
+    "title": "鐵門栓 59",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "3k2e2/1R2a2R1/3ae4/4C4/9/9/8c/4E4/2r2r3/3K2E2",
+    "moves": [
+      "b1d1",
+      "d0d1",
+      "e3d3"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739935302,
+    "updatedAt": 1782739935302
+  },
+  {
+    "id": "鐵門栓_60",
+    "level": 3,
+    "title": "鐵門栓 61",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "3akae2/3R5/4e1r2/6C2/9/9/6ph1/4E4/9/3K2E2",
+    "moves": [
+      "g3a3",
+      "g2g5",
+      "a3a0",
+      "d0e1",
+      "d1d0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782739941333,
+    "updatedAt": 1782739941333
+  },
+  {
+    "id": "鐵門栓_65",
+    "level": 2,
+    "title": "鐵門栓 66",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "2e1ka1h1/4a4/1r2e4/4R1p1p/p1p6/3R2P1c/P1P3r2/H3C4/4A4/2EK1AE2",
+    "moves": [
+      "e3c3",
+      "g6g9",
+      "c3c0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782156234,
+    "updatedAt": 1782782156234
+  },
+  {
+    "id": "鐵門栓_67",
+    "level": 2,
+    "title": "鐵門栓 68",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "2ea1k2r/4a4/4e4/4C4/3R5/3R5/9/5p3/4p1r2/5K3",
+    "moves": [
+      "d4d0",
+      "e1d0",
+      "d5f5"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782164478,
+    "updatedAt": 1782782164478
+  },
+  {
+    "id": "鐵門栓_68",
+    "level": 2,
+    "title": "鐵門栓 69",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "3a5/4k4/3a1P3/4p4/9/7h1/9/3C5/4p2p1/5K2c",
+    "moves": [
+      "f2f1",
+      "e1e2",
+      "d7e7"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782164827,
+    "updatedAt": 1782782164827
+  },
+  {
+    "id": "鐵門栓_69",
+    "level": 2,
+    "title": "鐵門栓 70",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "2ea1kr2/4a4/4eH3/4CR3/9/9/9/5p3/4p1r2/5K3",
+    "moves": [
+      "f2g0",
+      "e1f2",
+      "f3f2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782164896,
+    "updatedAt": 1782782164896
+  },
+  {
+    "id": "鐵門栓_71",
+    "level": 2,
+    "title": "鐵門栓 72",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "4kae2/4a4/4e1r2/4C4/9/5R3/9/9/4A2p1/4KAE1c",
+    "moves": [
+      "f5a5",
+      "g2g9",
+      "a5a0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782166537,
+    "updatedAt": 1782782166537
+  },
+  {
+    "id": "鐵門栓_72",
+    "level": 2,
+    "title": "鐵門栓 73",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "2eak1c1r/4aP3/4e4/4C4/3R2p2/9/9/4E1h1E/4Ap3/3K1A3",
+    "moves": [
+      "d4f4",
+      "i0i7",
+      "f1f0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782184877,
+    "updatedAt": 1782782184877
+  },
+  {
+    "id": "鐵門栓_73",
+    "level": 3,
+    "title": "鐵門栓 74",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "4kae2/4a3c/4eh3/4C2h1/3r5/2H6/6P2/3AE3E/4A4/1R2K4",
+    "moves": [
+      "b9b0",
+      "d4d0",
+      "c5b3",
+      "g0i2",
+      "b3d2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782186589,
+    "updatedAt": 1782782186589
+  },
+  {
+    "id": "鐵門栓_75",
+    "level": 4,
+    "title": "鐵門栓 76",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "3ak1e2/c3aR3/4e4/2H2R3/1C7/9/9/9/r3p1p2/5K3",
+    "moves": [
+      "f1f0",
+      "e1f0",
+      "b4e4",
+      "e2c0",
+      "c3e2",
+      "a1e1",
+      "f3f0"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782203798,
+    "updatedAt": 1782782203798
+  },
+  {
+    "id": "鐵門栓_77",
+    "level": 2,
+    "title": "鐵門栓 78",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "3k1ae2/4a4/4e4/4C3p/5R3/5R3/1r7/4E1r2/3pA4/4KAE1c",
+    "moves": [
+      "f4f0",
+      "e1f0",
+      "f5d5"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782217190,
+    "updatedAt": 1782782217190
+  },
+  {
+    "id": "鐵門栓_78",
+    "level": 2,
+    "title": "鐵門栓 79",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "3a5/4k4/3a1P3/4p4/9/7h1/9/3C5/4p4/5K3",
+    "moves": [
+      "f2f1",
+      "e1e2",
+      "d7e7"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782217245,
+    "updatedAt": 1782782217245
+  },
+  {
+    "id": "鐵門栓_79",
+    "level": 2,
+    "title": "鐵門栓 80",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "2ea1krc1/4a4/4eH3/4CR3/9/9/9/3p5/4p1r2/3K5",
+    "moves": [
+      "f2g0",
+      "e1f2",
+      "f3f2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782217289,
+    "updatedAt": 1782782217289
+  },
+  {
+    "id": "鐵門栓_80",
+    "level": 2,
+    "title": "鐵門栓 81",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "2eak1c1r/4aP3/4e4/4C4/3R2p2/9/9/4E4/4Ap3/3K1A3",
+    "moves": [
+      "d4f4",
+      "i0i9",
+      "f1f0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782224273,
+    "updatedAt": 1782782224273
+  },
+  {
+    "id": "鐵門栓_81",
+    "level": 3,
+    "title": "鐵門栓 82",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "4kae2/4a3c/4eh3/4C2h1/3r5/1RH6/9/3A5/4A4/4K4",
+    "moves": [
+      "b5b0",
+      "d4d0",
+      "c5b3",
+      "g0i2",
+      "b3d2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782225927,
+    "updatedAt": 1782782225927
+  },
+  {
+    "id": "鐵門栓_83",
+    "level": 4,
+    "title": "鐵門栓 84",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "2eak4/4aP3/e8/9/9/7C1/9/9/9/4K4",
+    "moves": [
+      "h5c5",
+      "c0e2",
+      "c5e5",
+      "a2c0",
+      "e9f9",
+      "c0a2",
+      "f1f0"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782248470,
+    "updatedAt": 1782782248470
+  },
+  {
+    "id": "鐵門栓_84",
+    "level": 1,
+    "title": "鐵門栓 85",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "2e1ka1r1/r3a4/1c2e4/p2P4p/9/4ChP2/P3P3P/4E1C2/9/2RAKAE1R",
+    "moves": [
+      "c9c0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782248477,
+    "updatedAt": 1782782248477
+  },
+  {
+    "id": "鐵門栓_85",
+    "level": 1,
+    "title": "鐵門栓 86",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "2eak4/4a4/h3e4/p1p1C1p1p/9/5R3/P3P1P1P/1r4c2/4A4/2EA1KE2",
+    "moves": [
+      "f5f0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782248487,
+    "updatedAt": 1782782248487
+  },
+  {
+    "id": "鐵門栓_86",
+    "level": 1,
+    "title": "鐵門栓 87",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "r1eak1cR1/4a4/4e4/p5p1p/2p6/5R3/P1h6/4C3E/6r2/2EAK4",
+    "moves": [
+      "h0g0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782248500,
+    "updatedAt": 1782782248500
+  },
+  {
+    "id": "鐵門栓_87",
+    "level": 1,
+    "title": "鐵門栓 88",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "2eak2c1/4a4/4e1R2/p1p3p2/9/4C4/P1P1P1Ph1/1rH3c1C/4A4/2EA1KE2",
+    "moves": [
+      "g2g0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782248510,
+    "updatedAt": 1782782248510
+  },
+  {
+    "id": "鐵門栓_89",
+    "level": 1,
+    "title": "鐵門栓 90",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "1R1ak1e2/4a4/3ceh2h/p5p1p/9/9/P5r1P/3CC4/9/3AKA3",
+    "moves": [
+      "b0d0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782265003,
+    "updatedAt": 1782782265003
+  },
+  {
+    "id": "鐵門栓_90",
+    "level": 1,
+    "title": "鐵門栓 91",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "4ka3/4a4/h1c1e4/2p1C3p/p3r1p2/2HR2Pr1/P1P1H2cP/9/4A4/R1EK1AE2",
+    "moves": [
+      "d5d0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782265016,
+    "updatedAt": 1782782265016
+  },
+  {
+    "id": "鐵門栓_91",
+    "level": 1,
+    "title": "鐵門栓 92",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "r1eak4/3Ra4/h8/pHp1p1p1p/5rh2/9/PR6P/4C3H/4c4/2EK2E2",
+    "moves": [
+      "d1d0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782265024,
+    "updatedAt": 1782782265024
+  },
+  {
+    "id": "鐵門栓_92",
+    "level": 1,
+    "title": "鐵門栓 93",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "3rkae2/4a4/h3e3h/p8/8p/3RC4/P1P1r3P/2c1E4/4A4/3K1AE2",
+    "moves": [
+      "d5d0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782265032,
+    "updatedAt": 1782782265032
+  },
+  {
+    "id": "鐵門栓_93",
+    "level": 2,
+    "title": "鐵門栓 94",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "r1ea1kcR1/4a4/4e4/p5p1p/2p6/1R7/P1h6/4C3E/6r2/2EAK4",
+    "moves": [
+      "b5f5",
+      "e1f2",
+      "f5f2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782265053,
+    "updatedAt": 1782782265053
+  },
+  {
+    "id": "鐵門栓_94",
+    "level": 2,
+    "title": "鐵門栓 95",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "3a1ke1R/4a4/2c1ec3/2p1C4/7h1/2P2R3/P3r4/4EC3/4A2rH/4KAE2",
+    "moves": [
+      "f5f2",
+      "f0e0",
+      "i0g0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782265075,
+    "updatedAt": 1782782265075
+  },
+  {
+    "id": "鐵門栓_95",
+    "level": 2,
+    "title": "鐵門栓 96",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "r3kae2/4a4/h3e3h/p2R5/8p/3RC4/P1P1r3P/2c1E4/4A4/3K1AE2",
+    "moves": [
+      "d3d0",
+      "a0d0",
+      "d5d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782265092,
+    "updatedAt": 1782782265092
+  },
+  {
+    "id": "鐵門栓_96",
+    "level": 3,
+    "title": "鐵門栓 97",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "3ak4/4a4/4e4/2r1C4/6H2/9/9/5R3/1p7/c2K2E2",
+    "moves": [
+      "g4f2",
+      "e0f0",
+      "f2h1",
+      "f0e0",
+      "f7f0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782265137,
+    "updatedAt": 1782782265137
+  },
+  {
+    "id": "鐵門栓_97",
+    "level": 2,
+    "title": "鐵門栓 98",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "1reak4/4a4/h3e4/p1p1C1p1p/9/5R3/P3P1P1P/5Cc2/4A4/2EA1KE2",
+    "moves": [
+      "f7a7",
+      "b0b9",
+      "f5f0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782268957,
+    "updatedAt": 1782782268957
+  },
+  {
+    "id": "鐵門栓_98",
+    "level": 2,
+    "title": "鐵門栓 99",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "4kae2/4a4/4e3h/C5p1p/9/4P4/P2R4P/4E1crH/4A1h2/3K1AE2",
+    "moves": [
+      "a3e3",
+      "h7h9",
+      "d6d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782270510,
+    "updatedAt": 1782782270510
+  },
+  {
+    "id": "鐵門栓_99",
+    "level": 2,
+    "title": "鐵門栓 100",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "1R1hkae2/4a1c2/e3c3h/p1p3p1p/7R1/4C4/P1r1P1r1P/2H1ECH2/4A4/2EAK4",
+    "moves": [
+      "h4d4",
+      "c6c7",
+      "b0d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782272803,
+    "updatedAt": 1782782272803
+  },
+  {
+    "id": "鐵門栓_100",
+    "level": 3,
+    "title": "鐵門栓 101",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "1R1hkaer1/r3a4/3ce2c1/p1pH3Rp/9/9/P1P3P1P/4C4/9/2EAKAE2",
+    "moves": [
+      "d3f2",
+      "d2f2",
+      "h3d3",
+      "a1a2",
+      "b0d0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782279929,
+    "updatedAt": 1782782279929
+  },
+  {
+    "id": "鐵門栓_104",
+    "level": 2,
+    "title": "鐵門栓 105",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "r1eak4/4a4/h3e4/p1p1C1p1p/9/5R3/P3P1P1P/5Cc2/4A4/2EAK1E2",
+    "moves": [
+      "f5h5",
+      "a0a1",
+      "h5h0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782357983,
+    "updatedAt": 1782782357983
+  },
+  {
+    "id": "鐵門栓_105",
+    "level": 1,
+    "title": "鐵門栓 106",
+    "description": "鐵門栓殺法練習",
+    "initialFen": "2eak3C/4a4/4e1R2/p1p3p2/7c1/4C4/P1P1P1Ph1/1rH3c2/4A4/2EA1KE2",
+    "moves": [
+      "g2g0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782782357996,
+    "updatedAt": 1782782357996
+  }
+]

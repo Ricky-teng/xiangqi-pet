@@ -29,7 +29,7 @@ import { useGameStore } from "@/stores/useGameStore";
 import RequireAuth from "@/components/RequireAuth";
 import ChessBoard from "@/components/ChessBoard";
 import { useRulesEngine } from "@/hooks/useRulesEngine";
-import { usePositionAnalysis, toRedPerspectiveScore, formatScoreLabel } from "@/hooks/usePositionAnalysis";
+import { usePositionAnalysis, toRedPerspectiveScore, toRedPerspectiveMateIn, getScoreDisplay, SCORE_DISPLAY_STYLES } from "@/hooks/usePositionAnalysis";
 import { parseFen } from "@/lib/xiangqi/fen";
 import { toChineseNotation } from "@/lib/xiangqi/chineseNotation";
 import type { VsComputerGameDoc } from "@/types/database";
@@ -67,8 +67,23 @@ function ReviewContent({ gameId }: { gameId: string }) {
   const [exploreMoveHistory, setExploreMoveHistory] = useState<string[]>([]);
   const [exploreMoveError, setExploreMoveError] = useState<string | null>(null);
 
-  const fenForAnalysis = mode === "explore" ? exploreFen : game?.fenHistory[step] ?? null;
+  const rawFenForAnalysis = mode === "explore" ? exploreFen : game?.fenHistory[step] ?? null;
   const sideForAnalysis = mode === "explore" ? exploreSideToMove : sideToMoveAtStep(step);
+
+  // 終局局面（將死/困斃）根本沒有合法走法可以分析，呼叫 API 只會浪費
+  // 一次引擎啟動又得到一個「沒有合法走法」的錯誤。這裡用規則引擎先
+  // 判斷一次，是終局就直接傳 null 給 usePositionAnalysis（它看到 fen
+  // 是 null 就會自己跳過呼叫，不需要額外改 Hook 的介面）。
+  const isCurrentPositionGameOver = useMemo(() => {
+    if (!engine || !rawFenForAnalysis) return false;
+    try {
+      return engine.getGameStatus(rawFenForAnalysis, sideForAnalysis).isGameOver;
+    } catch {
+      return false;
+    }
+  }, [engine, rawFenForAnalysis, sideForAnalysis]);
+
+  const fenForAnalysis = isCurrentPositionGameOver ? null : rawFenForAnalysis;
 
   const { analysis, isAnalyzing, analyzeError, autoAnalyze, toggleAutoAnalyze } = usePositionAnalysis(
     fenForAnalysis,
@@ -183,6 +198,19 @@ function ReviewContent({ gameId }: { gameId: string }) {
   const displayBoard = isExploring ? exploreBoard! : replayBoard;
   const currentSideToMove = isExploring ? exploreSideToMove : sideToMoveAtStep(step);
 
+  // 剛剛走的這一步：回放模式是「第 step 步」對應的走法；推演模式是
+  // 推演路線裡最後一步（還沒走過任何推演步時是 null，不畫標示）。
+  const displayLastMove = isExploring
+    ? exploreMoveHistory.length > 0
+      ? exploreMoveHistory[exploreMoveHistory.length - 1]
+      : null
+    : step > 0
+      ? game.moveHistory[step - 1]
+      : null;
+  const lastMoveHighlight = displayLastMove
+    ? { from: displayLastMove.slice(0, 2), to: displayLastMove.slice(2, 4) }
+    : null;
+
   return (
     <main className="min-h-screen bg-[#FDF6E8] pb-10">
       <div className="mx-auto max-w-md px-4 pt-4">
@@ -207,12 +235,36 @@ function ReviewContent({ gameId }: { gameId: string }) {
         {/* 目前局面評分：跟下面棋盤本體分開、放在比較上面、視覺上更
             醒目的位置，按過一次「分析」之後，只要有分析結果就會顯示，
             不需要往下找才看得到分數。開了自動分析之後，切換局面時會
-            短暫顯示「分析中」，讓學生知道系統在處理、不是卡住了。 */}
+            短暫顯示「分析中」，讓學生知道系統在處理、不是卡住了。
+            有強制將死時改用比較搶眼的底色，直接標示是哪一方有殺。 */}
+        {isCurrentPositionGameOver && autoAnalyze ? (
+          <section className="mt-3 rounded-2xl bg-[#1A1A2E]/10 px-4 py-2 text-center">
+            <span className="text-xs font-semibold text-[#1A1A2E]/60">
+              這是終局局面（將死/無棋可走），沒有走法可以分析。
+            </span>
+          </section>
+        ) : null}
+
         {analysis || isAnalyzing ? (
-          <section className="mt-3 rounded-2xl bg-[#1A1A2E] px-4 py-2 text-center">
-            <span className="text-sm font-extrabold text-[#FDF6E8]">
+          <section
+            className={[
+              "mt-3 rounded-2xl px-4 py-2 text-center",
+              analysis
+                ? SCORE_DISPLAY_STYLES[
+                    getScoreDisplay(
+                      toRedPerspectiveScore(analysis.scoreCp, currentSideToMove),
+                      toRedPerspectiveMateIn(analysis.mateIn, currentSideToMove)
+                    ).variant
+                  ]
+                : "bg-[#1A1A2E] text-[#FDF6E8]",
+            ].join(" ")}
+          >
+            <span className="text-sm font-extrabold">
               {analysis
-                ? formatScoreLabel(toRedPerspectiveScore(analysis.scoreCp, currentSideToMove))
+                ? getScoreDisplay(
+                    toRedPerspectiveScore(analysis.scoreCp, currentSideToMove),
+                    toRedPerspectiveMateIn(analysis.mateIn, currentSideToMove)
+                  ).label
                 : "分析中…"}
             </span>
           </section>
@@ -235,6 +287,7 @@ function ReviewContent({ gameId }: { gameId: string }) {
               highlightMove={
                 analysis ? { from: analysis.move.slice(0, 2), to: analysis.move.slice(2, 4) } : null
               }
+              lastMove={lastMoveHighlight}
             />
           </div>
 
