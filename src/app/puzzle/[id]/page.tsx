@@ -54,7 +54,7 @@
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { doc, getDoc, increment, Timestamp, updateDoc } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, increment, query, Timestamp, updateDoc, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useGameStore } from "@/stores/useGameStore";
 import { usePuzzleSolver } from "@/hooks/usePuzzleSolver";
@@ -208,10 +208,16 @@ type FetchStatus = "loading" | "success" | "not_found" | "error";
 interface PuzzlePageProps {
   /** Next.js 15：動態路由 params 是 Promise，需用 React.use() 解開 */
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ level?: string }>;
 }
 
-function PuzzleChallengePageContent({ params }: PuzzlePageProps) {
+function PuzzleChallengePageContent({ params, searchParams }: PuzzlePageProps) {
   const { id: puzzleId } = use(params);
+  const { level: levelParam } = use(searchParams);
+  // 從 URL ?level=N 讀出「這一題是從哪個等級選來的」，給「下一題」按鈕用。
+  // 沒有帶 level param（例如直接輸入網址）時 levelParam 是 undefined，
+  // 這種情況下一題按鈕會回到等級選擇頁讓學生重選。
+  const sourceLevel = levelParam ? Number(levelParam) : null;
   const router = useRouter();
 
   // ---- 從全域狀態總機取出使用者與小雞資料（獨立 selector，避免不必要的重渲染） ----
@@ -320,6 +326,7 @@ function PuzzleChallengePageContent({ params }: PuzzlePageProps) {
           key={resetSignal}
           puzzle={puzzle}
           onRequestReset={() => setResetSignal((value) => value + 1)}
+          sourceLevel={sourceLevel}
         />
       </div>
     </main>
@@ -402,10 +409,48 @@ function PuzzleHeader({
 function PuzzleSolverSection({
   puzzle,
   onRequestReset,
+  sourceLevel,
 }: {
   puzzle: PuzzleDoc;
   onRequestReset: () => void;
+  sourceLevel: number | null;
 }) {
+  const router = useRouter();
+  const [isLoadingNext, setIsLoadingNext] = useState(false);
+
+  async function handleNextPuzzle() {
+    if (sourceLevel === null) {
+      router.push("/puzzle");
+      return;
+    }
+
+    setIsLoadingNext(true);
+    try {
+      const snapshot = await getDocs(
+        query(
+          collection(db, "puzzles"),
+          where("isPublished", "==", true),
+          where("level", "==", sourceLevel)
+        )
+      );
+
+      const ids = snapshot.docs
+        .map((d) => d.id)
+        .filter((id) => id !== puzzle.id); // 排除剛做完的這題，避免連續抽到同一題
+
+      if (ids.length === 0) {
+        // 這個等級只有這一題（或全部都被排除），直接回選等級頁
+        router.push("/puzzle");
+        return;
+      }
+
+      const nextId = ids[Math.floor(Math.random() * ids.length)];
+      router.push(`/puzzle/${nextId}?level=${sourceLevel}`);
+    } catch (error) {
+      console.error("[puzzle] 抽下一題失敗：", error);
+      router.push("/puzzle");
+    }
+  }
   // 獨立 selector，與 usePuzzleSolver.ts / 首頁 page.tsx 風格一致
   const user = useGameStore((s) => s.user);
   const pet = useGameStore((s) => s.pet);
@@ -560,16 +605,24 @@ function PuzzleSolverSection({
          ============================================================ */}
       <div className="mt-4">
         {solverState.isCompleted ? (
-          <p className="rounded-2xl bg-[#5B8C5A]/10 px-4 py-3 text-center text-sm font-bold text-[#5B8C5A]">
-            🎉 恭喜過關！
-            {rewardOutcome?.status === "granted"
-              ? `獲得了 ${rewardOutcome.earnedFood} 個飼料！`
-              : rewardOutcome?.status === "already_claimed"
-                ? "不過這題你之前已經解過了，這次沒有額外的飼料獎勵。"
+          <div className="flex flex-col gap-3">
+            <p className="rounded-2xl bg-[#5B8C5A]/10 px-4 py-3 text-center text-sm font-bold text-[#5B8C5A]">
+              🎉 恭喜過關！
+              {rewardOutcome?.status === "granted"
+                ? `獲得了 ${rewardOutcome.earnedFood} 個飼料！`
                 : rewardOutcome?.status === "error"
                   ? "但結算獎勵時發生錯誤，請稍後查看飼料數量是否有更新。"
                   : "正在結算獎勵…"}
-          </p>
+            </p>
+            <button
+              type="button"
+              onClick={handleNextPuzzle}
+              disabled={isLoadingNext}
+              className="w-full rounded-2xl bg-gradient-to-b from-[#F6D87A] to-[#E8B84B] px-4 py-3 text-sm font-extrabold text-[#5C3D0A] shadow-md transition-transform active:scale-95 disabled:opacity-60"
+            >
+              {isLoadingNext ? "出題中…" : "➡️ 下一題"}
+            </button>
+          </div>
         ) : lastErrorMessage ? (
           <p className="rounded-2xl bg-[#C0392B]/10 px-4 py-3 text-center text-sm font-medium text-[#C0392B]">
             {lastErrorMessage}

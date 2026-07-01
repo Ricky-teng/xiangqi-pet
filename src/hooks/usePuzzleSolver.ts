@@ -54,7 +54,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { doc, getDoc, increment, setDoc, updateDoc } from "firebase/firestore";
+import { doc, increment, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useGameStore } from "@/stores/useGameStore";
 import type { PuzzleDoc, SolvedPuzzleRecord } from "@/types/database";
@@ -256,21 +256,15 @@ export function usePuzzleSolver(puzzle: PuzzleDoc): UsePuzzleSolverResult {
     const solvedRecordRef = doc(db, "users", user.uid, "solvedPuzzles", puzzle.id);
 
     try {
-      const existingRecord = await getDoc(solvedRecordRef);
-
-      if (existingRecord.exists()) {
-        // 防刷：這題這個使用者已經解過了，不重複發放飼料
-        setRewardOutcome({ status: "already_claimed" });
-
-        if (pet) {
-          setPet({
-            ...pet,
-            consecutiveWrongCount: 0,
-            currentWrongPuzzleId: null,
-          });
-        }
-        return;
-      }
+      // 原本這裡有「已解過就不發飼料」的防刷 check，改成每次解完都給飼料：
+      // /puzzle 頁面已改成「選等級隨機出題」，學生每次進來都是隨機抽題，
+      // 不像以前能在題目列表直接挑一道「最簡單且之前做過」的題反覆刷，
+      // 隨機選題的機制本身就已經大幅降低有意刷題的可能性，不需要在這裡
+      // 再擋一層。solvedPuzzles 子集合這裡還是繼續寫入（updateDoc 不會
+      // 重複 increment 只是因為 setDoc 有 merge），讓老師後台的解題紀錄
+      // 還是能正確統計（每次解題都有一筆記錄，老師看得到練習頻率）。
+      // 但用 puzzle.id 作為文件 ID 代表同一題只會有一筆記錄，若要每次都
+      // 記錄可考慮之後改成用 timestamp 當 ID，目前先維持現有資料結構。
 
       const earnedFood = calculateFoodReward(user.chessLevel, puzzle.level);
       const now = Date.now();

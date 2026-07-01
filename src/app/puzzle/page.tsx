@@ -102,7 +102,7 @@ function PuzzleLevelPickerContent() {
 
     setIsStartingLevel(level);
     const randomId = idsForLevel[Math.floor(Math.random() * idsForLevel.length)];
-    router.push(`/puzzle/${randomId}`);
+    router.push(`/puzzle/${randomId}?level=${level}`);
   }
 
   return (
