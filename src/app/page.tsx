@@ -64,35 +64,46 @@ import type { DailyTaskDoc, UserDoc, VsComputerGameDoc } from "@/types/database"
  * 直接讀現有的 pet.stage 就能組出正確的檔名。
  */
 function getPetImagePath(stage: string, healthStatus: string): string {
-  if (healthStatus === "severely_sick") return "/pet/serioussick.png";
-  if (healthStatus === "slightly_sick") return "/pet/sick.png";
-
-  if (healthStatus === "dead") {
+  // 生小病：依成長階段分別顯示（egg_sick / chick_sick / teen_sick / master_sick）
+  if (healthStatus === "slightly_sick") {
     switch (stage) {
-      case "egg":
-        return "/pet/egg_dead.png";
-      case "chick":
-        return "/pet/chick_dead.png";
-      case "teen":
-        return "/pet/teen_dead.png";
-      case "master":
-        return "/pet/master_dead.png";
-      default:
-        return "/pet/chick_dead.png";
+      case "egg":    return "/pet/egg_sick.png";
+      case "chick":  return "/pet/chick_sick.png";
+      case "teen":   return "/pet/teen_sick.png";
+      case "master": return "/pet/master_sick.png";
+      default:       return "/pet/chick_sick.png";
     }
   }
 
+  // 生大病：依成長階段分別顯示（egg_serioussick / chick_serioussick / teen_serioussick / master_serioussick）
+  if (healthStatus === "severely_sick") {
+    switch (stage) {
+      case "egg":    return "/pet/egg_serioussick.png";
+      case "chick":  return "/pet/chick_serioussick.png";
+      case "teen":   return "/pet/teen_serioussick.png";
+      case "master": return "/pet/master_serioussick.png";
+      default:       return "/pet/chick_serioussick.png";
+    }
+  }
+
+  // 死亡：依成長階段分別顯示
+  if (healthStatus === "dead") {
+    switch (stage) {
+      case "egg":    return "/pet/egg_dead.png";
+      case "chick":  return "/pet/chick_dead.png";
+      case "teen":   return "/pet/teen_dead.png";
+      case "master": return "/pet/master_dead.png";
+      default:       return "/pet/chick_dead.png";
+    }
+  }
+
+  // 健康（normal）
   switch (stage) {
-    case "egg":
-      return "/pet/egg.png";
-    case "chick":
-      return "/pet/chick.png";
-    case "teen":
-      return "/pet/teen.png";
-    case "master":
-      return "/pet/master.png";
-    default:
-      return "/pet/chick.png";
+    case "egg":    return "/pet/egg.png";
+    case "chick":  return "/pet/chick.png";
+    case "teen":   return "/pet/teen.png";
+    case "master": return "/pet/master.png";
+    default:       return "/pet/chick.png";
   }
 }
 

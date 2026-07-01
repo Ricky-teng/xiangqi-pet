@@ -1,0 +1,5364 @@
+[
+  {
+    "id": "df25fdfb048daaa6",
+    "_cblKey": "困斃_0",
+    "level": 1,
+    "title": "困斃 1",
+    "description": "困斃殺法練習",
+    "initialFen": "9/5P3/3k5/9/9/9/9/9/9/4K4",
+    "moves": [
+      "f1e1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869345943,
+    "updatedAt": 1782869345943
+  },
+  {
+    "id": "e4a702881ce87313",
+    "_cblKey": "困斃_1",
+    "level": 1,
+    "title": "困斃 2",
+    "description": "困斃殺法練習",
+    "initialFen": "3k5/5P3/3a5/9/9/9/9/9/9/3K5",
+    "moves": [
+      "f1e1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869345957,
+    "updatedAt": 1782869345957
+  },
+  {
+    "id": "0a0ae8f899b64d19",
+    "_cblKey": "困斃_2",
+    "level": 1,
+    "title": "困斃 3",
+    "description": "困斃殺法練習",
+    "initialFen": "3aka3/4h4/9/9/9/9/9/9/3K5/9",
+    "moves": [
+      "d8e8"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869345968,
+    "updatedAt": 1782869345968
+  },
+  {
+    "id": "09f288f9094e0664",
+    "_cblKey": "困斃_3",
+    "level": 1,
+    "title": "困斃 4",
+    "description": "困斃殺法練習",
+    "initialFen": "3k5/9/9/9/H8/9/9/9/9/4K4",
+    "moves": [
+      "a4c3"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869345983,
+    "updatedAt": 1782869345983
+  },
+  {
+    "id": "d1009a266648b77c",
+    "_cblKey": "困斃_4",
+    "level": 1,
+    "title": "困斃 5",
+    "description": "困斃殺法練習",
+    "initialFen": "C4a3/5k3/5a3/9/9/9/9/9/4K4/9",
+    "moves": [
+      "a0a1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869345995,
+    "updatedAt": 1782869345995
+  },
+  {
+    "id": "f399081abdef4634",
+    "_cblKey": "困斃_5",
+    "level": 1,
+    "title": "困斃 6",
+    "description": "困斃殺法練習",
+    "initialFen": "3P5/C4k3/3a1a3/9/9/9/9/9/4K4/9",
+    "moves": [
+      "d0e0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346007,
+    "updatedAt": 1782869346007
+  },
+  {
+    "id": "fd1d869b9bd7c7d1",
+    "_cblKey": "困斃_6",
+    "level": 1,
+    "title": "困斃 7",
+    "description": "困斃殺法練習",
+    "initialFen": "4ka3/4a4/4c4/9/9/9/9/4C4/4A4/3K5",
+    "moves": [
+      "e7e3"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346021,
+    "updatedAt": 1782869346021
+  },
+  {
+    "id": "a855514fdb543d77",
+    "_cblKey": "困斃_7",
+    "level": 1,
+    "title": "困斃 8",
+    "description": "困斃殺法練習",
+    "initialFen": "2eak4/1P2a4/4e4/9/9/4C4/9/9/9/4K4",
+    "moves": [
+      "e9f9"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346033,
+    "updatedAt": 1782869346033
+  },
+  {
+    "id": "512faa7beaf4419c",
+    "_cblKey": "困斃_8",
+    "level": 1,
+    "title": "困斃 9",
+    "description": "困斃殺法練習",
+    "initialFen": "3aka3/4h4/9/4P4/9/9/9/9/9/4K4",
+    "moves": [
+      "e3d3"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346048,
+    "updatedAt": 1782869346048
+  },
+  {
+    "id": "891d355db41be38d",
+    "_cblKey": "困斃_9",
+    "level": 1,
+    "title": "困斃 10",
+    "description": "困斃殺法練習",
+    "initialFen": "3a5/4h1P2/3H1k3/9/9/9/9/9/9/4K4",
+    "moves": [
+      "d2e0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346066,
+    "updatedAt": 1782869346066
+  },
+  {
+    "id": "b8789d7e26596f41",
+    "_cblKey": "困斃_10",
+    "level": 1,
+    "title": "困斃 11",
+    "description": "困斃殺法練習",
+    "initialFen": "3k5/5P3/9/9/9/9/9/9/9/4K4",
+    "moves": [
+      "f1e1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346077,
+    "updatedAt": 1782869346077
+  },
+  {
+    "id": "f657447f3e48d703",
+    "_cblKey": "困斃_11",
+    "level": 1,
+    "title": "困斃 12",
+    "description": "困斃殺法練習",
+    "initialFen": "9/4P4/3k5/9/9/9/9/9/9/4K4",
+    "moves": [
+      "e9e8"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346087,
+    "updatedAt": 1782869346087
+  },
+  {
+    "id": "cf9f0db0b7ac0b0d",
+    "_cblKey": "困斃_12",
+    "level": 1,
+    "title": "困斃 13",
+    "description": "困斃殺法練習",
+    "initialFen": "4ka3/4a4/3P5/9/9/9/9/9/9/4K4",
+    "moves": [
+      "d2d1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346100,
+    "updatedAt": 1782869346100
+  },
+  {
+    "id": "917dbdfb9cc9e65f",
+    "_cblKey": "困斃_13",
+    "level": 1,
+    "title": "困斃 14",
+    "description": "困斃殺法練習",
+    "initialFen": "3aka3/4h4/9/9/9/9/9/9/9/3K5",
+    "moves": [
+      "d9e9"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346112,
+    "updatedAt": 1782869346112
+  },
+  {
+    "id": "f4cdcdc828506472",
+    "_cblKey": "困斃_14",
+    "level": 1,
+    "title": "困斃 15",
+    "description": "困斃殺法練習",
+    "initialFen": "3a5/3k5/3a5/9/9/9/9/7C1/9/4K4",
+    "moves": [
+      "h7h1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346123,
+    "updatedAt": 1782869346123
+  },
+  {
+    "id": "048e65d8a4ead80d",
+    "_cblKey": "困斃_15",
+    "level": 1,
+    "title": "困斃 16",
+    "description": "困斃殺法練習",
+    "initialFen": "2P2a3/3k5/3a5/9/9/9/9/7C1/9/4K4",
+    "moves": [
+      "h7h1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346134,
+    "updatedAt": 1782869346134
+  },
+  {
+    "id": "5d8b74900e36be3d",
+    "_cblKey": "困斃_16",
+    "level": 1,
+    "title": "困斃 17",
+    "description": "困斃殺法練習",
+    "initialFen": "3a5/2P1h1H2/3k1a3/9/9/9/9/9/9/4K4",
+    "moves": [
+      "g1e0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346146,
+    "updatedAt": 1782869346146
+  },
+  {
+    "id": "12c7634719200216",
+    "_cblKey": "困斃_17",
+    "level": 1,
+    "title": "困斃 18",
+    "description": "困斃殺法練習",
+    "initialFen": "4ka3/4a4/4c4/9/4C4/9/9/9/9/3K5",
+    "moves": [
+      "e4e3"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346157,
+    "updatedAt": 1782869346157
+  },
+  {
+    "id": "d58cff25d6cb4450",
+    "_cblKey": "困斃_18",
+    "level": 1,
+    "title": "困斃 19",
+    "description": "困斃殺法練習",
+    "initialFen": "3ak4/4a4/9/9/4h4/4C4/9/9/9/4K4",
+    "moves": [
+      "e9f9"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346167,
+    "updatedAt": 1782869346167
+  },
+  {
+    "id": "f6ab73c018104db6",
+    "_cblKey": "困斃_19",
+    "level": 1,
+    "title": "困斃 20",
+    "description": "困斃殺法練習",
+    "initialFen": "3aka3/4h4/4P4/9/9/9/9/9/9/4K4",
+    "moves": [
+      "e2d2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346177,
+    "updatedAt": 1782869346177
+  },
+  {
+    "id": "2c1b815dc6b029b9",
+    "_cblKey": "困斃_20",
+    "level": 2,
+    "title": "困斃 21",
+    "description": "困斃殺法練習",
+    "initialFen": "4k4/9/4P4/9/9/9/9/9/9/5K3",
+    "moves": [
+      "f9e9",
+      "e0f0",
+      "e2f2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346197,
+    "updatedAt": 1782869346197
+  },
+  {
+    "id": "77ace9a84b1c68bd",
+    "_cblKey": "困斃_21",
+    "level": 2,
+    "title": "困斃 22",
+    "description": "困斃殺法練習",
+    "initialFen": "9/3k5/2H6/9/9/9/9/9/9/4K4",
+    "moves": [
+      "c2b0",
+      "d1d2",
+      "e9e8"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346216,
+    "updatedAt": 1782869346216
+  },
+  {
+    "id": "a3ad535910d765d2",
+    "_cblKey": "困斃_22",
+    "level": 2,
+    "title": "困斃 23",
+    "description": "困斃殺法練習",
+    "initialFen": "3ak4/4a4/6h2/9/9/9/9/9/9/4K3R",
+    "moves": [
+      "i9i0",
+      "g2h0",
+      "i0h0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346239,
+    "updatedAt": 1782869346239
+  },
+  {
+    "id": "16025091486233ad",
+    "_cblKey": "困斃_23",
+    "level": 2,
+    "title": "困斃 24",
+    "description": "困斃殺法練習",
+    "initialFen": "3k1ae2/2P1a2C1/9/9/9/9/9/9/4K4/9",
+    "moves": [
+      "c1c0",
+      "d0e0",
+      "h1h0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346260,
+    "updatedAt": 1782869346260
+  },
+  {
+    "id": "56c0a1c0444281cc",
+    "_cblKey": "困斃_24",
+    "level": 2,
+    "title": "困斃 25",
+    "description": "困斃殺法練習",
+    "initialFen": "3k1a3/2P6/3a5/9/9/9/9/7C1/9/4K4",
+    "moves": [
+      "c1c0",
+      "d0d1",
+      "h7h1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346280,
+    "updatedAt": 1782869346280
+  },
+  {
+    "id": "ffbdae4564cf8873",
+    "_cblKey": "困斃_25",
+    "level": 2,
+    "title": "困斃 26",
+    "description": "困斃殺法練習",
+    "initialFen": "1R1rka3/2P1a4/9/9/9/9/9/9/9/4K4",
+    "moves": [
+      "b0c0",
+      "d0c0",
+      "c1c0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346308,
+    "updatedAt": 1782869346308
+  },
+  {
+    "id": "d230cec4beeb66c6",
+    "_cblKey": "困斃_26",
+    "level": 2,
+    "title": "困斃 27",
+    "description": "困斃殺法練習",
+    "initialFen": "3ar4/4ak3/1H4P2/9/9/9/9/9/9/4K4",
+    "moves": [
+      "g2g1",
+      "f1f2",
+      "b2d3"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346328,
+    "updatedAt": 1782869346328
+  },
+  {
+    "id": "c04ca2c2bd360f85",
+    "_cblKey": "困斃_27",
+    "level": 2,
+    "title": "困斃 28",
+    "description": "困斃殺法練習",
+    "initialFen": "3aka3/9/9/9/4C4/4h4/9/4C4/9/4K4",
+    "moves": [
+      "e4e1",
+      "d0e1",
+      "e9d9"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346383,
+    "updatedAt": 1782869346383
+  },
+  {
+    "id": "73ceca6e98ce4e3b",
+    "_cblKey": "困斃_28",
+    "level": 2,
+    "title": "困斃 29",
+    "description": "困斃殺法練習",
+    "initialFen": "4k4/3P5/e8/1C7/9/9/9/9/9/5K3",
+    "moves": [
+      "f9f8",
+      "a2c0",
+      "b3b1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346425,
+    "updatedAt": 1782869346425
+  },
+  {
+    "id": "611b7f1a1a9d6cb6",
+    "_cblKey": "困斃_29",
+    "level": 2,
+    "title": "困斃 30",
+    "description": "困斃殺法練習",
+    "initialFen": "3aka3/4h4/9/9/2p6/9/9/9/9/2E1K4",
+    "moves": [
+      "c9a7",
+      "c4c5",
+      "a7c5"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346442,
+    "updatedAt": 1782869346442
+  },
+  {
+    "id": "322c4b8903a057e5",
+    "_cblKey": "困斃_30",
+    "level": 2,
+    "title": "困斃 31",
+    "description": "困斃殺法練習",
+    "initialFen": "4k4/5P3/9/9/9/9/9/9/9/5K3",
+    "moves": [
+      "f9f8",
+      "e0d0",
+      "f1e1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346459,
+    "updatedAt": 1782869346459
+  },
+  {
+    "id": "662af6b3bfca0a25",
+    "_cblKey": "困斃_31",
+    "level": 2,
+    "title": "困斃 32",
+    "description": "困斃殺法練習",
+    "initialFen": "9/3k1P3/9/9/9/9/9/9/9/4K4",
+    "moves": [
+      "f1e1",
+      "d1d2",
+      "e9e8"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346478,
+    "updatedAt": 1782869346478
+  },
+  {
+    "id": "9bc02acc59e1d522",
+    "_cblKey": "困斃_32",
+    "level": 2,
+    "title": "困斃 33",
+    "description": "困斃殺法練習",
+    "initialFen": "5k3/9/9/2H6/9/9/9/9/9/4K4",
+    "moves": [
+      "c3d1",
+      "f0f1",
+      "e9e8"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346497,
+    "updatedAt": 1782869346497
+  },
+  {
+    "id": "36a3b035d91aa84b",
+    "_cblKey": "困斃_33",
+    "level": 2,
+    "title": "困斃 34",
+    "description": "困斃殺法練習",
+    "initialFen": "3ak4/4a4/5c3/9/9/9/9/9/9/4K2R1",
+    "moves": [
+      "h9h0",
+      "f2f0",
+      "h0g0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346514,
+    "updatedAt": 1782869346514
+  },
+  {
+    "id": "cdbf027fc633c3f3",
+    "_cblKey": "困斃_34",
+    "level": 2,
+    "title": "困斃 35",
+    "description": "困斃殺法練習",
+    "initialFen": "3k1ae2/4h2C1/3P5/9/9/9/9/9/9/4K4",
+    "moves": [
+      "d2d1",
+      "d0e0",
+      "h1h0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346532,
+    "updatedAt": 1782869346532
+  },
+  {
+    "id": "32839b51770efce9",
+    "_cblKey": "困斃_35",
+    "level": 2,
+    "title": "困斃 36",
+    "description": "困斃殺法練習",
+    "initialFen": "3k5/2P6/3a1a3/9/9/9/9/6C2/9/4K4",
+    "moves": [
+      "c1c0",
+      "d0d1",
+      "g7g1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346556,
+    "updatedAt": 1782869346556
+  },
+  {
+    "id": "9aa4dca8189074a0",
+    "_cblKey": "困斃_36",
+    "level": 2,
+    "title": "困斃 37",
+    "description": "困斃殺法練習",
+    "initialFen": "3akr1R1/4a1P2/9/9/9/9/9/9/9/4K4",
+    "moves": [
+      "h0g0",
+      "f0g0",
+      "g1g0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346580,
+    "updatedAt": 1782869346580
+  },
+  {
+    "id": "6045049b93ec616a",
+    "_cblKey": "困斃_37",
+    "level": 2,
+    "title": "困斃 38",
+    "description": "困斃殺法練習",
+    "initialFen": "4k4/9/e2P5/1C7/9/9/9/9/9/5K3",
+    "moves": [
+      "d2d1",
+      "a2c0",
+      "b3b1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346608,
+    "updatedAt": 1782869346608
+  },
+  {
+    "id": "e5e346932444dd35",
+    "_cblKey": "困斃_38",
+    "level": 2,
+    "title": "困斃 39",
+    "description": "困斃殺法練習",
+    "initialFen": "3aka3/9/9/4C4/4h4/4C4/9/9/9/4K4",
+    "moves": [
+      "e3e1",
+      "d0e1",
+      "e9d9"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346655,
+    "updatedAt": 1782869346655
+  },
+  {
+    "id": "c3339f2bd3b70b7c",
+    "_cblKey": "悶殺_0",
+    "level": 1,
+    "title": "悶殺 1",
+    "description": "悶殺殺法練習",
+    "initialFen": "3ak4/4hP3/9/9/9/9/9/9/9/5K3",
+    "moves": [
+      "f1f0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346670,
+    "updatedAt": 1782869346670
+  },
+  {
+    "id": "0d7e0a6f26ed1224",
+    "_cblKey": "悶殺_1",
+    "level": 1,
+    "title": "悶殺 2",
+    "description": "悶殺殺法練習",
+    "initialFen": "3ak1P2/4c4/9/9/9/9/9/9/9/5K3",
+    "moves": [
+      "g0f0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346683,
+    "updatedAt": 1782869346683
+  },
+  {
+    "id": "6d10650d2e80e7ec",
+    "_cblKey": "悶殺_2",
+    "level": 1,
+    "title": "悶殺 3",
+    "description": "悶殺殺法練習",
+    "initialFen": "3ak1P2/4c4/9/9/9/9/9/9/9/5K3",
+    "moves": [
+      "g0f0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346694,
+    "updatedAt": 1782869346694
+  },
+  {
+    "id": "d62e1e2e1f113364",
+    "_cblKey": "悶殺_3",
+    "level": 1,
+    "title": "悶殺 4",
+    "description": "悶殺殺法練習",
+    "initialFen": "1Cchk4/3Ra4/9/9/9/9/9/9/5pr2/4K4",
+    "moves": [
+      "d1d0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346704,
+    "updatedAt": 1782869346704
+  },
+  {
+    "id": "f4a458aabb5e7ac1",
+    "_cblKey": "悶殺_4",
+    "level": 1,
+    "title": "悶殺 5",
+    "description": "悶殺殺法練習",
+    "initialFen": "2e1k4/5P3/c3e2r1/9/9/9/9/1C7/5p3/4K4",
+    "moves": [
+      "b7b0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346714,
+    "updatedAt": 1782869346714
+  },
+  {
+    "id": "8dae80085110038b",
+    "_cblKey": "悶殺_5",
+    "level": 1,
+    "title": "悶殺 6",
+    "description": "悶殺殺法練習",
+    "initialFen": "2ea1k3/5r3/4e4/9/9/9/9/3R5/9/4K4",
+    "moves": [
+      "d7d0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346724,
+    "updatedAt": 1782869346724
+  },
+  {
+    "id": "a2e87b67331b5ef6",
+    "_cblKey": "悶殺_6",
+    "level": 1,
+    "title": "悶殺 7",
+    "description": "悶殺殺法練習",
+    "initialFen": "3hka3/4a2H1/9/9/9/9/9/9/9/4K4",
+    "moves": [
+      "h1f2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346733,
+    "updatedAt": 1782869346733
+  },
+  {
+    "id": "64a664fdd1486c7e",
+    "_cblKey": "悶殺_7",
+    "level": 1,
+    "title": "悶殺 8",
+    "description": "悶殺殺法練習",
+    "initialFen": "4k1e2/7R1/4e4/9/9/9/9/6r2/3p1p2C/4K4",
+    "moves": [
+      "i8i0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346744,
+    "updatedAt": 1782869346744
+  },
+  {
+    "id": "59d75d65b206d250",
+    "_cblKey": "悶殺_8",
+    "level": 1,
+    "title": "悶殺 9",
+    "description": "悶殺殺法練習",
+    "initialFen": "2e1kHc1C/3h2R2/e2H5/1r6c/7h1/9/9/5p3/4p4/5K3",
+    "moves": [
+      "f0e2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346757,
+    "updatedAt": 1782869346757
+  },
+  {
+    "id": "c0c135c738ad0839",
+    "_cblKey": "悶殺_9",
+    "level": 1,
+    "title": "悶殺 10",
+    "description": "悶殺殺法練習",
+    "initialFen": "9/5k3/3a5/c3Rcphh/3C5/9/2r3HH1/3p5/4p4/3K5",
+    "moves": [
+      "d4f4"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346767,
+    "updatedAt": 1782869346767
+  },
+  {
+    "id": "0e9112f52b94c9eb",
+    "_cblKey": "悶殺_10",
+    "level": 1,
+    "title": "悶殺 11",
+    "description": "悶殺殺法練習",
+    "initialFen": "3aka3/3Pr4/9/9/9/9/9/9/9/3K5",
+    "moves": [
+      "d1d0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346777,
+    "updatedAt": 1782869346777
+  },
+  {
+    "id": "a3d744c3750b785c",
+    "_cblKey": "悶殺_11",
+    "level": 1,
+    "title": "悶殺 12",
+    "description": "悶殺殺法練習",
+    "initialFen": "3aka3/4cP3/9/9/9/9/9/9/4p4/5K3",
+    "moves": [
+      "f1f0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346787,
+    "updatedAt": 1782869346787
+  },
+  {
+    "id": "468e5398028be584",
+    "_cblKey": "悶殺_12",
+    "level": 1,
+    "title": "悶殺 13",
+    "description": "悶殺殺法練習",
+    "initialFen": "3aka3/4h4/H8/9/9/9/9/9/9/3K5",
+    "moves": [
+      "a2c1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346798,
+    "updatedAt": 1782869346798
+  },
+  {
+    "id": "7544d284d4c91c83",
+    "_cblKey": "悶殺_13",
+    "level": 1,
+    "title": "悶殺 14",
+    "description": "悶殺殺法練習",
+    "initialFen": "3aka3/1H2h4/9/9/9/9/9/9/9/3K5",
+    "moves": [
+      "b1d2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346810,
+    "updatedAt": 1782869346810
+  },
+  {
+    "id": "958cc98fca997181",
+    "_cblKey": "悶殺_14",
+    "level": 1,
+    "title": "悶殺 15",
+    "description": "悶殺殺法練習",
+    "initialFen": "3aka3/4c4/9/9/9/9/9/2C6/9/5K3",
+    "moves": [
+      "c7c0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346819,
+    "updatedAt": 1782869346819
+  },
+  {
+    "id": "9aa52b9d51c57bfd",
+    "_cblKey": "悶殺_15",
+    "level": 1,
+    "title": "悶殺 16",
+    "description": "悶殺殺法練習",
+    "initialFen": "3cka3/3Pa4/9/9/9/9/9/2C6/5pr2/4K4",
+    "moves": [
+      "c7c0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346829,
+    "updatedAt": 1782869346829
+  },
+  {
+    "id": "a10e358c0a7fa69b",
+    "_cblKey": "悶殺_16",
+    "level": 1,
+    "title": "悶殺 17",
+    "description": "悶殺殺法練習",
+    "initialFen": "2e1k4/5P3/c3e4/9/9/9/7h1/1C7/9/4K4",
+    "moves": [
+      "b7b0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346840,
+    "updatedAt": 1782869346840
+  },
+  {
+    "id": "f454785234719112",
+    "_cblKey": "悶殺_17",
+    "level": 1,
+    "title": "悶殺 18",
+    "description": "悶殺殺法練習",
+    "initialFen": "1Ceak4/4h4/9/3R5/9/9/9/4E1h2/4Ar3/2EAK2c1",
+    "moves": [
+      "d3d0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346849,
+    "updatedAt": 1782869346849
+  },
+  {
+    "id": "7cbd3867edc5b670",
+    "_cblKey": "悶殺_18",
+    "level": 1,
+    "title": "悶殺 19",
+    "description": "悶殺殺法練習",
+    "initialFen": "2e1k4/CR7/4e4/9/9/9/5r1h1/9/3pA4/3AK4",
+    "moves": [
+      "a1a0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346859,
+    "updatedAt": 1782869346859
+  },
+  {
+    "id": "d22dbdb84b2b54af",
+    "_cblKey": "悶殺_19",
+    "level": 1,
+    "title": "悶殺 20",
+    "description": "悶殺殺法練習",
+    "initialFen": "3a1k3/4ar3/9/9/9/9/9/9/3r5/4K1R2",
+    "moves": [
+      "g9g0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346869,
+    "updatedAt": 1782869346869
+  },
+  {
+    "id": "6dd90380e35994e4",
+    "_cblKey": "悶殺_20",
+    "level": 2,
+    "title": "悶殺 21",
+    "description": "悶殺殺法練習",
+    "initialFen": "3k1ae2/4c4/3P5/9/9/9/9/4E4/4A4/3K1AE2",
+    "moves": [
+      "d2d1",
+      "d0e0",
+      "d1d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346887,
+    "updatedAt": 1782869346887
+  },
+  {
+    "id": "9f7e207fec245d38",
+    "_cblKey": "悶殺_21",
+    "level": 2,
+    "title": "悶殺 22",
+    "description": "悶殺殺法練習",
+    "initialFen": "5k3/4P1P2/8e/4h4/9/9/9/9/9/2EAKAE2",
+    "moves": [
+      "g1f1",
+      "e3f1",
+      "e1e0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346906,
+    "updatedAt": 1782869346906
+  },
+  {
+    "id": "d5851e70c77eaab1",
+    "_cblKey": "悶殺_22",
+    "level": 2,
+    "title": "悶殺 23",
+    "description": "悶殺殺法練習",
+    "initialFen": "3P1k3/4r4/9/6R2/9/9/4r4/4E4/4A4/3AK1E2",
+    "moves": [
+      "d0e0",
+      "e1e0",
+      "g3f3"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346926,
+    "updatedAt": 1782869346926
+  },
+  {
+    "id": "c54fdbe5118714e0",
+    "_cblKey": "悶殺_23",
+    "level": 2,
+    "title": "悶殺 24",
+    "description": "悶殺殺法練習",
+    "initialFen": "5ke2/4P1R2/4er3/9/9/9/5r3/4E4/4A4/3AK1E2",
+    "moves": [
+      "e1f1",
+      "f2f1",
+      "g1g0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346946,
+    "updatedAt": 1782869346946
+  },
+  {
+    "id": "2d8ef1aec07dda38",
+    "_cblKey": "悶殺_24",
+    "level": 2,
+    "title": "悶殺 25",
+    "description": "悶殺殺法練習",
+    "initialFen": "C3kre2/4a4/2Hc5/9/9/9/9/5A3/9/4KAE2",
+    "moves": [
+      "c2b0",
+      "d2d0",
+      "b0d1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346966,
+    "updatedAt": 1782869346966
+  },
+  {
+    "id": "0bfea4b6f7eea474",
+    "_cblKey": "悶殺_25",
+    "level": 2,
+    "title": "悶殺 26",
+    "description": "悶殺殺法練習",
+    "initialFen": "1C3k3/5c3/c3e4/9/9/3C5/9/5A3/9/4KAE2",
+    "moves": [
+      "d5d0",
+      "e2c0",
+      "d0d1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869346989,
+    "updatedAt": 1782869346989
+  },
+  {
+    "id": "f09eb8234a1402c1",
+    "_cblKey": "悶殺_26",
+    "level": 2,
+    "title": "悶殺 27",
+    "description": "悶殺殺法練習",
+    "initialFen": "3aka2R/5P3/4e1h2/9/9/6C2/9/4E4/4Ar1r1/4K4",
+    "moves": [
+      "i0f0",
+      "g2f0",
+      "g5g0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869347012,
+    "updatedAt": 1782869347012
+  },
+  {
+    "id": "dff000bb2ea9020f",
+    "_cblKey": "悶殺_27",
+    "level": 2,
+    "title": "悶殺 28",
+    "description": "悶殺殺法練習",
+    "initialFen": "3ck4/3Rah3/9/9/9/9/9/9/5r1r1/4KAC2",
+    "moves": [
+      "d1e1",
+      "e0f0",
+      "e1e0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869347031,
+    "updatedAt": 1782869347031
+  },
+  {
+    "id": "2a83f93b9a915d43",
+    "_cblKey": "悶殺_28",
+    "level": 2,
+    "title": "悶殺 29",
+    "description": "悶殺殺法練習",
+    "initialFen": "3a5/3ka4/9/9/9/1R7/9/3CE2r1/3KA4/6Er1",
+    "moves": [
+      "d7d2",
+      "h9g9",
+      "b5b1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869347084,
+    "updatedAt": 1782869347084
+  },
+  {
+    "id": "32a184ccd0534f4d",
+    "_cblKey": "悶殺_29",
+    "level": 2,
+    "title": "悶殺 30",
+    "description": "悶殺殺法練習",
+    "initialFen": "5ke2/4h4/4e1P2/9/9/3R5/9/3C1p3/4p1r2/5K3",
+    "moves": [
+      "d5d0",
+      "f0f1",
+      "d7d1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869347103,
+    "updatedAt": 1782869347103
+  },
+  {
+    "id": "8c820016a3a1a07c",
+    "_cblKey": "悶殺_30",
+    "level": 2,
+    "title": "悶殺 31",
+    "description": "悶殺殺法練習",
+    "initialFen": "3k1a3/4h4/3P5/9/9/9/9/9/9/3K5",
+    "moves": [
+      "d2d1",
+      "d0e0",
+      "d1d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869347120,
+    "updatedAt": 1782869347120
+  },
+  {
+    "id": "af5c4c77c5ed1788",
+    "_cblKey": "悶殺_31",
+    "level": 2,
+    "title": "悶殺 32",
+    "description": "悶殺殺法練習",
+    "initialFen": "5k3/4P1P2/8e/4h4/9/9/9/9/9/4K4",
+    "moves": [
+      "g1f1",
+      "e3f1",
+      "e1e0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869347138,
+    "updatedAt": 1782869347138
+  },
+  {
+    "id": "847a580dfda7b39f",
+    "_cblKey": "悶殺_32",
+    "level": 2,
+    "title": "悶殺 33",
+    "description": "悶殺殺法練習",
+    "initialFen": "5k3/4P1hc1/5P3/9/9/9/9/9/3p1p3/4K4",
+    "moves": [
+      "f2f1",
+      "h1f1",
+      "e1e0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869347156,
+    "updatedAt": 1782869347156
+  },
+  {
+    "id": "879325dd50693900",
+    "_cblKey": "悶殺_33",
+    "level": 2,
+    "title": "悶殺 34",
+    "description": "悶殺殺法練習",
+    "initialFen": "3P1k3/4r4/9/6R2/4r4/9/9/9/9/3K5",
+    "moves": [
+      "d0e0",
+      "e1e0",
+      "g3f3"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869347174,
+    "updatedAt": 1782869347174
+  },
+  {
+    "id": "f8e23e68b4f0f2f1",
+    "_cblKey": "悶殺_34",
+    "level": 2,
+    "title": "悶殺 35",
+    "description": "悶殺殺法練習",
+    "initialFen": "5ke2/4R1R2/4e4/9/5r3/9/9/9/5r3/4K4",
+    "moves": [
+      "e1f1",
+      "f4f1",
+      "g1g0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869347193,
+    "updatedAt": 1782869347193
+  },
+  {
+    "id": "da565f76a82074d6",
+    "_cblKey": "悶殺_35",
+    "level": 2,
+    "title": "悶殺 36",
+    "description": "悶殺殺法練習",
+    "initialFen": "6e2/4k4/4e4/8C/9/7R1/1hr6/9/4Ap3/3AK4",
+    "moves": [
+      "h5h1",
+      "e1e0",
+      "i3i0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869347216,
+    "updatedAt": 1782869347216
+  },
+  {
+    "id": "00654547d8d4073b",
+    "_cblKey": "悶殺_36",
+    "level": 2,
+    "title": "悶殺 37",
+    "description": "悶殺殺法練習",
+    "initialFen": "C3ka3/4a4/2Hc5/9/9/9/9/6h2/5p3/4K4",
+    "moves": [
+      "c2b0",
+      "d2d0",
+      "b0d1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869347233,
+    "updatedAt": 1782869347233
+  },
+  {
+    "id": "4b575d9d2840ee73",
+    "_cblKey": "悶殺_37",
+    "level": 2,
+    "title": "悶殺 38",
+    "description": "悶殺殺法練習",
+    "initialFen": "1C3k3/5c3/c3e4/9/9/9/9/3C5/4A4/4K4",
+    "moves": [
+      "d7d0",
+      "e2c0",
+      "d0d1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869347251,
+    "updatedAt": 1782869347251
+  },
+  {
+    "id": "f32f87c9d1016a9f",
+    "_cblKey": "悶殺_38",
+    "level": 2,
+    "title": "悶殺 39",
+    "description": "悶殺殺法練習",
+    "initialFen": "3a2e2/3ka1H1C/4e2r1/3P5/9/9/9/9/4p4/5K3",
+    "moves": [
+      "d3d2",
+      "d1d2",
+      "g1f3"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869347275,
+    "updatedAt": 1782869347275
+  },
+  {
+    "id": "395a5a80493f60e5",
+    "_cblKey": "悶殺_39",
+    "level": 2,
+    "title": "悶殺 40",
+    "description": "悶殺殺法練習",
+    "initialFen": "3a2R2/4ak3/5rH2/9/9/9/9/2h6/5r3/4K4",
+    "moves": [
+      "g0f0",
+      "e1f0",
+      "g2h0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869347293,
+    "updatedAt": 1782869347293
+  },
+  {
+    "id": "aad236f3b6fe6d03",
+    "_cblKey": "悶殺_40",
+    "level": 2,
+    "title": "悶殺 41",
+    "description": "悶殺殺法練習",
+    "initialFen": "R2aka3/3P5/2h6/9/9/2C6/9/4E1h2/4Ar1r1/4K4",
+    "moves": [
+      "a0d0",
+      "c2d0",
+      "c5c0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869347313,
+    "updatedAt": 1782869347313
+  },
+  {
+    "id": "e82618aa75821545",
+    "_cblKey": "悶殺_41",
+    "level": 2,
+    "title": "悶殺 42",
+    "description": "悶殺殺法練習",
+    "initialFen": "3ck1e2/2R1ah3/9/9/9/9/9/9/5r3/4K3c",
+    "moves": [
+      "c1e1",
+      "e0f0",
+      "e1e0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869347330,
+    "updatedAt": 1782869347330
+  },
+  {
+    "id": "983b7878dc673e93",
+    "_cblKey": "悶殺_42",
+    "level": 2,
+    "title": "悶殺 43",
+    "description": "悶殺殺法練習",
+    "initialFen": "1R7/2P1aR3/3kca3/9/9/9/9/4E1h2/3pAr3/4K4",
+    "moves": [
+      "b0d0",
+      "e1d0",
+      "f1d1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869347347,
+    "updatedAt": 1782869347347
+  },
+  {
+    "id": "0267a8313a7cca13",
+    "_cblKey": "悶殺_43",
+    "level": 2,
+    "title": "悶殺 44",
+    "description": "悶殺殺法練習",
+    "initialFen": "3ak3C/4a2H1/4e3e/5C3/9/9/9/2h6/3r1p3/4K4",
+    "moves": [
+      "f3f0",
+      "e2g0",
+      "h1f2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869347364,
+    "updatedAt": 1782869347364
+  },
+  {
+    "id": "9e6f70c6a7eb6995",
+    "_cblKey": "悶殺_44",
+    "level": 2,
+    "title": "悶殺 45",
+    "description": "悶殺殺法練習",
+    "initialFen": "3a5/3ka4/9/9/9/1R7/9/3CE1r2/3KA4/5AEr1",
+    "moves": [
+      "d7d2",
+      "h9g9",
+      "b5b1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869347416,
+    "updatedAt": 1782869347416
+  },
+  {
+    "id": "8b3a3a220bff1c6d",
+    "_cblKey": "悶殺_45",
+    "level": 3,
+    "title": "悶殺 46",
+    "description": "悶殺殺法練習",
+    "initialFen": "2rk2HcC/3h1P3/9/9/9/9/3R5/9/3p1p3/4K1p2",
+    "moves": [
+      "g0h2",
+      "h0h1",
+      "f1f0",
+      "h1h0",
+      "h2f1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869347462,
+    "updatedAt": 1782869347462
+  },
+  {
+    "id": "440274527e7e113e",
+    "_cblKey": "悶殺_46",
+    "level": 3,
+    "title": "悶殺 47",
+    "description": "悶殺殺法練習",
+    "initialFen": "4rc3/4ak3/9/9/9/9/9/4R4/3pA4/cr1AKC3",
+    "moves": [
+      "e8f7",
+      "e1f2",
+      "e7e1",
+      "e0e1",
+      "f7e8"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869347519,
+    "updatedAt": 1782869347519
+  },
+  {
+    "id": "93c29dc84cf1f693",
+    "_cblKey": "悶殺_47",
+    "level": 3,
+    "title": "悶殺 48",
+    "description": "悶殺殺法練習",
+    "initialFen": "3k1C3/4h4/3C4c/Hr1R5/9/9/9/4p4/6r2/4K4",
+    "moves": [
+      "d2e2",
+      "b3d3",
+      "a3b1",
+      "d0d1",
+      "f0f1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869347593,
+    "updatedAt": 1782869347593
+  },
+  {
+    "id": "0b3410470089cadd",
+    "_cblKey": "悶殺_48",
+    "level": 3,
+    "title": "悶殺 49",
+    "description": "悶殺殺法練習",
+    "initialFen": "3k1CR2/2P6/9/9/4r4/4p4/5p1r1/3C1p3/4p4/5K3",
+    "moves": [
+      "f0f1",
+      "e4e0",
+      "f1d1",
+      "e5d5",
+      "c1c0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869347660,
+    "updatedAt": 1782869347660
+  },
+  {
+    "id": "6a2e797421587f23",
+    "_cblKey": "悶殺_49",
+    "level": 3,
+    "title": "悶殺 50",
+    "description": "悶殺殺法練習",
+    "initialFen": "3kcP3/2P1P4/1h3h3/9/9/9/9/9/4r1r2/5K3",
+    "moves": [
+      "f0e0",
+      "f2e0",
+      "e1d1",
+      "b2d1",
+      "c1c0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869347684,
+    "updatedAt": 1782869347684
+  },
+  {
+    "id": "44abd213e497a818",
+    "_cblKey": "悶殺_50",
+    "level": 3,
+    "title": "悶殺 51",
+    "description": "悶殺殺法練習",
+    "initialFen": "1r7/2Hc3rC/4khR2/2p2Hp2/h1e3e2/9/9/9/4p1p2/5K3",
+    "moves": [
+      "f3d4",
+      "e2d2",
+      "g2f2",
+      "c4e2",
+      "d4f3"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869347724,
+    "updatedAt": 1782869347724
+  },
+  {
+    "id": "2890bebed3e2870a",
+    "_cblKey": "悶殺_51",
+    "level": 2,
+    "title": "悶殺 52",
+    "description": "悶殺殺法練習",
+    "initialFen": "4k4/3P1r3/9/4p4/9/9/C8/9/1r2p4/3K5",
+    "moves": [
+      "d1d0",
+      "e0e1",
+      "a6e6"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869347751,
+    "updatedAt": 1782869347751
+  },
+  {
+    "id": "9a038a22e7f2418f",
+    "_cblKey": "悶殺_52",
+    "level": 2,
+    "title": "悶殺 53",
+    "description": "悶殺殺法練習",
+    "initialFen": "3ahk3/3Hah3/1C7/6r1H/9/9/9/6p2/7p1/3A1K3",
+    "moves": [
+      "i3h1",
+      "g3g1",
+      "b2f2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869347770,
+    "updatedAt": 1782869347770
+  },
+  {
+    "id": "8e4e8dc1ebc29a16",
+    "_cblKey": "悶殺_53",
+    "level": 3,
+    "title": "悶殺 54",
+    "description": "悶殺殺法練習",
+    "initialFen": "1R1aka3/2Cc3c1/2H1e4/p8/9/6p2/P6h1/E3E4/3rA4/4KA3",
+    "moves": [
+      "c1c0",
+      "d0e1",
+      "c2d0",
+      "e0d0",
+      "c0f0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869347801,
+    "updatedAt": 1782869347801
+  },
+  {
+    "id": "666192cd6ba854f9",
+    "_cblKey": "悶殺_54",
+    "level": 3,
+    "title": "悶殺 55",
+    "description": "悶殺殺法練習",
+    "initialFen": "4kae2/2RRa4/2h1echc1/p1C1p3p/6p2/2P6/P3P1P1P/2H3r2/9/2EAKAE2",
+    "moves": [
+      "c1c0",
+      "e1d0",
+      "c0d0",
+      "c2d0",
+      "c3c0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869349041,
+    "updatedAt": 1782869349041
+  },
+  {
+    "id": "4957fef1e0067861",
+    "_cblKey": "悶殺_55",
+    "level": 3,
+    "title": "悶殺 56",
+    "description": "悶殺殺法練習",
+    "initialFen": "4ka3/3Pa4/2h6/9/9/9/9/4E1h2/4Ar3/R1CAK2c1",
+    "moves": [
+      "a9a0",
+      "e1d0",
+      "a0d0",
+      "c2d0",
+      "c9c0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869349083,
+    "updatedAt": 1782869349083
+  },
+  {
+    "id": "0ab9666a19a25337",
+    "_cblKey": "悶殺_56",
+    "level": 2,
+    "title": "悶殺 57",
+    "description": "悶殺殺法練習",
+    "initialFen": "9/3k1P3/3a5/3Rpcp2/3C5/9/2r6/3p5/4p4/3K5",
+    "moves": [
+      "f1e1",
+      "d1d0",
+      "d3d2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869349121,
+    "updatedAt": 1782869349121
+  },
+  {
+    "id": "dc1b11e6f36133b1",
+    "_cblKey": "悶殺_57",
+    "level": 3,
+    "title": "悶殺 58",
+    "description": "悶殺殺法練習",
+    "initialFen": "3kcP3/2P1P4/1h3h3/9/9/9/9/9/4r1p2/5K3",
+    "moves": [
+      "f0e0",
+      "f2e0",
+      "e1d1",
+      "b2d1",
+      "c1c0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869349147,
+    "updatedAt": 1782869349147
+  },
+  {
+    "id": "1e2776ad5f20a764",
+    "_cblKey": "悶殺_58",
+    "level": 3,
+    "title": "悶殺 59",
+    "description": "悶殺殺法練習",
+    "initialFen": "2ea1a3/5k3/4e1R2/5cH2/9/9/9/3p5/4p1r2/3K5",
+    "moves": [
+      "g2g1",
+      "f1f2",
+      "g1f1",
+      "f3f1",
+      "g3e4"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869349175,
+    "updatedAt": 1782869349175
+  },
+  {
+    "id": "0fb0093ba86cb19b",
+    "_cblKey": "悶殺_59",
+    "level": 3,
+    "title": "悶殺 60",
+    "description": "悶殺殺法練習",
+    "initialFen": "2eak4/2cRarH2/6h2/p1p1p3p/9/7R1/P3P1H1P/2C1E4/4K3c/2EA1r3",
+    "moves": [
+      "h5h0",
+      "e1f0",
+      "h0f0",
+      "e0f0",
+      "d1d0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869349500,
+    "updatedAt": 1782869349500
+  },
+  {
+    "id": "7baa7eb083d2fb9d",
+    "_cblKey": "悶殺_60",
+    "level": 3,
+    "title": "悶殺 61",
+    "description": "悶殺殺法練習",
+    "initialFen": "5ae2/1H1k1P3/3ae4/4C4/9/9/9/3Ap4/3p1p3/crh1K4",
+    "moves": [
+      "e3d3",
+      "d2e1",
+      "b1d2",
+      "d1d2",
+      "d3d8"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869349544,
+    "updatedAt": 1782869349544
+  },
+  {
+    "id": "efc11505925dbdaa",
+    "_cblKey": "悶殺_61",
+    "level": 3,
+    "title": "悶殺 62",
+    "description": "悶殺殺法練習",
+    "initialFen": "3rk1eh1/3Ra4/4c3e/7R1/9/7C1/9/3p5/2r1p4/3K5",
+    "moves": [
+      "d1e1",
+      "e0e1",
+      "h3h1",
+      "e1e0",
+      "h5h0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869349620,
+    "updatedAt": 1782869349620
+  },
+  {
+    "id": "8225d7b4ec9df637",
+    "_cblKey": "悶殺_62",
+    "level": 3,
+    "title": "悶殺 63",
+    "description": "悶殺殺法練習",
+    "initialFen": "2ea3R1/C4k3/3aec3/1H7/9/9/9/3p5/4pr3/3K5",
+    "moves": [
+      "b3c1",
+      "d0e1",
+      "c1e2",
+      "e1f0",
+      "h0h1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869349672,
+    "updatedAt": 1782869349672
+  },
+  {
+    "id": "9c0602a13570406e",
+    "_cblKey": "悶殺_63",
+    "level": 3,
+    "title": "悶殺 64",
+    "description": "悶殺殺法練習",
+    "initialFen": "1R1aka3/2Cc3c1/2H1e4/p5h2/9/6p2/P8/E3E4/3rAr3/4KA3",
+    "moves": [
+      "c1c0",
+      "d0e1",
+      "c2d0",
+      "e0d0",
+      "c0f0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869349707,
+    "updatedAt": 1782869349707
+  },
+  {
+    "id": "58e43e1f2ea8ec27",
+    "_cblKey": "悶殺_64",
+    "level": 3,
+    "title": "悶殺 65",
+    "description": "悶殺殺法練習",
+    "initialFen": "2eakc3/rC1Ha1R2/eR7/h3p4/p5p2/9/P3P1Pp1/2C1E1H2/2h2K3/3r5",
+    "moves": [
+      "g1e1",
+      "d0e1",
+      "b1b0",
+      "e1d0",
+      "b2e2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869349880,
+    "updatedAt": 1782869349880
+  },
+  {
+    "id": "2cf21e4b95c58313",
+    "_cblKey": "悶殺_65",
+    "level": 4,
+    "title": "悶殺 66",
+    "description": "悶殺殺法練習",
+    "initialFen": "4kc1R1/3haRC2/4e1h1r/p2rp2H1/2e3p2/1H7/P3P1P1P/4E4/9/2EAKA3",
+    "moves": [
+      "h3f2",
+      "d3d9",
+      "e9d9",
+      "i2i6",
+      "h0f0",
+      "e1f0",
+      "f1d1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869357156,
+    "updatedAt": 1782869357156
+  },
+  {
+    "id": "ce67d9b8684f55c7",
+    "_cblKey": "悶殺_66",
+    "level": 3,
+    "title": "悶殺 67",
+    "description": "悶殺殺法練習",
+    "initialFen": "3a5/1R2a4/3k5/9/9/9/6h2/3CE1r2/3KA4/5AEr1",
+    "moves": [
+      "b1b2",
+      "d2d1",
+      "d7d2",
+      "h9g9",
+      "b2b1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869357250,
+    "updatedAt": 1782869357250
+  },
+  {
+    "id": "99f9c831796df4f9",
+    "_cblKey": "悶殺_67",
+    "level": 4,
+    "title": "悶殺 68",
+    "description": "悶殺殺法練習",
+    "initialFen": "3a1ke2/4h3R/8e/5P3/9/9/9/4p4/2r1p2C1/3p1K3",
+    "moves": [
+      "i1f1",
+      "f0f1",
+      "f3f2",
+      "f1f0",
+      "f2f1",
+      "f0e0",
+      "f1f0"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869358131,
+    "updatedAt": 1782869358131
+  },
+  {
+    "id": "ba0c989da32704f1",
+    "_cblKey": "悶殺_68",
+    "level": 4,
+    "title": "悶殺 69",
+    "description": "悶殺殺法練習",
+    "initialFen": "3P5/4ak3/3ae4/9/8H/9/9/3p3pr/r2pAC3/4K4",
+    "moves": [
+      "i4g3",
+      "f1f0",
+      "g3h1",
+      "f0f1",
+      "h1f2",
+      "f1f2",
+      "e8f7"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869358247,
+    "updatedAt": 1782869358247
+  },
+  {
+    "id": "a759fcd4a80acb17",
+    "_cblKey": "悶殺_69",
+    "level": 4,
+    "title": "悶殺 70",
+    "description": "悶殺殺法練習",
+    "initialFen": "3k1a3/hPR1a4/2Hr5/9/9/9/9/9/5pr2/2c1K4",
+    "moves": [
+      "c1c0",
+      "d0d1",
+      "c0d0",
+      "e1d0",
+      "c2b0",
+      "c9c0",
+      "b1c1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869358287,
+    "updatedAt": 1782869358287
+  },
+  {
+    "id": "e3ae9f373f867581",
+    "_cblKey": "悶殺_70",
+    "level": 4,
+    "title": "悶殺 71",
+    "description": "悶殺殺法練習",
+    "initialFen": "2e2k3/4a1R2/e4aH2/9/5h3/9/2r6/9/3p1pc2/4K1R2",
+    "moves": [
+      "g1g0",
+      "f0f1",
+      "g0f0",
+      "e1f0",
+      "g2h0",
+      "g8g0",
+      "g9g1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869358331,
+    "updatedAt": 1782869358331
+  },
+  {
+    "id": "ec9590fb341e3a7a",
+    "_cblKey": "悶殺_71",
+    "level": 3,
+    "title": "悶殺 72",
+    "description": "悶殺殺法練習",
+    "initialFen": "c1ea5/4k1H2/3aeR3/9/9/9/9/5C3/2p1p4/1p1K5",
+    "moves": [
+      "f7e7",
+      "e1d1",
+      "f2f1",
+      "d0e1",
+      "e7d7"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869358476,
+    "updatedAt": 1782869358476
+  },
+  {
+    "id": "b4e7dae682745480",
+    "_cblKey": "悶殺_72",
+    "level": 4,
+    "title": "悶殺 73",
+    "description": "悶殺殺法練習",
+    "initialFen": "2R3e2/hP1ka4/2Ha5/6C2/9/4h4/9/9/2cp5/1rc1K4",
+    "moves": [
+      "g3d3",
+      "e5d3",
+      "c0d0",
+      "e1d0",
+      "c2b0",
+      "c8c0",
+      "b1c1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869362196,
+    "updatedAt": 1782869362196
+  },
+  {
+    "id": "6dcd554749bdf986",
+    "_cblKey": "悶殺_73",
+    "level": 4,
+    "title": "悶殺 74",
+    "description": "悶殺殺法練習",
+    "initialFen": "2ea5/2H1ak2c/4e4/5C3/9/1h3R3/9/3p5/r3p4/c2K5",
+    "moves": [
+      "f3b3",
+      "e1f2",
+      "b3b1",
+      "f1f0",
+      "f5f2",
+      "i1f1",
+      "f2f1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869364406,
+    "updatedAt": 1782869364406
+  },
+  {
+    "id": "580a67dd5b2eceeb",
+    "_cblKey": "悶殺_74",
+    "level": 2,
+    "title": "悶殺 75",
+    "description": "悶殺殺法練習",
+    "initialFen": "3aka3/4h1P2/4r4/9/9/9/9/9/1C7/4K4",
+    "moves": [
+      "b8e8",
+      "e2e8",
+      "e9e8"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869364484,
+    "updatedAt": 1782869364484
+  },
+  {
+    "id": "f224920a90efa94c",
+    "_cblKey": "悶殺_75",
+    "level": 3,
+    "title": "悶殺 76",
+    "description": "悶殺殺法練習",
+    "initialFen": "2rkca1C1/3haH3/9/H8/2p6/9/9/9/9/3K5",
+    "moves": [
+      "h0h2",
+      "c0c3",
+      "a3b1",
+      "c3c1",
+      "h2d2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869364661,
+    "updatedAt": 1782869364661
+  },
+  {
+    "id": "04f1f0264a9ecefa",
+    "_cblKey": "悶殺_76",
+    "level": 3,
+    "title": "悶殺 77",
+    "description": "悶殺殺法練習",
+    "initialFen": "3k1ae2/3ca4/e2Hr1h2/p4R2p/4C4/9/P3pp2P/4E4/4A4/2EAK4",
+    "moves": [
+      "f3b3",
+      "e2e4",
+      "b3b0",
+      "a2c0",
+      "b0c0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869373288,
+    "updatedAt": 1782869373288
+  },
+  {
+    "id": "847014f1e3df3ee4",
+    "_cblKey": "悶殺_77",
+    "level": 4,
+    "title": "悶殺 78",
+    "description": "悶殺殺法練習",
+    "initialFen": "3ak3C/4aH3/9/5c3/5P3/9/9/9/2rp1p3/4K4",
+    "moves": [
+      "f1h0",
+      "f3f0",
+      "h0f1",
+      "f0f4",
+      "f1h0",
+      "f4f0",
+      "h0f1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869373327,
+    "updatedAt": 1782869373327
+  },
+  {
+    "id": "f3582960ca61504b",
+    "_cblKey": "悶殺_78",
+    "level": 4,
+    "title": "悶殺 79",
+    "description": "悶殺殺法練習",
+    "initialFen": "3a1k3/4a1R2/5rH2/9/9/9/9/9/3p1p3/4K1Rrc",
+    "moves": [
+      "g1g0",
+      "f0f1",
+      "g0f0",
+      "e1f0",
+      "g2h0",
+      "h9h0",
+      "g9g1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869373399,
+    "updatedAt": 1782869373399
+  },
+  {
+    "id": "ac81bbdd4d64aa05",
+    "_cblKey": "悶殺_79",
+    "level": 4,
+    "title": "悶殺 80",
+    "description": "悶殺殺法練習",
+    "initialFen": "2ea3r1/4k4/2hce4/2C6/2p3p2/5R3/9/4E4/4A4/2E2K3",
+    "moves": [
+      "f5f1",
+      "e1e0",
+      "c3e3",
+      "d0e1",
+      "f1e1",
+      "e0d0",
+      "e3d3"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869373744,
+    "updatedAt": 1782869373744
+  },
+  {
+    "id": "c956fe3964e22b5a",
+    "_cblKey": "悶殺_80",
+    "level": 4,
+    "title": "悶殺 81",
+    "description": "悶殺殺法練習",
+    "initialFen": "3r1k3/1C2a4/5a3/3RH4/9/7rC/9/2h6/3p1p3/4K4",
+    "moves": [
+      "d3d0",
+      "e1d0",
+      "e3g2",
+      "f0f1",
+      "g2h0",
+      "f1f0",
+      "i5i0"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869373849,
+    "updatedAt": 1782869373849
+  },
+  {
+    "id": "ec0cc680751cb01f",
+    "_cblKey": "悶殺_81",
+    "level": 4,
+    "title": "悶殺 82",
+    "description": "悶殺殺法練習",
+    "initialFen": "2ea5/2H1ak2c/4e4/5C3/9/5R3/9/3p5/r1p1p4/3K5",
+    "moves": [
+      "f3b3",
+      "e1f2",
+      "b3b1",
+      "f1f0",
+      "f5f2",
+      "i1f1",
+      "f2f1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869374035,
+    "updatedAt": 1782869374035
+  },
+  {
+    "id": "9042b737657434b4",
+    "_cblKey": "悶殺_82",
+    "level": 4,
+    "title": "悶殺 83",
+    "description": "悶殺殺法練習",
+    "initialFen": "3a1ke2/4a4/4e4/6H2/8C/9/9/5C3/2rp5/4K4",
+    "moves": [
+      "i4i0",
+      "g0i2",
+      "g3h1",
+      "f0e0",
+      "f7f0",
+      "e2g0",
+      "h1f2"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869374128,
+    "updatedAt": 1782869374128
+  },
+  {
+    "id": "cc9198e67062cdba",
+    "_cblKey": "悶殺_83",
+    "level": 4,
+    "title": "悶殺 84",
+    "description": "悶殺殺法練習",
+    "initialFen": "2rkca1C1/3haH3/9/H8/9/9/9/9/9/3K5",
+    "moves": [
+      "a3b1",
+      "c0c1",
+      "h0h9",
+      "c1b1",
+      "h9f9",
+      "b1b9",
+      "f9b9"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869374270,
+    "updatedAt": 1782869374270
+  },
+  {
+    "id": "073c2553385d4a1d",
+    "_cblKey": "平頂冠_0",
+    "level": 1,
+    "title": "平頂冠 1",
+    "description": "平頂冠殺法練習",
+    "initialFen": "2eaka3/5P2R/9/9/4C4/9/4r4/9/3rA4/4K4",
+    "moves": [
+      "f1e1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869425931,
+    "updatedAt": 1782869425931
+  },
+  {
+    "id": "0a1fb31abce37a6c",
+    "_cblKey": "平頂冠_1",
+    "level": 1,
+    "title": "平頂冠 2",
+    "description": "平頂冠殺法練習",
+    "initialFen": "2eak4/4aP3/9/4R4/4C4/9/4r4/9/3rA4/4K4",
+    "moves": [
+      "e3e1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869425941,
+    "updatedAt": 1782869425941
+  },
+  {
+    "id": "0148a772bdca437e",
+    "_cblKey": "平頂冠_2",
+    "level": 1,
+    "title": "平頂冠 3",
+    "description": "平頂冠殺法練習",
+    "initialFen": "2e1ka3/3P1P3/5a3/9/4C4/9/9/9/4rr3/3K5",
+    "moves": [
+      "f1e1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869425950,
+    "updatedAt": 1782869425950
+  },
+  {
+    "id": "33883eb5fee7b06e",
+    "_cblKey": "平頂冠_3",
+    "level": 1,
+    "title": "平頂冠 4",
+    "description": "平頂冠殺法練習",
+    "initialFen": "2eaka3/3P1r2C/9/9/4C4/9/9/9/4r4/3K5",
+    "moves": [
+      "d1d0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869425960,
+    "updatedAt": 1782869425960
+  },
+  {
+    "id": "460960196a7d9bf7",
+    "_cblKey": "平頂冠_4",
+    "level": 1,
+    "title": "平頂冠 5",
+    "description": "平頂冠殺法練習",
+    "initialFen": "2eaka3/5P3/6H2/9/4C4/9/9/9/4pr3/3K5",
+    "moves": [
+      "f1e1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869425971,
+    "updatedAt": 1782869425971
+  },
+  {
+    "id": "f4ac40888266f59c",
+    "_cblKey": "平頂冠_5",
+    "level": 1,
+    "title": "平頂冠 6",
+    "description": "平頂冠殺法練習",
+    "initialFen": "2e1kae2/4a4/4P4/9/4C4/9/9/4C4/1r2pp3/3K5",
+    "moves": [
+      "e2e1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869425982,
+    "updatedAt": 1782869425982
+  },
+  {
+    "id": "dbe4e5b55d0b81d2",
+    "_cblKey": "平頂冠_6",
+    "level": 1,
+    "title": "平頂冠 7",
+    "description": "平頂冠殺法練習",
+    "initialFen": "2eak3r/4aR3/9/4R4/9/9/9/4C4/4p2r1/3K5",
+    "moves": [
+      "e3e1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869425991,
+    "updatedAt": 1782869425991
+  },
+  {
+    "id": "508c3844dcfa935f",
+    "_cblKey": "平頂冠_7",
+    "level": 1,
+    "title": "平頂冠 8",
+    "description": "平頂冠殺法練習",
+    "initialFen": "2eakhe2/3R5/3a5/5H3/9/4C4/9/3p5/4r1r2/3K5",
+    "moves": [
+      "d1e1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869426004,
+    "updatedAt": 1782869426004
+  },
+  {
+    "id": "2d283bcc823f041e",
+    "_cblKey": "平頂冠_8",
+    "level": 1,
+    "title": "平頂冠 9",
+    "description": "平頂冠殺法練習",
+    "initialFen": "2eakae2/3R5/6H2/4C4/9/9/9/2hAE4/3rA4/c3K1E2",
+    "moves": [
+      "d1e1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869426015,
+    "updatedAt": 1782869426015
+  },
+  {
+    "id": "99682a45b67c4f5a",
+    "_cblKey": "平頂冠_9",
+    "level": 1,
+    "title": "平頂冠 10",
+    "description": "平頂冠殺法練習",
+    "initialFen": "2eakhe2/4a4/4R4/9/9/9/1r2C4/3pC4/4r4/3K5",
+    "moves": [
+      "e2e1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869426025,
+    "updatedAt": 1782869426025
+  },
+  {
+    "id": "f99eecfe1959ec9d",
+    "_cblKey": "平頂冠_10",
+    "level": 1,
+    "title": "平頂冠 11",
+    "description": "平頂冠殺法練習",
+    "initialFen": "3aka3/3R1R3/9/4C4/9/9/9/4c4/2r2p2c/3AKA3",
+    "moves": [
+      "f1e1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869426034,
+    "updatedAt": 1782869426034
+  },
+  {
+    "id": "7262fe9a3ca98cbc",
+    "_cblKey": "平頂冠_11",
+    "level": 1,
+    "title": "平頂冠 12",
+    "description": "平頂冠殺法練習",
+    "initialFen": "3aka3/3P2R2/9/4C4/9/9/9/9/2r1Ap3/ccEAK4",
+    "moves": [
+      "d1e1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869426047,
+    "updatedAt": 1782869426047
+  },
+  {
+    "id": "775ab2242277e535",
+    "_cblKey": "平頂冠_12",
+    "level": 1,
+    "title": "平頂冠 13",
+    "description": "平頂冠殺法練習",
+    "initialFen": "2eakae2/3P1P3/9/4C4/9/9/9/2h6/3pA4/c3KA3",
+    "moves": [
+      "f1e1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869426057,
+    "updatedAt": 1782869426057
+  },
+  {
+    "id": "8b6ec8a163ab5517",
+    "_cblKey": "平頂冠_13",
+    "level": 1,
+    "title": "平頂冠 14",
+    "description": "平頂冠殺法練習",
+    "initialFen": "2eak1e2/4aR3/9/4R4/4C4/9/9/4r4/1cc1A1r2/3AK4",
+    "moves": [
+      "e3e1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869426070,
+    "updatedAt": 1782869426070
+  },
+  {
+    "id": "116501badbff78be",
+    "_cblKey": "平頂冠_14",
+    "level": 1,
+    "title": "平頂冠 15",
+    "description": "平頂冠殺法練習",
+    "initialFen": "2r1k4/3P1P3/5a3/4C4/9/9/9/9/4p4/3K5",
+    "moves": [
+      "d1e1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869426082,
+    "updatedAt": 1782869426082
+  },
+  {
+    "id": "ab912e0ad8c48aa5",
+    "_cblKey": "平頂冠_15",
+    "level": 1,
+    "title": "平頂冠 16",
+    "description": "平頂冠殺法練習",
+    "initialFen": "2eakae2/3P1r2C/9/4C4/9/9/9/9/2r1p4/3K5",
+    "moves": [
+      "d1d0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869426095,
+    "updatedAt": 1782869426095
+  },
+  {
+    "id": "a21d0d694cc77d68",
+    "_cblKey": "平頂冠_16",
+    "level": 1,
+    "title": "平頂冠 17",
+    "description": "平頂冠殺法練習",
+    "initialFen": "2eakae2/3P5/6H2/4C4/9/9/9/6h2/5p3/3AK3c",
+    "moves": [
+      "d1e1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869426104,
+    "updatedAt": 1782869426104
+  },
+  {
+    "id": "46d0ef4172b70997",
+    "_cblKey": "平頂冠_17",
+    "level": 1,
+    "title": "平頂冠 18",
+    "description": "平頂冠殺法練習",
+    "initialFen": "2eakc3/4a4/4R4/4Cr3/4C4/9/9/4E1h2/4Ar3/4K2c1",
+    "moves": [
+      "e2e1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869426117,
+    "updatedAt": 1782869426117
+  },
+  {
+    "id": "2f9744bcb20a18d5",
+    "_cblKey": "平頂冠_18",
+    "level": 2,
+    "title": "平頂冠 19",
+    "description": "平頂冠殺法練習",
+    "initialFen": "3akae2/1r3P3/9/2p1C4/9/6h2/4P4/1C1R5/5p3/c3K4",
+    "moves": [
+      "d7d1",
+      "b1b7",
+      "f1e1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869426661,
+    "updatedAt": 1782869426661
+  },
+  {
+    "id": "c8fd2bad8489e513",
+    "_cblKey": "平頂冠_19",
+    "level": 2,
+    "title": "平頂冠 20",
+    "description": "平頂冠殺法練習",
+    "initialFen": "3ckae2/5R3/3P5/2p6/4C4/9/4P4/5h3/3r1p3/c3K4",
+    "moves": [
+      "d2e2",
+      "f0e1",
+      "e2e1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869426679,
+    "updatedAt": 1782869426679
+  },
+  {
+    "id": "eafe0c343541e166",
+    "_cblKey": "平頂冠_20",
+    "level": 2,
+    "title": "平頂冠 21",
+    "description": "平頂冠殺法練習",
+    "initialFen": "4ka3/3Pa3R/4e4/2p1p4/9/4C2h1/4P4/9/1r2p4/c4K3",
+    "moves": [
+      "e5e2",
+      "e1d0",
+      "d1e1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869426705,
+    "updatedAt": 1782869426705
+  },
+  {
+    "id": "3eda4b1ac1221a46",
+    "_cblKey": "平頂冠_21",
+    "level": 2,
+    "title": "平頂冠 22",
+    "description": "平頂冠殺法練習",
+    "initialFen": "3ak4/3Ra4/4P4/2p1C4/5h3/9/4P4/9/1r2p4/c4K3",
+    "moves": [
+      "e2e1",
+      "e0f0",
+      "d1d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869426732,
+    "updatedAt": 1782869426732
+  },
+  {
+    "id": "58e05702bb1773f9",
+    "_cblKey": "平頂冠_22",
+    "level": 2,
+    "title": "平頂冠 23",
+    "description": "平頂冠殺法練習",
+    "initialFen": "2eakae2/3R2P2/9/9/9/4C2h1/9/1r2E4/1p2A4/c3K1E2",
+    "moves": [
+      "g1f1",
+      "b7a7",
+      "f1e1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869497957,
+    "updatedAt": 1782869497957
+  },
+  {
+    "id": "94fc9e0aa80aa420",
+    "_cblKey": "平頂冠_23",
+    "level": 2,
+    "title": "平頂冠 24",
+    "description": "平頂冠殺法練習",
+    "initialFen": "2eakae2/3R5/9/4C4/9/6R2/2r6/h6r1/c1p1A4/4KAE2",
+    "moves": [
+      "g5g1",
+      "h7h9",
+      "g1e1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869498103,
+    "updatedAt": 1782869498103
+  },
+  {
+    "id": "1ecfb4327cf2480d",
+    "_cblKey": "平頂冠_24",
+    "level": 2,
+    "title": "平頂冠 25",
+    "description": "平頂冠殺法練習",
+    "initialFen": "3ak4/3P5/9/4C4/9/5R3/9/2h6/4A4/rp2KAE1c",
+    "moves": [
+      "f5f1",
+      "a9a8",
+      "d1e1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869498214,
+    "updatedAt": 1782869498214
+  },
+  {
+    "id": "ff821087294c2c32",
+    "_cblKey": "平頂冠_25",
+    "level": 2,
+    "title": "平頂冠 26",
+    "description": "平頂冠殺法練習",
+    "initialFen": "2eak1e2/3Ra4/9/4R4/9/4C2r1/9/4E1h1E/4Ap3/3AK3c",
+    "moves": [
+      "e3e1",
+      "e0f0",
+      "d1d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869498246,
+    "updatedAt": 1782869498246
+  },
+  {
+    "id": "43d6a6564488d820",
+    "_cblKey": "平頂冠_26",
+    "level": 2,
+    "title": "平頂冠 27",
+    "description": "平頂冠殺法練習",
+    "initialFen": "2e1k4/3R2R2/6h1e/4C4/2r6/9/9/9/1r1pA3c/4KAE2",
+    "moves": [
+      "g1e1",
+      "e0f0",
+      "d1d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869498278,
+    "updatedAt": 1782869498278
+  },
+  {
+    "id": "3612542bd38ef60b",
+    "_cblKey": "平頂冠_27",
+    "level": 2,
+    "title": "平頂冠 28",
+    "description": "平頂冠殺法練習",
+    "initialFen": "2eakae2/3R5/9/4C4/7H1/9/h8/3AE3E/1p2A4/rc2K4",
+    "moves": [
+      "h4f3",
+      "a9a8",
+      "f3g1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869498406,
+    "updatedAt": 1782869498406
+  },
+  {
+    "id": "6204ff97cf068b54",
+    "_cblKey": "平頂冠_28",
+    "level": 2,
+    "title": "平頂冠 29",
+    "description": "平頂冠殺法練習",
+    "initialFen": "2e1k1e2/3R1R3/6h2/4C4/2r6/9/9/9/1r2A3c/4KAE2",
+    "moves": [
+      "f1e1",
+      "e0f0",
+      "d1d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869498439,
+    "updatedAt": 1782869498439
+  },
+  {
+    "id": "bf422b35094ad012",
+    "_cblKey": "平頂冠_29",
+    "level": 2,
+    "title": "平頂冠 30",
+    "description": "平頂冠殺法練習",
+    "initialFen": "2eakce2/3R5/5P3/4C4/9/9/9/4E1h2/4Ar3/3AK3c",
+    "moves": [
+      "f2e2",
+      "d0e1",
+      "e2e1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869498466,
+    "updatedAt": 1782869498466
+  },
+  {
+    "id": "6385353ebaa4c50b",
+    "_cblKey": "平頂冠_30",
+    "level": 2,
+    "title": "平頂冠 31",
+    "description": "平頂冠殺法練習",
+    "initialFen": "2eak1e2/3Ra4/9/4R4/9/4C4/9/4E1h1E/4Ap1c1/3AK3c",
+    "moves": [
+      "e3e1",
+      "e0f0",
+      "d1d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869498498,
+    "updatedAt": 1782869498498
+  },
+  {
+    "id": "b0dddc7b8e906df4",
+    "_cblKey": "平頂冠_31",
+    "level": 2,
+    "title": "平頂冠 32",
+    "description": "平頂冠殺法練習",
+    "initialFen": "2eak1e2/3Ra4/4P4/9/4C4/9/4cr3/4E4/4Ap3/3AK4",
+    "moves": [
+      "e2e1",
+      "e0f0",
+      "d1d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869498525,
+    "updatedAt": 1782869498525
+  },
+  {
+    "id": "6006486c452240bf",
+    "_cblKey": "平頂冠_32",
+    "level": 2,
+    "title": "平頂冠 33",
+    "description": "平頂冠殺法練習",
+    "initialFen": "2eakae2/3P2P2/9/4C4/9/9/9/9/1rp1A4/2c1KA3",
+    "moves": [
+      "g1f1",
+      "b8b9",
+      "f1e1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869498573,
+    "updatedAt": 1782869498573
+  },
+  {
+    "id": "62802e1f846d1dcf",
+    "_cblKey": "平頂冠_33",
+    "level": 2,
+    "title": "平頂冠 34",
+    "description": "平頂冠殺法練習",
+    "initialFen": "2eakae2/3R5/9/4C4/9/6R2/2r6/7r1/c1p1A4/4KAE2",
+    "moves": [
+      "g5g1",
+      "h7h9",
+      "g1e1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869498708,
+    "updatedAt": 1782869498708
+  },
+  {
+    "id": "596d52e6322ebaf5",
+    "_cblKey": "平頂冠_34",
+    "level": 2,
+    "title": "平頂冠 35",
+    "description": "平頂冠殺法練習",
+    "initialFen": "3ak4/3P5/5R3/4C4/9/9/9/2h6/9/rp2KA3",
+    "moves": [
+      "f2f1",
+      "a9a8",
+      "d1e1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869498771,
+    "updatedAt": 1782869498771
+  },
+  {
+    "id": "590f441a1839b1a6",
+    "_cblKey": "平頂冠_35",
+    "level": 2,
+    "title": "平頂冠 36",
+    "description": "平頂冠殺法練習",
+    "initialFen": "4ka3/3Ra1R2/2h1e4/4p4/9/2P1C4/2r6/2p1E2r1/4A4/4KAE1c",
+    "moves": [
+      "e5e2",
+      "e1d0",
+      "g1e1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869498797,
+    "updatedAt": 1782869498797
+  },
+  {
+    "id": "d8019ee98d18c2a8",
+    "_cblKey": "平頂冠_36",
+    "level": 2,
+    "title": "平頂冠 37",
+    "description": "平頂冠殺法練習",
+    "initialFen": "3akae2/1r3P3/8r/2p1C4/9/2P6/6h2/3RE4/1C2A4/3AK3c",
+    "moves": [
+      "d7d1",
+      "i2i8",
+      "f1e1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869498892,
+    "updatedAt": 1782869498892
+  },
+  {
+    "id": "fa1e5289bd499bf9",
+    "_cblKey": "夾車包_0",
+    "level": 1,
+    "title": "夾車包 1",
+    "description": "夾車包殺法練習",
+    "initialFen": "3k1a3/C1C1a4/4c4/9/9/9/9/4E4/4A1r2/1REAK3c",
+    "moves": [
+      "b9b0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869498909,
+    "updatedAt": 1782869498909
+  },
+  {
+    "id": "b923b546e7a64f92",
+    "_cblKey": "夾車包_1",
+    "level": 1,
+    "title": "夾車包 2",
+    "description": "夾車包殺法練習",
+    "initialFen": "5a1R1/4a1C1C/5k3/9/9/9/4c4/4E4/4Ar3/2EAK3c",
+    "moves": [
+      "h0h2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869498922,
+    "updatedAt": 1782869498922
+  },
+  {
+    "id": "58044319c165c221",
+    "_cblKey": "夾車包_2",
+    "level": 1,
+    "title": "夾車包 3",
+    "description": "夾車包殺法練習",
+    "initialFen": "5ae1C/4a2R1/5kC2/9/9/9/4c4/4E4/4A1r2/2EAK3c",
+    "moves": [
+      "i0i2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869498936,
+    "updatedAt": 1782869498936
+  },
+  {
+    "id": "adbc7840ae7a5e05",
+    "_cblKey": "夾車包_3",
+    "level": 1,
+    "title": "夾車包 4",
+    "description": "夾車包殺法練習",
+    "initialFen": "5ae2/4a2CC/5k3/9/9/6R2/9/4E4/4A1cr1/2EAK3c",
+    "moves": [
+      "g5g2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869498950,
+    "updatedAt": 1782869498950
+  },
+  {
+    "id": "a7a131113d1ef3c0",
+    "_cblKey": "夾車包_4",
+    "level": 1,
+    "title": "夾車包 5",
+    "description": "夾車包殺法練習",
+    "initialFen": "CC7/4k4/4ea3/9/9/6R2/9/9/3r1r3/4K4",
+    "moves": [
+      "g5g1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869498964,
+    "updatedAt": 1782869498964
+  },
+  {
+    "id": "60eb8fb6f9737fdd",
+    "_cblKey": "夾車包_5",
+    "level": 1,
+    "title": "夾車包 6",
+    "description": "夾車包殺法練習",
+    "initialFen": "C3k4/6R2/4ea3/9/9/9/2C1h4/9/4pr3/3K5",
+    "moves": [
+      "c6c0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869498978,
+    "updatedAt": 1782869498978
+  },
+  {
+    "id": "351961be0c3fe1a7",
+    "_cblKey": "夾車包_6",
+    "level": 1,
+    "title": "夾車包 7",
+    "description": "夾車包殺法練習",
+    "initialFen": "CR7/2C1k4/4ea3/9/9/9/4h4/9/4pr3/3K5",
+    "moves": [
+      "a0a1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869498994,
+    "updatedAt": 1782869498994
+  },
+  {
+    "id": "bb3f05e1a59178e3",
+    "_cblKey": "夾車包_7",
+    "level": 1,
+    "title": "夾車包 8",
+    "description": "夾車包殺法練習",
+    "initialFen": "3ak3C/7R1/3ac1C1e/2r2r3/9/9/9/4E4/4A4/2E1KA3",
+    "moves": [
+      "g2g0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869499007,
+    "updatedAt": 1782869499007
+  },
+  {
+    "id": "931b22f74611bb32",
+    "_cblKey": "夾車包_8",
+    "level": 1,
+    "title": "夾車包 9",
+    "description": "夾車包殺法練習",
+    "initialFen": "3a5/4a4/4ckCRC/5r3/9/9/9/4E4/4Ar3/2EAK4",
+    "moves": [
+      "h2h1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869499021,
+    "updatedAt": 1782869499021
+  },
+  {
+    "id": "d57eda985e4ef306",
+    "_cblKey": "夾車包_9",
+    "level": 1,
+    "title": "夾車包 10",
+    "description": "夾車包殺法練習",
+    "initialFen": "C1C2a3/4k2r1/3ae4/9/9/1R7/9/4E4/4Apr2/2EAK4",
+    "moves": [
+      "b5b1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869499036,
+    "updatedAt": 1782869499036
+  },
+  {
+    "id": "34741e57d34d468e",
+    "_cblKey": "夾車包_10",
+    "level": 1,
+    "title": "夾車包 11",
+    "description": "夾車包殺法練習",
+    "initialFen": "3k1a3/C1C1a4/9/9/9/9/9/4E4/4A1cr1/1REAK3c",
+    "moves": [
+      "b9b0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869499048,
+    "updatedAt": 1782869499048
+  },
+  {
+    "id": "5d5801f5f8cc12d1",
+    "_cblKey": "夾車包_11",
+    "level": 1,
+    "title": "夾車包 12",
+    "description": "夾車包殺法練習",
+    "initialFen": "9/CRC6/3ke4/9/9/9/4c4/4E4/3rA4/4KAEc1",
+    "moves": [
+      "b1b2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869499061,
+    "updatedAt": 1782869499061
+  },
+  {
+    "id": "2c7dda4df6448404",
+    "_cblKey": "夾車包_12",
+    "level": 1,
+    "title": "夾車包 13",
+    "description": "夾車包殺法練習",
+    "initialFen": "C1e2a3/1R2a4/2Cke4/9/9/9/9/4E4/6cr1/2EA1K2c",
+    "moves": [
+      "a0a2"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869499075,
+    "updatedAt": 1782869499075
+  },
+  {
+    "id": "bee0b77186749d0e",
+    "_cblKey": "夾車包_13",
+    "level": 1,
+    "title": "夾車包 14",
+    "description": "夾車包殺法練習",
+    "initialFen": "1RC2a3/C2ka4/3r5/9/9/9/9/7h1/5p3/4K3c",
+    "moves": [
+      "c0c1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869499088,
+    "updatedAt": 1782869499088
+  },
+  {
+    "id": "c6cf21e2836a5029",
+    "_cblKey": "夾車包_14",
+    "level": 1,
+    "title": "夾車包 15",
+    "description": "夾車包殺法練習",
+    "initialFen": "CR7/2C1k4/4ea3/9/9/9/9/9/3r1r3/4K4",
+    "moves": [
+      "a0a1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869499102,
+    "updatedAt": 1782869499102
+  },
+  {
+    "id": "b17fa2eb8c398ddf",
+    "_cblKey": "夾車包_15",
+    "level": 1,
+    "title": "夾車包 16",
+    "description": "夾車包殺法練習",
+    "initialFen": "3k1a3/CC2a4/7r1/9/9/9/6h2/9/4A4/2RA1K2c",
+    "moves": [
+      "c9c0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869499115,
+    "updatedAt": 1782869499115
+  },
+  {
+    "id": "64e996334ff1041b",
+    "_cblKey": "夾車包_16",
+    "level": 1,
+    "title": "夾車包 17",
+    "description": "夾車包殺法練習",
+    "initialFen": "1C2k4/7R1/4e4/9/9/2C6/9/4E1h2/4Ar3/4K1c2",
+    "moves": [
+      "c5c0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869499130,
+    "updatedAt": 1782869499130
+  },
+  {
+    "id": "501993ce1625c8c5",
+    "_cblKey": "夾車包_17",
+    "level": 1,
+    "title": "夾車包 18",
+    "description": "夾車包殺法練習",
+    "initialFen": "CC7/4k4/4ea3/6R2/9/9/9/9/3r1r3/4K4",
+    "moves": [
+      "g3g1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869499146,
+    "updatedAt": 1782869499146
+  },
+  {
+    "id": "e04059727d0da733",
+    "_cblKey": "夾車包_18",
+    "level": 2,
+    "title": "夾車包 19",
+    "description": "夾車包殺法練習",
+    "initialFen": "C4ae2/2Cka1P2/4c4/1R7/9/7h1/9/2r1E4/3pA4/4KAE2",
+    "moves": [
+      "a0a1",
+      "d1d0",
+      "b3b0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869499178,
+    "updatedAt": 1782869499178
+  },
+  {
+    "id": "ea2522ad31fc9995",
+    "_cblKey": "夾車包_19",
+    "level": 2,
+    "title": "夾車包 20",
+    "description": "夾車包殺法練習",
+    "initialFen": "C4ae2/4k1P2/2Ca5/1R7/9/9/4c4/2r1E1h2/3pA4/4KAE2",
+    "moves": [
+      "b3b1",
+      "e1e0",
+      "c2c0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869499208,
+    "updatedAt": 1782869499208
+  },
+  {
+    "id": "c123c81767d2ac01",
+    "_cblKey": "夾車包_20",
+    "level": 2,
+    "title": "夾車包 21",
+    "description": "夾車包殺法練習",
+    "initialFen": "CR3ae2/3k5/2C2a3/9/9/9/3rc4/4E1h2/3pAr3/4KAE2",
+    "moves": [
+      "b0b1",
+      "d1d2",
+      "a0a2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869499236,
+    "updatedAt": 1782869499236
+  },
+  {
+    "id": "0ef9f050e9a27bd6",
+    "_cblKey": "夾車包_21",
+    "level": 2,
+    "title": "夾車包 22",
+    "description": "夾車包殺法練習",
+    "initialFen": "C1e2a3/1RCka4/4e4/9/9/9/9/6c2/3r5/4K3c",
+    "moves": [
+      "c1c2",
+      "d1d2",
+      "a0a2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869499259,
+    "updatedAt": 1782869499259
+  },
+  {
+    "id": "a54f2cf6331059a6",
+    "_cblKey": "夾車包_22",
+    "level": 2,
+    "title": "夾車包 23",
+    "description": "夾車包殺法練習",
+    "initialFen": "5ae2/CRCka4/4c4/9/6c2/9/9/9/3r5/4KA3",
+    "moves": [
+      "b1b2",
+      "d1d0",
+      "b2b0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869499310,
+    "updatedAt": 1782869499310
+  },
+  {
+    "id": "925f24283e5ea733",
+    "_cblKey": "夾車包_23",
+    "level": 2,
+    "title": "夾車包 24",
+    "description": "夾車包殺法練習",
+    "initialFen": "CRek1a3/4a4/2C6/9/6c2/9/9/5A3/5r3/4K3c",
+    "moves": [
+      "b0b1",
+      "c0e2",
+      "c2c0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869499337,
+    "updatedAt": 1782869499337
+  },
+  {
+    "id": "70686a0d15a676c7",
+    "_cblKey": "夾車包_24",
+    "level": 2,
+    "title": "夾車包 25",
+    "description": "夾車包殺法練習",
+    "initialFen": "2ea5/C4k3/e4a3/9/9/9/6h2/4C4/3p1r3/4K2R1",
+    "moves": [
+      "e7e1",
+      "f1f0",
+      "h9h0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869499361,
+    "updatedAt": 1782869499361
+  },
+  {
+    "id": "61ca8d8a994e081e",
+    "_cblKey": "夾車包_25",
+    "level": 2,
+    "title": "夾車包 26",
+    "description": "夾車包殺法練習",
+    "initialFen": "2ea5/4a2R1/5k2C/9/6e2/9/9/1h5C1/1rp1A4/c1EAK4",
+    "moves": [
+      "i2g2",
+      "b8b9",
+      "h7h2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869499466,
+    "updatedAt": 1782869499466
+  },
+  {
+    "id": "2c37e03d26cd035e",
+    "_cblKey": "夾車包_26",
+    "level": 2,
+    "title": "夾車包 27",
+    "description": "夾車包殺法練習",
+    "initialFen": "1RCa5/3C1k3/3a1r3/9/6e2/9/9/6h2/2p1Ar3/c1EAK4",
+    "moves": [
+      "c0c1",
+      "f1f0",
+      "b0d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869499487,
+    "updatedAt": 1782869499487
+  },
+  {
+    "id": "d9d7a5a168cd3fa3",
+    "_cblKey": "夾車包_27",
+    "level": 3,
+    "title": "夾車包 28",
+    "description": "夾車包殺法練習",
+    "initialFen": "C3k4/4aP3/3ac4/1R2r3r/6e2/9/C8/3AE4/9/3K1AE2",
+    "moves": [
+      "b3b0",
+      "e1d0",
+      "f1e1",
+      "d2e1",
+      "b0b1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869499942,
+    "updatedAt": 1782869499942
+  },
+  {
+    "id": "630c8a3a330e7187",
+    "_cblKey": "夾車包_28",
+    "level": 2,
+    "title": "夾車包 29",
+    "description": "夾車包殺法練習",
+    "initialFen": "C2c1a3/4a4/1RCke4/9/9/9/9/6h2/3p1r3/4K4",
+    "moves": [
+      "c2c1",
+      "d2d1",
+      "a0a1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869499969,
+    "updatedAt": 1782869499969
+  },
+  {
+    "id": "ca0c0d2a9358d47e",
+    "_cblKey": "夾車包_29",
+    "level": 2,
+    "title": "夾車包 30",
+    "description": "夾車包殺法練習",
+    "initialFen": "1C3a3/4k4/C2a5/1R7/9/9/9/4E2r1/4Ar3/3AK3c",
+    "moves": [
+      "b3b1",
+      "e1e0",
+      "a2a0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869499995,
+    "updatedAt": 1782869499995
+  },
+  {
+    "id": "cdd82d6dc9c99ded",
+    "_cblKey": "夾車包_30",
+    "level": 2,
+    "title": "夾車包 31",
+    "description": "夾車包殺法練習",
+    "initialFen": "5ae2/2Cka4/CR7/9/9/9/9/6h2/5p3/4K3c",
+    "moves": [
+      "a2a1",
+      "d1d0",
+      "b2b0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869500020,
+    "updatedAt": 1782869500020
+  },
+  {
+    "id": "fd848c907eb806e8",
+    "_cblKey": "夾車包_31",
+    "level": 2,
+    "title": "夾車包 32",
+    "description": "夾車包殺法練習",
+    "initialFen": "CR3a3/3ka4/2C6/9/9/9/9/6h2/3r5/4K3c",
+    "moves": [
+      "b0b1",
+      "d1d2",
+      "a0a2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869500045,
+    "updatedAt": 1782869500045
+  },
+  {
+    "id": "e854694064003465",
+    "_cblKey": "夾車包_32",
+    "level": 2,
+    "title": "夾車包 33",
+    "description": "夾車包殺法練習",
+    "initialFen": "5a3/1RCka4/Cc2e4/9/2e6/9/9/6h2/3r5/4K3c",
+    "moves": [
+      "c1c0",
+      "d1d0",
+      "a2a0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869500069,
+    "updatedAt": 1782869500069
+  },
+  {
+    "id": "d942a18a597a3e93",
+    "_cblKey": "夾車包_33",
+    "level": 2,
+    "title": "夾車包 34",
+    "description": "夾車包殺法練習",
+    "initialFen": "C1e2a3/1RCka4/4e4/9/9/9/9/6h2/3r5/4K3c",
+    "moves": [
+      "c1c2",
+      "d1d2",
+      "a0a2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869500094,
+    "updatedAt": 1782869500094
+  },
+  {
+    "id": "35d63476dbd0d61d",
+    "_cblKey": "夾車包_34",
+    "level": 2,
+    "title": "夾車包 35",
+    "description": "夾車包殺法練習",
+    "initialFen": "CRek1ae2/4a4/2C6/9/9/9/9/6h2/3r5/4K3c",
+    "moves": [
+      "b0b1",
+      "c0e2",
+      "c2c0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869500121,
+    "updatedAt": 1782869500121
+  },
+  {
+    "id": "87825a078755cdef",
+    "_cblKey": "夾車包_35",
+    "level": 2,
+    "title": "夾車包 36",
+    "description": "夾車包殺法練習",
+    "initialFen": "1R7/C3k4/2C6/9/9/9/9/9/4A1crc/3A1K3",
+    "moves": [
+      "c2c1",
+      "e1e2",
+      "b0b2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869500145,
+    "updatedAt": 1782869500145
+  },
+  {
+    "id": "98d989deea24bdf5",
+    "_cblKey": "夾車包_36",
+    "level": 2,
+    "title": "夾車包 37",
+    "description": "夾車包殺法練習",
+    "initialFen": "5ae2/CRCka4/4c4/9/9/9/9/4E1c2/3rA4/2E1KA3",
+    "moves": [
+      "b1b2",
+      "d1d0",
+      "b2b0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869500188,
+    "updatedAt": 1782869500188
+  },
+  {
+    "id": "f44e7ae24047d2f2",
+    "_cblKey": "夾車包_37",
+    "level": 3,
+    "title": "夾車包 38",
+    "description": "夾車包殺法練習",
+    "initialFen": "4k4/C8/2C6/9/9/9/9/7r1/4A1c1c/1R1A1K3",
+    "moves": [
+      "b9b0",
+      "e0e1",
+      "c2c1",
+      "e1e2",
+      "b0b2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869500240,
+    "updatedAt": 1782869500240
+  },
+  {
+    "id": "d1d9bc6009eb9b17",
+    "_cblKey": "夾車包_38",
+    "level": 3,
+    "title": "夾車包 39",
+    "description": "夾車包殺法練習",
+    "initialFen": "1C3a3/9/CR1ak4/9/9/9/9/4E1c2/4A2r1/3AK3c",
+    "moves": [
+      "b2b3",
+      "e2e1",
+      "b3b1",
+      "e1e0",
+      "a2a0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869500331,
+    "updatedAt": 1782869500331
+  },
+  {
+    "id": "bf697ff43469fd27",
+    "_cblKey": "夾車包_39",
+    "level": 3,
+    "title": "夾車包 40",
+    "description": "夾車包殺法練習",
+    "initialFen": "C2k1a3/4a4/2C6/9/9/1R7/9/6c2/3r5/4K3c",
+    "moves": [
+      "b5b0",
+      "d0d1",
+      "b0b1",
+      "d1d2",
+      "a0a2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869500386,
+    "updatedAt": 1782869500386
+  },
+  {
+    "id": "f3a4f6533ec60ceb",
+    "_cblKey": "夾車包_40",
+    "level": 3,
+    "title": "夾車包 41",
+    "description": "夾車包殺法練習",
+    "initialFen": "2Ra3r1/4k4/4c4/1C7/9/C2h5/9/3p5/4p4/3K5",
+    "moves": [
+      "c0c1",
+      "e1e0",
+      "b3b0",
+      "d0e1",
+      "a5a0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869500437,
+    "updatedAt": 1782869500437
+  },
+  {
+    "id": "f5ad950ad2642408",
+    "_cblKey": "夾車包_41",
+    "level": 3,
+    "title": "夾車包 42",
+    "description": "夾車包殺法練習",
+    "initialFen": "1CeC2P2/5k3/4e4/4p4/9/7r1/R8/6c2/4p4/3K4c",
+    "moves": [
+      "a6a1",
+      "f1f2",
+      "d0d2",
+      "e2g0",
+      "b0b2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869500485,
+    "updatedAt": 1782869500485
+  },
+  {
+    "id": "b752b0aa31e52dd3",
+    "_cblKey": "夾車包_42",
+    "level": 2,
+    "title": "夾車包 43",
+    "description": "夾車包殺法練習",
+    "initialFen": "C1Ra1k3/1C1Pa4/9/9/9/9/4h4/6c2/3p1p1r1/4K3c",
+    "moves": [
+      "c0c3",
+      "f0f1",
+      "c3f3"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869500515,
+    "updatedAt": 1782869500515
+  },
+  {
+    "id": "df05c2b817b4ef3e",
+    "_cblKey": "夾車包_43",
+    "level": 2,
+    "title": "夾車包 44",
+    "description": "夾車包殺法練習",
+    "initialFen": "C3k1P2/4a4/3ae4/1R2r3r/9/9/9/C3E4/4Ah3/4KAE1c",
+    "moves": [
+      "a0b0",
+      "e3e7",
+      "a7a0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869501450,
+    "updatedAt": 1782869501450
+  },
+  {
+    "id": "d008c6d609e9361f",
+    "_cblKey": "夾車包_44",
+    "level": 4,
+    "title": "夾車包 45",
+    "description": "夾車包殺法練習",
+    "initialFen": "2eak3C/4a4/4e4/p8/9/8R/Ph7/1p2EC3/3rA4/c3KAE2",
+    "moves": [
+      "f7h7",
+      "d8d9",
+      "e9d9",
+      "e1d2",
+      "h7h0",
+      "e0e1",
+      "i5i1"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869504707,
+    "updatedAt": 1782869504707
+  },
+  {
+    "id": "000e39cb96b7bf12",
+    "_cblKey": "夾車包_45",
+    "level": 3,
+    "title": "夾車包 46",
+    "description": "夾車包殺法練習",
+    "initialFen": "1Rek1a3/2R4C1/e4a3/p7p/6C2/1p2P1P2/P8/4EA3/2c4r1/c3KAE2",
+    "moves": [
+      "g4g0",
+      "f0e1",
+      "c1c0",
+      "a2c0",
+      "b0c0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869505076,
+    "updatedAt": 1782869505076
+  },
+  {
+    "id": "d359878e728e83c0",
+    "_cblKey": "夾車包_46",
+    "level": 2,
+    "title": "夾車包 47",
+    "description": "夾車包殺法練習",
+    "initialFen": "1hea2R2/4ak3/9/p1C5p/5rp2/2P6/P7P/4C4/9/2EAKAEc1",
+    "moves": [
+      "c3c1",
+      "f1f2",
+      "g0g2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869505132,
+    "updatedAt": 1782869505132
+  },
+  {
+    "id": "d2acac8b0a96ccf0",
+    "_cblKey": "夾車包_47",
+    "level": 3,
+    "title": "夾車包 48",
+    "description": "夾車包殺法練習",
+    "initialFen": "C2k1a3/4a4/2C6/9/9/1R7/9/6h2/3r5/4K3c",
+    "moves": [
+      "b5b0",
+      "d0d1",
+      "b0b1",
+      "d1d2",
+      "a0a2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869505192,
+    "updatedAt": 1782869505192
+  },
+  {
+    "id": "5630717f51ac3455",
+    "_cblKey": "夾車包_48",
+    "level": 3,
+    "title": "夾車包 49",
+    "description": "夾車包殺法練習",
+    "initialFen": "1R3ae2/2C1a4/C2k5/9/9/9/9/6h2/5p3/4K3c",
+    "moves": [
+      "b0b2",
+      "d2d1",
+      "a2a1",
+      "d1d0",
+      "b2b0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869505500,
+    "updatedAt": 1782869505500
+  },
+  {
+    "id": "7303350f46c9e3c6",
+    "_cblKey": "夾車包_49",
+    "level": 3,
+    "title": "夾車包 50",
+    "description": "夾車包殺法練習",
+    "initialFen": "4k4/C8/2C6/9/9/9/9/9/4A1crc/1R1A1K3",
+    "moves": [
+      "b9b0",
+      "e0e1",
+      "c2c1",
+      "e1e2",
+      "b0b2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869505540,
+    "updatedAt": 1782869505540
+  },
+  {
+    "id": "20a9af38acd77dcc",
+    "_cblKey": "夾車包_50",
+    "level": 3,
+    "title": "夾車包 51",
+    "description": "夾車包殺法練習",
+    "initialFen": "C2k1ae2/4a4/2C1e4/9/9/1R7/9/6h2/3r5/4K3c",
+    "moves": [
+      "b5b0",
+      "d0d1",
+      "b0b1",
+      "d1d2",
+      "a0a2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869505588,
+    "updatedAt": 1782869505588
+  },
+  {
+    "id": "c2a7a1c7cdcfc40b",
+    "_cblKey": "夾車包_51",
+    "level": 3,
+    "title": "夾車包 52",
+    "description": "夾車包殺法練習",
+    "initialFen": "1C3a3/9/CR1ak4/9/9/9/9/4E2r1/4Ar3/3AK3c",
+    "moves": [
+      "b2b3",
+      "e2e1",
+      "b3b1",
+      "e1e0",
+      "a2a0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869505673,
+    "updatedAt": 1782869505673
+  },
+  {
+    "id": "1f4f4bbfb5dd5c78",
+    "_cblKey": "夾車包_52",
+    "level": 3,
+    "title": "夾車包 53",
+    "description": "夾車包殺法練習",
+    "initialFen": "2Ra3r1/4k4/4c4/CC7/9/9/9/3p5/2p1p4/3K5",
+    "moves": [
+      "c0c1",
+      "e1e0",
+      "b3b0",
+      "d0e1",
+      "a3a0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869505720,
+    "updatedAt": 1782869505720
+  },
+  {
+    "id": "6020f67df62479b2",
+    "_cblKey": "夾車包_53",
+    "level": 3,
+    "title": "夾車包 54",
+    "description": "夾車包殺法練習",
+    "initialFen": "1CeC2P2/5k3/4e4/4p4/9/7r1/R8/5h3/2p1p4/3K5",
+    "moves": [
+      "a6a1",
+      "f1f2",
+      "d0d2",
+      "e2g0",
+      "b0b2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869505762,
+    "updatedAt": 1782869505762
+  },
+  {
+    "id": "5ae1b53fbcd669b2",
+    "_cblKey": "夾車包_54",
+    "level": 2,
+    "title": "夾車包 55",
+    "description": "夾車包殺法練習",
+    "initialFen": "1hea2R2/4ak3/9/p1C5p/2p2rp2/2P6/P7P/4C4/9/2EAKAE2",
+    "moves": [
+      "c3c1",
+      "f1f2",
+      "g0g2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869505818,
+    "updatedAt": 1782869505818
+  },
+  {
+    "id": "fd45c66b0c9e352c",
+    "_cblKey": "夾車包_55",
+    "level": 3,
+    "title": "夾車包 56",
+    "description": "夾車包殺法練習",
+    "initialFen": "C1Ra1k3/1C1Pa4/9/9/9/9/9/4pr3/3r1p3/4K4",
+    "moves": [
+      "c0d0",
+      "f0f1",
+      "d0f0",
+      "f1f0",
+      "d1d0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869505870,
+    "updatedAt": 1782869505870
+  },
+  {
+    "id": "025c60e400f78881",
+    "_cblKey": "夾車包_56",
+    "level": 3,
+    "title": "夾車包 57",
+    "description": "夾車包殺法練習",
+    "initialFen": "1Rek1a3/2R4C1/e4a3/p7p/6C2/2p1P1P2/P7P/2h1E4/3p3r1/c3KAE2",
+    "moves": [
+      "g4g0",
+      "f0e1",
+      "b0c0",
+      "a2c0",
+      "c1c0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869506202,
+    "updatedAt": 1782869506202
+  },
+  {
+    "id": "4624a80a5d86ce15",
+    "_cblKey": "夾車包_57",
+    "level": 2,
+    "title": "夾車包 58",
+    "description": "夾車包殺法練習",
+    "initialFen": "C3k1P2/4a4/3ae4/1R2r3r/9/7h1/9/C3E4/4A4/4KAE1c",
+    "moves": [
+      "a0b0",
+      "e3e7",
+      "a7a0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869507000,
+    "updatedAt": 1782869507000
+  },
+  {
+    "id": "005c16b37f4d474d",
+    "_cblKey": "夾車包_59",
+    "level": 3,
+    "title": "夾車包 60",
+    "description": "夾車包殺法練習",
+    "initialFen": "2ea1k3/4a4/e8/9/1C7/9/r8/4C4/3p1r3/4KA1R1",
+    "moves": [
+      "h9h0",
+      "f0f1",
+      "b4b1",
+      "f1f2",
+      "h0h2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869510261,
+    "updatedAt": 1782869510261
+  },
+  {
+    "id": "e33991ec7cfd5309",
+    "_cblKey": "夾車包_60",
+    "level": 3,
+    "title": "夾車包 61",
+    "description": "夾車包殺法練習",
+    "initialFen": "CRea1k3/4a4/5r3/9/9/9/9/3C2h2/5r3/4K4",
+    "moves": [
+      "a0c0",
+      "f0f1",
+      "d7d1",
+      "e1f0",
+      "c0c1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869510333,
+    "updatedAt": 1782869510333
+  },
+  {
+    "id": "ac737dfeb9e15200",
+    "_cblKey": "夾車包_61",
+    "level": 4,
+    "title": "夾車包 62",
+    "description": "夾車包殺法練習",
+    "initialFen": "2ea2C2/4a1R2/4k3C/9/2e6/9/9/2h1E4/3rA4/1c2KAE2",
+    "moves": [
+      "g1g2",
+      "e1f2",
+      "g2g3",
+      "e2e1",
+      "g3g1",
+      "e1e0",
+      "i2i0"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869510482,
+    "updatedAt": 1782869510482
+  },
+  {
+    "id": "653f2e843e3426b7",
+    "_cblKey": "夾車包_62",
+    "level": 3,
+    "title": "夾車包 63",
+    "description": "夾車包殺法練習",
+    "initialFen": "5ae2/1R2a4/CcCk5/9/9/9/9/6h2/3r5/4K3c",
+    "moves": [
+      "c2c1",
+      "d2d1",
+      "c1c0",
+      "d1d0",
+      "a2a0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869510777,
+    "updatedAt": 1782869510777
+  },
+  {
+    "id": "08b6c59d897e4873",
+    "_cblKey": "夾車包_63",
+    "level": 4,
+    "title": "夾車包 64",
+    "description": "夾車包殺法練習",
+    "initialFen": "3ak4/9/3a5/9/2C1p4/1R7/9/C8/5r1r1/4K3c",
+    "moves": [
+      "c4c0",
+      "e0e1",
+      "b5b1",
+      "e1e2",
+      "c0c2",
+      "d2e1",
+      "a7a2"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869510890,
+    "updatedAt": 1782869510890
+  },
+  {
+    "id": "76707b4d13a09a8c",
+    "_cblKey": "夾車包_64",
+    "level": 2,
+    "title": "夾車包 65",
+    "description": "夾車包殺法練習",
+    "initialFen": "CR1ak4/9/3achH2/4r3r/9/7h1/4p4/C3E4/4A4/4KAE2",
+    "moves": [
+      "b0b3",
+      "e0e1",
+      "b3b1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869530270,
+    "updatedAt": 1782869530270
+  },
+  {
+    "id": "974c930cbdf02247",
+    "_cblKey": "夾車包_65",
+    "level": 2,
+    "title": "夾車包 66",
+    "description": "夾車包殺法練習",
+    "initialFen": "2e1ka3/4a2r1/4e4/5H3/9/1RC6/9/C3E4/3pApc2/4KA1r1",
+    "moves": [
+      "f3d2",
+      "e0d0",
+      "c5d5"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869530624,
+    "updatedAt": 1782869530624
+  },
+  {
+    "id": "7e4e111a43ae4227",
+    "_cblKey": "夾車包_66",
+    "level": 2,
+    "title": "夾車包 67",
+    "description": "夾車包殺法練習",
+    "initialFen": "2Rak2r1/5R3/4c4/9/9/9/C3p4/1C2p4/3p1pp2/4K4",
+    "moves": [
+      "f1e1",
+      "e0f0",
+      "c0d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869533460,
+    "updatedAt": 1782869533460
+  },
+  {
+    "id": "14c6ced26dded147",
+    "_cblKey": "天地包_0",
+    "level": 1,
+    "title": "天地包 1",
+    "description": "天地包殺法練習",
+    "initialFen": "4ka3/4a4/4e4/4C4/9/9/9/9/9/4K1C2",
+    "moves": [
+      "g9g0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869550759,
+    "updatedAt": 1782869550759
+  },
+  {
+    "id": "c9e2a581a48d8867",
+    "_cblKey": "天地包_1",
+    "level": 1,
+    "title": "天地包 2",
+    "description": "天地包殺法練習",
+    "initialFen": "4kae2/4a4/4e1c2/4C4/9/9/9/9/3p1p3/4K1C2",
+    "moves": [
+      "g9g0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869550772,
+    "updatedAt": 1782869550772
+  },
+  {
+    "id": "6d370766bd80046b",
+    "_cblKey": "天地包_2",
+    "level": 1,
+    "title": "天地包 3",
+    "description": "天地包殺法練習",
+    "initialFen": "4kae1C/4a4/4e4/4C4/9/9/9/9/9/4K4",
+    "moves": [
+      "e9d9"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869550784,
+    "updatedAt": 1782869550784
+  },
+  {
+    "id": "94a74d79713df73f",
+    "_cblKey": "天地包_3",
+    "level": 1,
+    "title": "天地包 4",
+    "description": "天地包殺法練習",
+    "initialFen": "4kae1C/4aP3/2h1e4/4C4/9/9/9/9/4p3r/3K5",
+    "moves": [
+      "f1f0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869550798,
+    "updatedAt": 1782869550798
+  },
+  {
+    "id": "2ed9f447121accc3",
+    "_cblKey": "天地包_4",
+    "level": 1,
+    "title": "天地包 5",
+    "description": "天地包殺法練習",
+    "initialFen": "4kae1C/4aP3/4e4/4C4/9/9/9/9/4pr3/3K5",
+    "moves": [
+      "f1e1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869550813,
+    "updatedAt": 1782869550813
+  },
+  {
+    "id": "39cfc3ade6ff7572",
+    "_cblKey": "天地包_5",
+    "level": 1,
+    "title": "天地包 6",
+    "description": "天地包殺法練習",
+    "initialFen": "r3kae1C/1R2a4/4e4/4C4/9/9/9/9/4pr3/3K5",
+    "moves": [
+      "b1e1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869550831,
+    "updatedAt": 1782869550831
+  },
+  {
+    "id": "58f36371a9d42c00",
+    "_cblKey": "天地包_6",
+    "level": 1,
+    "title": "天地包 7",
+    "description": "天地包殺法練習",
+    "initialFen": "2eaka3/3P1r3/9/4C4/9/2r4C1/9/9/4p4/3K5",
+    "moves": [
+      "h5h0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869550847,
+    "updatedAt": 1782869550847
+  },
+  {
+    "id": "7e772677617b9f92",
+    "_cblKey": "天地包_7",
+    "level": 1,
+    "title": "天地包 8",
+    "description": "天地包殺法練習",
+    "initialFen": "5ke2/4a1P2/4e3c/4C4/9/7C1/9/9/4pr3/3K5",
+    "moves": [
+      "h5h0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869550864,
+    "updatedAt": 1782869550864
+  },
+  {
+    "id": "cda08a3eef7e0352",
+    "_cblKey": "天地包_8",
+    "level": 1,
+    "title": "天地包 9",
+    "description": "天地包殺法練習",
+    "initialFen": "2e1k4/4a4/c3c4/4C4/9/9/9/1C7/4pr3/3K5",
+    "moves": [
+      "b7b0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869550883,
+    "updatedAt": 1782869550883
+  },
+  {
+    "id": "71fb48c8c6f4053e",
+    "_cblKey": "天地包_9",
+    "level": 1,
+    "title": "天地包 10",
+    "description": "天地包殺法練習",
+    "initialFen": "4kaehC/3Pa4/4e4/4C4/9/9/9/3h5/4pr3/3K5",
+    "moves": [
+      "i0g0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869550899,
+    "updatedAt": 1782869550899
+  },
+  {
+    "id": "ded911c1113e1c01",
+    "_cblKey": "天地包_10",
+    "level": 1,
+    "title": "天地包 11",
+    "description": "天地包殺法練習",
+    "initialFen": "4ka3/4a4/4e4/4C1C2/9/9/9/9/4pr3/3K5",
+    "moves": [
+      "g3g0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869550914,
+    "updatedAt": 1782869550914
+  },
+  {
+    "id": "dff2b09c1b78723a",
+    "_cblKey": "天地包_11",
+    "level": 1,
+    "title": "天地包 12",
+    "description": "天地包殺法練習",
+    "initialFen": "4kae2/4a4/4e4/4C4/6p2/9/9/3h5/4p4/5KC2",
+    "moves": [
+      "g9g0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869550928,
+    "updatedAt": 1782869550928
+  },
+  {
+    "id": "828e49743b77d66e",
+    "_cblKey": "天地包_12",
+    "level": 1,
+    "title": "天地包 13",
+    "description": "天地包殺法練習",
+    "initialFen": "1Ceak4/4a4/4e4/9/9/9/9/4C4/9/4K4",
+    "moves": [
+      "e9f9"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869550944,
+    "updatedAt": 1782869550944
+  },
+  {
+    "id": "5503cf78e00ce541",
+    "_cblKey": "天地包_13",
+    "level": 1,
+    "title": "天地包 14",
+    "description": "天地包殺法練習",
+    "initialFen": "4kae2/4a4/4e1h2/4C1C2/9/9/9/2h1E4/3rA4/c3KAE2",
+    "moves": [
+      "g3g0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869550957,
+    "updatedAt": 1782869550957
+  },
+  {
+    "id": "e4fb2e2bac0e70f3",
+    "_cblKey": "天地包_14",
+    "level": 1,
+    "title": "天地包 15",
+    "description": "天地包殺法練習",
+    "initialFen": "4kaeC1/4a4/4e4/4C4/9/5R3/9/9/1c2r4/c2K5",
+    "moves": [
+      "f5f0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869550971,
+    "updatedAt": 1782869550971
+  },
+  {
+    "id": "271639e1e978f2d8",
+    "_cblKey": "天地包_15",
+    "level": 1,
+    "title": "天地包 16",
+    "description": "天地包殺法練習",
+    "initialFen": "4kaeC1/4aP3/2h1e4/4C4/9/9/9/9/4r4/c2K5",
+    "moves": [
+      "f1f0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869550986,
+    "updatedAt": 1782869550986
+  },
+  {
+    "id": "c8505a93ea1fecd9",
+    "_cblKey": "天地包_16",
+    "level": 1,
+    "title": "天地包 17",
+    "description": "天地包殺法練習",
+    "initialFen": "4kaeC1/4aP3/4e4/4C4/9/9/9/1h7/5r3/c2K5",
+    "moves": [
+      "f1e1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869551001,
+    "updatedAt": 1782869551001
+  },
+  {
+    "id": "3008adf6f870faf7",
+    "_cblKey": "天地包_17",
+    "level": 1,
+    "title": "天地包 18",
+    "description": "天地包殺法練習",
+    "initialFen": "r3kaeC1/1R2a4/4e4/4C4/9/9/9/9/4r4/3K5",
+    "moves": [
+      "b1e1"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869551014,
+    "updatedAt": 1782869551014
+  },
+  {
+    "id": "affd240ec74b5dd0",
+    "_cblKey": "天地包_18",
+    "level": 2,
+    "title": "天地包 19",
+    "description": "天地包殺法練習",
+    "initialFen": "r3kaeC1/2PRa4/4e4/4C4/9/9/4c4/4E4/4Ap3/4KAE1c",
+    "moves": [
+      "d1e1",
+      "e0d0",
+      "c1d1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869551106,
+    "updatedAt": 1782869551106
+  },
+  {
+    "id": "7596219a20bab8b2",
+    "_cblKey": "天地包_19",
+    "level": 2,
+    "title": "天地包 20",
+    "description": "天地包殺法練習",
+    "initialFen": "1r2ka3/4a4/4e3e/4C4/9/5R3/4c2C1/4E4/2p1Ap3/3K1AE1c",
+    "moves": [
+      "h6h0",
+      "i2g0",
+      "f5f0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869551154,
+    "updatedAt": 1782869551154
+  },
+  {
+    "id": "da2776d44b92d826",
+    "_cblKey": "天地包_20",
+    "level": 2,
+    "title": "天地包 21",
+    "description": "天地包殺法練習",
+    "initialFen": "4kaeC1/4a3R/4e4/2H1C4/9/9/3rc4/4E4/3rA4/4KAEc1",
+    "moves": [
+      "i1e1",
+      "e0d0",
+      "c3b1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869551191,
+    "updatedAt": 1782869551191
+  },
+  {
+    "id": "fa211d606a0b0a89",
+    "_cblKey": "天地包_21",
+    "level": 2,
+    "title": "天地包 22",
+    "description": "天地包殺法練習",
+    "initialFen": "1r2ka3/3Ra4/4e3e/9/4C4/9/9/4E2C1/2r1A4/c2K1AE2",
+    "moves": [
+      "h7h0",
+      "i2g0",
+      "d1e1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869551227,
+    "updatedAt": 1782869551227
+  },
+  {
+    "id": "0a5a4ea11ac1b2b5",
+    "_cblKey": "天地包_22",
+    "level": 2,
+    "title": "天地包 23",
+    "description": "天地包殺法練習",
+    "initialFen": "1r2ka3/4a4/4e1h2/5R3/4C1e2/9/9/4E2C1/3rA1p2/c4KE2",
+    "moves": [
+      "h7h0",
+      "g2h0",
+      "f3f0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869551263,
+    "updatedAt": 1782869551263
+  },
+  {
+    "id": "a65c2630d25544b1",
+    "_cblKey": "天地包_23",
+    "level": 2,
+    "title": "天地包 24",
+    "description": "天地包殺法練習",
+    "initialFen": "1r2ka3/4a4/4e1h1e/5R3/4C4/9/9/4ER1C1/3rA1p2/c4KE2",
+    "moves": [
+      "f3f0",
+      "g2f0",
+      "f7f0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869551305,
+    "updatedAt": 1782869551305
+  },
+  {
+    "id": "eec5b1615dcb0fe4",
+    "_cblKey": "天地包_24",
+    "level": 2,
+    "title": "天地包 25",
+    "description": "天地包殺法練習",
+    "initialFen": "4kae2/4aP3/4c3c/4C4/9/9/9/7C1/4p1r2/3K5",
+    "moves": [
+      "f1e1",
+      "f0e1",
+      "h7h0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869551335,
+    "updatedAt": 1782869551335
+  },
+  {
+    "id": "099e6fc978880377",
+    "_cblKey": "天地包_25",
+    "level": 2,
+    "title": "天地包 26",
+    "description": "天地包殺法練習",
+    "initialFen": "3ak1e2/3Ra4/2h1e4/1C2C4/9/9/c3c4/4E4/1pr1A4/2EK1A3",
+    "moves": [
+      "b3b0",
+      "c2b0",
+      "d1d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869551359,
+    "updatedAt": 1782869551359
+  },
+  {
+    "id": "1a3fbef7f4e2e00b",
+    "_cblKey": "天地包_26",
+    "level": 2,
+    "title": "天地包 27",
+    "description": "天地包殺法練習",
+    "initialFen": "4ka3/4aP2h/2h1e4/4C4/9/9/4c4/4E2C1/4Ap3/3K1AE1c",
+    "moves": [
+      "h7h0",
+      "i1g0",
+      "f1f0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869551386,
+    "updatedAt": 1782869551386
+  },
+  {
+    "id": "ca21e5762ecac26f",
+    "_cblKey": "天地包_27",
+    "level": 2,
+    "title": "天地包 28",
+    "description": "天地包殺法練習",
+    "initialFen": "3akaer1/1H2h4/r3e1h2/p3C1c1p/2p3pc1/9/P1P1P1P1P/1C4H2/9/R1EAKAE2",
+    "moves": [
+      "b1d2",
+      "a2d2",
+      "b7b0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869551414,
+    "updatedAt": 1782869551414
+  },
+  {
+    "id": "9aa4e49ecd130b48",
+    "_cblKey": "天地包_28",
+    "level": 2,
+    "title": "天地包 29",
+    "description": "天地包殺法練習",
+    "initialFen": "4ka3/4a4/4e3e/4CR3/9/9/9/4E2C1/1h1rA4/c3KAE2",
+    "moves": [
+      "h7h0",
+      "i2g0",
+      "f3f0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869551439,
+    "updatedAt": 1782869551439
+  },
+  {
+    "id": "57086f84770f4ae1",
+    "_cblKey": "天地包_29",
+    "level": 2,
+    "title": "天地包 30",
+    "description": "天地包殺法練習",
+    "initialFen": "r3ka3/1R2a4/4e3e/4C4/9/9/9/4E2C1/1hr1A4/3K1AE2",
+    "moves": [
+      "h7h0",
+      "i2g0",
+      "b1e1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869551463,
+    "updatedAt": 1782869551463
+  },
+  {
+    "id": "f30c4a9b6e2a53a0",
+    "_cblKey": "天地包_30",
+    "level": 2,
+    "title": "天地包 31",
+    "description": "天地包殺法練習",
+    "initialFen": "r3ka3/4aP3/2h1e3e/4C4/9/9/9/7C1/2r1A4/3K1A3",
+    "moves": [
+      "h7h0",
+      "i2g0",
+      "f1f0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869551490,
+    "updatedAt": 1782869551490
+  },
+  {
+    "id": "b3f8c2a83c65ab09",
+    "_cblKey": "天地包_31",
+    "level": 2,
+    "title": "天地包 32",
+    "description": "天地包殺法練習",
+    "initialFen": "4kaeC1/4aP3/4e4/2H1C4/9/9/1h7/4E4/1c2A4/c3KAE2",
+    "moves": [
+      "f1f0",
+      "e0d0",
+      "f0e0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869551513,
+    "updatedAt": 1782869551513
+  },
+  {
+    "id": "ba87a62a1536fb48",
+    "_cblKey": "天地包_32",
+    "level": 2,
+    "title": "天地包 33",
+    "description": "天地包殺法練習",
+    "initialFen": "3ak1e2/3Ra4/2h1e4/1C2C4/9/9/9/1c7/r1r1A4/3K1A3",
+    "moves": [
+      "b3b0",
+      "c2b0",
+      "d1d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869551541,
+    "updatedAt": 1782869551541
+  },
+  {
+    "id": "27503ddcb30eb955",
+    "_cblKey": "天地包_33",
+    "level": 2,
+    "title": "天地包 34",
+    "description": "天地包殺法練習",
+    "initialFen": "4kaeC1/4a4/4e1h2/5R3/4C4/5R3/9/4E4/1r1rA4/c3KAE2",
+    "moves": [
+      "f3f0",
+      "g2f0",
+      "f5f0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869551571,
+    "updatedAt": 1782869551571
+  },
+  {
+    "id": "dca9a8c6e1b055c5",
+    "_cblKey": "天地包_34",
+    "level": 2,
+    "title": "天地包 35",
+    "description": "天地包殺法練習",
+    "initialFen": "rc2kaeC1/2P1a1R2/4e4/9/4C4/9/4c4/4E4/3pA4/4KAE2",
+    "moves": [
+      "g1e1",
+      "e0d0",
+      "c1d1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869551599,
+    "updatedAt": 1782869551599
+  },
+  {
+    "id": "f8fb72d8dc18417a",
+    "_cblKey": "天地包_35",
+    "level": 2,
+    "title": "天地包 36",
+    "description": "天地包殺法練習",
+    "initialFen": "4kaeC1/3Pa4/4e4/7R1/4C4/9/9/2h1E4/1r1pA4/c3KAE2",
+    "moves": [
+      "d1e1",
+      "e0d0",
+      "h3d3"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869551629,
+    "updatedAt": 1782869551629
+  },
+  {
+    "id": "4f3a220964b7d75e",
+    "_cblKey": "天地包_36",
+    "level": 2,
+    "title": "天地包 37",
+    "description": "天地包殺法練習",
+    "initialFen": "4kaeC1/2P1a1R2/4e4/4C4/9/9/9/4E4/1r1rA4/c3KAE2",
+    "moves": [
+      "g1e1",
+      "e0d0",
+      "e1e0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869551656,
+    "updatedAt": 1782869551656
+  },
+  {
+    "id": "52ca4d431a22dee8",
+    "_cblKey": "天地包_37",
+    "level": 2,
+    "title": "天地包 38",
+    "description": "天地包殺法練習",
+    "initialFen": "4kaeC1/4a3R/4e4/2H1C4/9/9/9/4E4/1r1rA4/c3KAE2",
+    "moves": [
+      "i1e1",
+      "e0d0",
+      "e1e0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869551678,
+    "updatedAt": 1782869551678
+  },
+  {
+    "id": "a4e633186d63685c",
+    "_cblKey": "天地包_38",
+    "level": 3,
+    "title": "天地包 39",
+    "description": "天地包殺法練習",
+    "initialFen": "4ka3/4a4/4e1h1e/5R3/4C4/5R3/4c4/4E2C1/1r1pA4/c3KAE2",
+    "moves": [
+      "h7h0",
+      "i2g0",
+      "f3f0",
+      "g2f0",
+      "f5f0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869551704,
+    "updatedAt": 1782869551704
+  },
+  {
+    "id": "13b88988f00a2eaf",
+    "_cblKey": "天地包_39",
+    "level": 3,
+    "title": "天地包 40",
+    "description": "天地包殺法練習",
+    "initialFen": "1r2ka3/2P1a1R2/4e3e/7C1/4C4/9/4c4/4E4/3pA4/c3KAE2",
+    "moves": [
+      "h3h0",
+      "i2g0",
+      "g1e1",
+      "e0d0",
+      "c1d1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869551733,
+    "updatedAt": 1782869551733
+  },
+  {
+    "id": "8e8ebfc1780e1f3e",
+    "_cblKey": "天地包_40",
+    "level": 3,
+    "title": "天地包 41",
+    "description": "天地包殺法練習",
+    "initialFen": "2r1ka3/3Pa4/4e3e/7C1/4C4/7R1/4c4/4E4/3pA4/c3KAE2",
+    "moves": [
+      "h3h0",
+      "i2g0",
+      "d1e1",
+      "e0d0",
+      "h5d5"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869551762,
+    "updatedAt": 1782869551762
+  },
+  {
+    "id": "63f282dec63d0f52",
+    "_cblKey": "天地包_41",
+    "level": 3,
+    "title": "天地包 42",
+    "description": "天地包殺法練習",
+    "initialFen": "1Ceak1er1/9/3P2R2/1C7/9/9/4c4/4E4/4p4/2EA1K2c",
+    "moves": [
+      "g2e2",
+      "g0e2",
+      "b3e3",
+      "e2g0",
+      "d2e2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869551795,
+    "updatedAt": 1782869551795
+  },
+  {
+    "id": "697b2ca021c7a4ae",
+    "_cblKey": "天地包_42",
+    "level": 3,
+    "title": "天地包 43",
+    "description": "天地包殺法練習",
+    "initialFen": "3cka3/4aR3/2h1e2rC/4C4/9/5R3/4c4/4E4/2p1p4/3K2E2",
+    "moves": [
+      "i2i0",
+      "h2h0",
+      "f1f0",
+      "d0f0",
+      "f5f0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869551894,
+    "updatedAt": 1782869551894
+  },
+  {
+    "id": "78697a6291932da5",
+    "_cblKey": "天地包_43",
+    "level": 3,
+    "title": "天地包 44",
+    "description": "天地包殺法練習",
+    "initialFen": "1r1ckaeC1/1HR1a2r1/4eR3/p1p1C3p/9/2P3P2/P3P3P/2h6/3p4c/4K1p2",
+    "moves": [
+      "c1e1",
+      "h1e1",
+      "b1d2",
+      "d0d1",
+      "f2f0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869552050,
+    "updatedAt": 1782869552050
+  },
+  {
+    "id": "e5450a63644b4785",
+    "_cblKey": "天地包_44",
+    "level": 2,
+    "title": "天地包 45",
+    "description": "天地包殺法練習",
+    "initialFen": "1Ceak4/4a4/4e2r1/4C4/5R3/P1P6/ch4P2/9/4A4/2EAK1E2",
+    "moves": [
+      "e9f9",
+      "h2h9",
+      "f4f0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869553080,
+    "updatedAt": 1782869553080
+  },
+  {
+    "id": "3bdfe4163a030ce6",
+    "_cblKey": "天地包_45",
+    "level": 2,
+    "title": "天地包 46",
+    "description": "天地包殺法練習",
+    "initialFen": "r3kaer1/4a4/2h1e1h2/3RC3p/P5p2/9/6P2/1Cc1E4/4A4/1R1K1AE2",
+    "moves": [
+      "b7b0",
+      "a0a4",
+      "d3d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869601694,
+    "updatedAt": 1782869601694
+  },
+  {
+    "id": "bdd8f2d3c12b7845",
+    "_cblKey": "天地包_47",
+    "level": 2,
+    "title": "天地包 48",
+    "description": "天地包殺法練習",
+    "initialFen": "4kaeC1/4a3R/4e4/2H1C4/9/9/9/4E4/1r1rA4/c3KAE2",
+    "moves": [
+      "i1e1",
+      "e0d0",
+      "e1e0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869606029,
+    "updatedAt": 1782869606029
+  },
+  {
+    "id": "c688980938eb7f87",
+    "_cblKey": "天地包_48",
+    "level": 3,
+    "title": "天地包 49",
+    "description": "天地包殺法練習",
+    "initialFen": "4ka3/4a4/4e1h1e/5R3/4C4/5R3/9/4E2C1/1r1rA4/c3KAE2",
+    "moves": [
+      "h7h0",
+      "i2g0",
+      "f3f0",
+      "g2f0",
+      "f5f0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869606079,
+    "updatedAt": 1782869606079
+  },
+  {
+    "id": "cb8e3e9897b66799",
+    "_cblKey": "天地包_49",
+    "level": 3,
+    "title": "天地包 50",
+    "description": "天地包殺法練習",
+    "initialFen": "rc2ka3/2P1a1R2/4e3e/7C1/4C4/9/4c4/4E4/3pA4/4KAE2",
+    "moves": [
+      "h3h0",
+      "i2g0",
+      "g1e1",
+      "e0d0",
+      "c1d1"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869606123,
+    "updatedAt": 1782869606123
+  },
+  {
+    "id": "34171e88b0f5ab9b",
+    "_cblKey": "天地包_50",
+    "level": 3,
+    "title": "天地包 51",
+    "description": "天地包殺法練習",
+    "initialFen": "4ka3/3Pa4/4e3e/7C1/4C4/7R1/9/4E4/c1rpA4/1c2KAE2",
+    "moves": [
+      "h3h0",
+      "i2g0",
+      "d1e1",
+      "e0d0",
+      "h5d5"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869606201,
+    "updatedAt": 1782869606201
+  },
+  {
+    "id": "9a8a843444227299",
+    "_cblKey": "天地包_51",
+    "level": 3,
+    "title": "天地包 52",
+    "description": "天地包殺法練習",
+    "initialFen": "1Ceak1er1/9/3P2R2/1C7/9/9/9/9/4p4/5K2c",
+    "moves": [
+      "g2e2",
+      "g0e2",
+      "b3e3",
+      "e2g0",
+      "d2e2"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869606260,
+    "updatedAt": 1782869606260
+  },
+  {
+    "id": "593d9834ed4e55f4",
+    "_cblKey": "天地包_52",
+    "level": 3,
+    "title": "天地包 53",
+    "description": "天地包殺法練習",
+    "initialFen": "3cka3/4aR3/2h1e2rC/4C4/9/5R3/9/9/2p1p4/3K5",
+    "moves": [
+      "i2i0",
+      "h2h0",
+      "f1f0",
+      "d0f0",
+      "f5f0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869606403,
+    "updatedAt": 1782869606403
+  },
+  {
+    "id": "5ad33d8a9999a2ff",
+    "_cblKey": "天地包_53",
+    "level": 3,
+    "title": "天地包 54",
+    "description": "天地包殺法練習",
+    "initialFen": "1r1ckaeC1/1HR1a2r1/4eR3/p1p1C3p/9/2P3P2/P2hP3P/2h6/9/4K4",
+    "moves": [
+      "c1e1",
+      "h1e1",
+      "b1d2",
+      "d0d1",
+      "f2f0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869606457,
+    "updatedAt": 1782869606457
+  },
+  {
+    "id": "f44a013fcb153229",
+    "_cblKey": "天地包_54",
+    "level": 2,
+    "title": "天地包 55",
+    "description": "天地包殺法練習",
+    "initialFen": "1Ceak4/4a4/4e2r1/4C4/5R3/9/ch7/9/4A4/2EAK1E2",
+    "moves": [
+      "e9f9",
+      "h2h9",
+      "f4f0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869607510,
+    "updatedAt": 1782869607510
+  },
+  {
+    "id": "bdf5060a9df6f208",
+    "_cblKey": "天地包_55",
+    "level": 2,
+    "title": "天地包 56",
+    "description": "天地包殺法練習",
+    "initialFen": "r3kaer1/4a4/2h1e1h2/3RC3p/6p2/9/P5P1P/1Cc6/4A4/1REK1AE2",
+    "moves": [
+      "b7b0",
+      "a0a6",
+      "d3d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869773719,
+    "updatedAt": 1782869773719
+  },
+  {
+    "id": "bbe24444dd9152a8",
+    "_cblKey": "天地包_56",
+    "level": 4,
+    "title": "天地包 57",
+    "description": "天地包殺法練習",
+    "initialFen": "2r1ka3/4aP3/4e3e/R3Ch1C1/9/9/9/4E4/c2pA4/1c2KAE2",
+    "moves": [
+      "h3h0",
+      "i2g0",
+      "f1f0",
+      "e0d0",
+      "a3d3",
+      "e1d2",
+      "d3d2"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869774258,
+    "updatedAt": 1782869774258
+  },
+  {
+    "id": "ee889fa0265c979d",
+    "_cblKey": "天地包_57",
+    "level": 4,
+    "title": "天地包 58",
+    "description": "天地包殺法練習",
+    "initialFen": "4kaeC1/4a3R/2P1e4/4C4/9/9/9/4E4/1r1rA4/c3KAE2",
+    "moves": [
+      "i1e1",
+      "e0d0",
+      "e1e0",
+      "d0d1",
+      "c2c1",
+      "d1d2",
+      "e0d0"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869774490,
+    "updatedAt": 1782869774490
+  },
+  {
+    "id": "9e483b5bf0021954",
+    "_cblKey": "天地包_58",
+    "level": 4,
+    "title": "天地包 59",
+    "description": "天地包殺法練習",
+    "initialFen": "4kaeC1/4a3R/4e4/4C4/9/1H7/9/4E4/1r1rA4/c3KAE2",
+    "moves": [
+      "i1e1",
+      "e0d0",
+      "e1e0",
+      "d0d1",
+      "b5c3",
+      "d1d2",
+      "e0d0"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869774741,
+    "updatedAt": 1782869774741
+  },
+  {
+    "id": "bf9fd97edb15135f",
+    "_cblKey": "天地包_62",
+    "level": 2,
+    "title": "天地包 63",
+    "description": "天地包殺法練習",
+    "initialFen": "3rkae2/4a4/4e4/4C3p/6p2/5R3/9/4E4/c2hA4/4KA2C",
+    "moves": [
+      "i9g9",
+      "d0d7",
+      "g9g0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869952929,
+    "updatedAt": 1782869952929
+  },
+  {
+    "id": "0603ab56b96ead96",
+    "_cblKey": "天地包_63",
+    "level": 1,
+    "title": "天地包 64",
+    "description": "天地包殺法練習",
+    "initialFen": "1re1ka1hC/4a4/3re4/p6h1/4C4/2R2R3/P3p3P/4E4/4A4/4KAE2",
+    "moves": [
+      "f5f0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869952953,
+    "updatedAt": 1782869952953
+  },
+  {
+    "id": "c6ae6f469a5afc7a",
+    "_cblKey": "天地包_64",
+    "level": 1,
+    "title": "天地包 65",
+    "description": "天地包殺法練習",
+    "initialFen": "4kae2/4a4/4e1h2/4C4/9/6C2/9/9/9/4K4",
+    "moves": [
+      "g5g0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869952969,
+    "updatedAt": 1782869952969
+  },
+  {
+    "id": "f1addb930a7e6ab7",
+    "_cblKey": "天地包_65",
+    "level": 1,
+    "title": "天地包 66",
+    "description": "天地包殺法練習",
+    "initialFen": "2eak4/4a4/4e4/4C4/2p6/9/9/2C1E4/4Ap1h1/4K3c",
+    "moves": [
+      "c7c0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869952987,
+    "updatedAt": 1782869952987
+  },
+  {
+    "id": "1dc3609197e9fcca",
+    "_cblKey": "天地包_66",
+    "level": 1,
+    "title": "天地包 67",
+    "description": "天地包殺法練習",
+    "initialFen": "4kae2/4a4/4e4/4C4/6p2/9/9/3h5/4p4/5KC2",
+    "moves": [
+      "g9g0"
+    ],
+    "totalSteps": 1,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869953004,
+    "updatedAt": 1782869953004
+  },
+  {
+    "id": "5221a187d4023ad4",
+    "_cblKey": "天地包_67",
+    "level": 2,
+    "title": "天地包 68",
+    "description": "天地包殺法練習",
+    "initialFen": "3aka2R/9/4e1C2/8C/9/9/9/9/2r1p4/c2K5",
+    "moves": [
+      "i3e3",
+      "e2g0",
+      "g2e2"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869953041,
+    "updatedAt": 1782869953041
+  },
+  {
+    "id": "6479888a6d29c533",
+    "_cblKey": "天地包_68",
+    "level": 2,
+    "title": "天地包 69",
+    "description": "天地包殺法練習",
+    "initialFen": "C1eak2H1/4a1R2/c3e4/4C3p/9/2E2r3/4c4/2h1E4/3pA4/4K4",
+    "moves": [
+      "g1e1",
+      "e0f0",
+      "e1e0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869953085,
+    "updatedAt": 1782869953085
+  },
+  {
+    "id": "145612af82f175ee",
+    "_cblKey": "天地包_69",
+    "level": 2,
+    "title": "天地包 70",
+    "description": "天地包殺法練習",
+    "initialFen": "1re1ka3/4a4/3re1h2/p6h1/4C3C/2R2R3/P3p3P/4E4/4A4/4KAE2",
+    "moves": [
+      "i4i0",
+      "g2h0",
+      "f5f0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869953121,
+    "updatedAt": 1782869953121
+  },
+  {
+    "id": "25ee6c5d258ec4f3",
+    "_cblKey": "天地包_70",
+    "level": 2,
+    "title": "天地包 71",
+    "description": "天地包殺法練習",
+    "initialFen": "3ak4/4a4/e3e4/3RC4/9/9/9/9/5r3/1C2KAr1c",
+    "moves": [
+      "b9b0",
+      "a2c0",
+      "d3d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869953154,
+    "updatedAt": 1782869953154
+  },
+  {
+    "id": "5949b155a1d8e899",
+    "_cblKey": "天地包_71",
+    "level": 3,
+    "title": "天地包 72",
+    "description": "天地包殺法練習",
+    "initialFen": "3ak4/9/2Ca5/9/7R1/9/7p1/4C4/4p2r1/2E2K3",
+    "moves": [
+      "h4h0",
+      "e0e1",
+      "h0h1",
+      "e1e0",
+      "c2c0"
+    ],
+    "totalSteps": 5,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869953222,
+    "updatedAt": 1782869953222
+  },
+  {
+    "id": "6caddb6e8a311b39",
+    "_cblKey": "天地包_72",
+    "level": 2,
+    "title": "天地包 73",
+    "description": "天地包殺法練習",
+    "initialFen": "1Ceakar2/3P5/4e4/C4hH2/2c3p2/2E6/5h3/4E4/3pA4/4KA3",
+    "moves": [
+      "a3e3",
+      "f3e1",
+      "d1d0"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869953503,
+    "updatedAt": 1782869953504
+  },
+  {
+    "id": "596d47396ae37e18",
+    "_cblKey": "天地包_73",
+    "level": 2,
+    "title": "天地包 74",
+    "description": "天地包殺法練習",
+    "initialFen": "3akae2/9/4e4/3Rp4/9/C8/9/1C7/2r1p2c1/3K5",
+    "moves": [
+      "a5a0",
+      "e0e1",
+      "d3d1"
+    ],
+    "totalSteps": 3,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869953630,
+    "updatedAt": 1782869953630
+  },
+  {
+    "id": "cdc34ca4b6771039",
+    "_cblKey": "天地包_74",
+    "level": 4,
+    "title": "天地包 75",
+    "description": "天地包殺法練習",
+    "initialFen": "2eak1eRC/c3a4/9/6p2/7H1/1H7/5C3/5p3/4p1rh1/3p1K3",
+    "moves": [
+      "f6e6",
+      "e0f0",
+      "h4g2",
+      "f0f1",
+      "h0h1",
+      "f1f2",
+      "i0i2"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869953851,
+    "updatedAt": 1782869953851
+  },
+  {
+    "id": "0b5a88bd0fa07ffc",
+    "_cblKey": "天地包_77",
+    "level": 4,
+    "title": "天地包 78",
+    "description": "天地包殺法練習",
+    "initialFen": "2e6/4kc3/1C1a5/7R1/6e2/2E6/4C4/9/2r2p3/4K4",
+    "moves": [
+      "h3e3",
+      "e1d1",
+      "e6d6",
+      "d2e1",
+      "b2d2",
+      "d1d2",
+      "e3d3"
+    ],
+    "totalSteps": 7,
+    "createdBy": "cbl-import",
+    "isPublished": false,
+    "createdAt": 1782869969210,
+    "updatedAt": 1782869969210
+  }
+]
