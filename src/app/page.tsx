@@ -338,7 +338,7 @@ function LivingPetDisplay({ stage, healthStatus }: { stage: string; healthStatus
   }, [isAlive, healthStatus]);
 
   return (
-    <div className="relative flex h-40 w-full items-end justify-center">
+    <div className="relative flex h-56 w-full items-end justify-center">
       {dialogueText ? (
         <div className="absolute top-0 z-10 max-w-[80%] rounded-2xl bg-white px-3 py-2 text-xs font-semibold text-[#1A1A2E] shadow-md">
           {dialogueText}
@@ -350,7 +350,7 @@ function LivingPetDisplay({ stage, healthStatus }: { stage: string; healthStatus
       <img
         src={getPetImagePath(stage, healthStatus)}
         alt={`小雞，目前狀態：${HEALTH_STATUS_LABEL[healthStatus] ?? healthStatus}`}
-        className="h-28 w-28 object-contain"
+        className="h-48 w-48 object-contain"
       />
     </div>
   );
