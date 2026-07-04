@@ -345,22 +345,36 @@ function BattlePageContent() {
     const newHistory = [...moveHistory, notation];
     setMoveHistory(newHistory);
 
-    // 比對正解
-    const isCorrect = checkSolution(newHistory, currentPuzzle);
+    const allLines = [currentPuzzle.moves, ...(currentPuzzle.alternativeLines ?? []).map((l) => l.moves)];
+
+    // 比對正解：走完的步數剛好等於某條線的長度且每步都對 → 答對
+    const isCorrect = allLines.some(
+      (line) =>
+        line.length === newHistory.length &&
+        line.every((move, i) => move === newHistory[i])
+    );
+
     if (isCorrect) {
       setSolvedThisQuestion(true);
       clearTimers();
       const timeMs = Date.now() - questionStartTimeRef.current;
       submitAnswer(true, timeMs);
+      return;
     }
-  }
 
-  function checkSolution(history: string[], puzzle: PuzzleDoc): boolean {
-    const allLines = [puzzle.moves, ...(puzzle.alternativeLines ?? []).map((l) => l.moves)];
-    return allLines.some((line) =>
-      line.length === history.length &&
-      line.every((move, i) => move === history[i])
+    // 判斷答錯：如果現有的走法序列已經無法符合任何一條正解線的前綴，
+    // 代表走錯了，直接算錯（不讓學生繼續走）。
+    // 例如正解是 [a, b, c]，學生走了 [a, x]，x ≠ b，這條線就永遠對不上了。
+    const canStillMatch = allLines.some((line) =>
+      newHistory.length <= line.length &&
+      newHistory.every((move, i) => move === line[i])
     );
+
+    if (!canStillMatch) {
+      setSolvedThisQuestion(true); // 鎖住棋盤不讓繼續走
+      clearTimers();
+      submitAnswer(false, 0);
+    }
   }
 
   async function submitAnswer(solved: boolean, timeMs: number) {
@@ -374,11 +388,11 @@ function BattlePageContent() {
     const myNewScore = solved ? (room.scores[myUid] ?? 0) + 1 : (room.scores[myUid] ?? 0);
     const scoreUpdate = { [`scores.${myUid}`]: myNewScore };
 
-    // 兩人都答完才推進（或只有我答完先記錄，等對方也答完後再推進）
+    // 對方已回答的判斷：solved === true 代表答對，timeMs 不為 null 代表答對或超時都處理完了
     const oppUid = opponentUid;
     const oppPlayer = oppUid ? room.players[oppUid] : null;
     const oppAlreadyAnswered = oppPlayer
-      ? oppPlayer.solved !== false || oppPlayer.timeMs !== null
+      ? oppPlayer.solved === true || oppPlayer.timeMs !== null
       : false;
 
     const isLastQuestion = room.currentQuestion >= TOTAL_QUESTIONS - 1;
@@ -557,8 +571,22 @@ function BattlePageContent() {
         </div>
 
         {solvedThisQuestion ? (
-          <p className="mt-3 rounded-2xl bg-[#5B8C5A]/10 px-4 py-2 text-center text-sm font-bold text-[#5B8C5A]">
-            ✅ 答對！等待對手…
+          <p className={[
+            "mt-3 rounded-2xl px-4 py-2 text-center text-sm font-bold",
+            moveHistory.length > 0 && currentPuzzle
+              ? (() => {
+                  const allLines = [currentPuzzle.moves, ...(currentPuzzle.alternativeLines ?? []).map((l) => l.moves)];
+                  const correct = allLines.some((line) => line.length === moveHistory.length && line.every((m, i) => m === moveHistory[i]));
+                  return correct ? "bg-[#5B8C5A]/10 text-[#5B8C5A]" : "bg-[#C0392B]/10 text-[#C0392B]";
+                })()
+              : "bg-[#C0392B]/10 text-[#C0392B]"
+          ].join(" ")}>
+            {(() => {
+              if (!currentPuzzle) return "等待下一題…";
+              const allLines = [currentPuzzle.moves, ...(currentPuzzle.alternativeLines ?? []).map((l) => l.moves)];
+              const correct = allLines.some((line) => line.length === moveHistory.length && line.every((m, i) => m === moveHistory[i]));
+              return correct ? "✅ 答對！等待對手…" : "❌ 答錯，等待下一題…";
+            })()}
           </p>
         ) : null}
 
