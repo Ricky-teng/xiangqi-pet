@@ -122,6 +122,19 @@ function BattlePageContent() {
     }
   }, [myUid]);
 
+  /** 配對成功前取消才退款，配對成功後取消（認輸）不退 */
+  const refundIfNotMatched = useCallback(() => {
+    if (hasMatchedRef.current) return;
+    if (!user) return;
+    const newFood = user.foodCount + BATTLE_ENTRY_COST;
+    const updatedUser = { ...user, foodCount: newFood, updatedAt: Date.now() };
+    setUser(updatedUser);
+    updateDoc(doc(db, "users", user.uid), { foodCount: newFood, updatedAt: Date.now() }).catch(console.error);
+  }, [user, setUser]);
+
+  // 配對成功後設為 true，取消時用來判斷要不要退款
+  const hasMatchedRef = useRef(false);
+
   // ---- 扣費進場 ----
   useEffect(() => {
     if (!user) return;
@@ -257,6 +270,7 @@ function BattlePageContent() {
         // 結算飼料
         applyBattleResult(data, myUid);
       } else if (phase !== "playing") {
+        hasMatchedRef.current = true; // 配對成功，取消時不退款
         setPhase("playing");
       }
     });
@@ -498,10 +512,10 @@ function BattlePageContent() {
           </div>
           <button
             type="button"
-            onClick={async () => { await leaveAndCleanup(); router.push("/"); }}
+            onClick={async () => { refundIfNotMatched(); await leaveAndCleanup(); router.push("/"); }}
             className="mt-6 w-full rounded-2xl bg-white px-4 py-2.5 text-sm font-bold text-[#1A1A2E]/70 ring-1 ring-inset ring-[#A9764C]/30 transition-transform active:scale-95"
           >
-            取消並返回大廳
+            取消並返回大廳（退回 50 飼料）
           </button>
         </section>
       </main>
