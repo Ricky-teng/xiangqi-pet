@@ -317,7 +317,7 @@ export default function ChessBoard({ board, onMove, highlightMove, lastMove }: C
                 {cell ? (
                   <g
                     style={{
-                      transform: isSelected ? `translate(${x}px, ${y - CELL * 0.14}px) scale(1.22)` : `translate(${x}px, ${y}px) scale(1)`,
+                      transform: isSelected ? `translate(${x}px, ${y - CELL * 0.06}px) scale(1.12)` : `translate(${x}px, ${y}px) scale(1)`,
                       transformOrigin: `${x}px ${y}px`,
                       transition: "transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1)",
                       filter: isSelected ? "drop-shadow(0 4px 8px rgba(0,0,0,0.45))" : "none",
