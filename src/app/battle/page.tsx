@@ -93,6 +93,7 @@ function BattlePageContent() {
   const [moveHistory, setMoveHistory] = useState<string[]>([]);
   const [sideToMove, setSideToMove] = useState<"w" | "b">("w");
   const [solvedThisQuestion, setSolvedThisQuestion] = useState(false);
+  const [lastAnswerResult, setLastAnswerResult] = useState<"correct" | "wrong" | null>(null);
   const [lastMoveHighlight, setLastMoveHighlight] = useState<{ from: string; to: string } | null>(null);
 
   // 計時
@@ -255,7 +256,7 @@ function BattlePageContent() {
   useEffect(() => {
     if (!roomId) return;
 
-    const unsubscribe = onSnapshot(doc(db, "battleRooms", roomId), (snap) => {
+    const unsubscribe = onSnapshot(doc(db, "battleRooms", roomId), async (snap) => {
       if (!snap.exists()) return;
       const data = snap.data() as BattleRoomDoc;
       setRoom(data);
@@ -267,11 +268,53 @@ function BattlePageContent() {
       if (data.status === "finished") {
         setPhase("finished");
         clearTimers();
-        // 結算飼料
         applyBattleResult(data, myUid);
-      } else if (phase !== "playing") {
-        hasMatchedRef.current = true; // 配對成功，取消時不退款
+        return;
+      }
+
+      if (phase !== "playing") {
+        hasMatchedRef.current = true;
         setPhase("playing");
+      }
+
+      // 推進邏輯在這裡集中處理：偵測到「雙方都已回答（timeMs 不為 null）」時，
+      // 由 uid 字典序較小的那方負責推進（避免兩方同時推進造成重複寫入）。
+      if (!oppUid) return;
+      const me = data.players[myUid];
+      const opp = data.players[oppUid];
+      const bothAnswered = me?.timeMs !== null && me?.timeMs !== undefined
+        && opp?.timeMs !== null && opp?.timeMs !== undefined;
+
+      if (!bothAnswered) return;
+
+      // 用 uid 字典序決定誰推進，避免兩方同時寫 Firestore
+      const shouldIAdvance = myUid < oppUid;
+      if (!shouldIAdvance) return;
+
+      const isLastQuestion = data.currentQuestion >= TOTAL_QUESTIONS - 1;
+      const myFinalScore = data.scores[myUid] ?? 0;
+
+      if (isLastQuestion) {
+        const oppFinalScore = data.scores[oppUid] ?? 0;
+        let winner: string | null = null;
+        if (myFinalScore > oppFinalScore) winner = myUid;
+        else if (oppFinalScore > myFinalScore) winner = oppUid;
+        // 平局 winner 保持 null
+
+        await updateDoc(doc(db, "battleRooms", roomId), {
+          status: "finished",
+          winner,
+        }).catch(console.error);
+      } else {
+        // 重置雙方本題狀態，推進到下一題
+        await updateDoc(doc(db, "battleRooms", roomId), {
+          currentQuestion: data.currentQuestion + 1,
+          questionStartTime: Date.now(),
+          [`players.${myUid}.solved`]: false,
+          [`players.${myUid}.timeMs`]: null,
+          [`players.${oppUid}.solved`]: false,
+          [`players.${oppUid}.timeMs`]: null,
+        }).catch(console.error);
       }
     });
 
@@ -307,6 +350,7 @@ function BattlePageContent() {
     setMoveHistory([]);
     setSideToMove("w");
     setSolvedThisQuestion(false);
+    setLastAnswerResult(null);
     setLastMoveHighlight(null);
 
     const startTime = room.questionStartTime;
@@ -356,6 +400,7 @@ function BattlePageContent() {
 
     if (isCorrect) {
       setSolvedThisQuestion(true);
+      setLastAnswerResult("correct");
       clearTimers();
       const timeMs = Date.now() - questionStartTimeRef.current;
       submitAnswer(true, timeMs);
@@ -371,91 +416,44 @@ function BattlePageContent() {
     );
 
     if (!canStillMatch) {
-      setSolvedThisQuestion(true); // 鎖住棋盤不讓繼續走
+      setSolvedThisQuestion(true);
+      setLastAnswerResult("wrong");
       clearTimers();
       submitAnswer(false, 0);
     }
   }
 
   async function submitAnswer(solved: boolean, timeMs: number) {
-    if (!roomId || !room || !myUid) return;
+    if (!roomId || !myUid) return;
 
-    const playerUpdate = {
+    // 只寫自己的答案，不在這裡判斷推進邏輯。
+    // 推進下一題的邏輯統一在 onSnapshot 裡處理，避免兩方同時寫時的競態問題。
+    await updateDoc(doc(db, "battleRooms", roomId), {
       [`players.${myUid}.solved`]: solved,
-      [`players.${myUid}.timeMs`]: solved ? timeMs : null,
-    };
-
-    const myNewScore = solved ? (room.scores[myUid] ?? 0) + 1 : (room.scores[myUid] ?? 0);
-    const scoreUpdate = { [`scores.${myUid}`]: myNewScore };
-
-    // 對方已回答的判斷：solved === true 代表答對，timeMs 不為 null 代表答對或超時都處理完了
-    const oppUid = opponentUid;
-    const oppPlayer = oppUid ? room.players[oppUid] : null;
-    const oppAlreadyAnswered = oppPlayer
-      ? oppPlayer.solved === true || oppPlayer.timeMs !== null
-      : false;
-
-    const isLastQuestion = room.currentQuestion >= TOTAL_QUESTIONS - 1;
-
-    if (oppAlreadyAnswered || !oppUid) {
-      // 對方已答，推進到下一題或結束
-      if (isLastQuestion) {
-        await finishBattle(myNewScore, myUid, oppUid, room);
-      } else {
-        await updateDoc(doc(db, "battleRooms", roomId), {
-          ...playerUpdate,
-          ...scoreUpdate,
-          currentQuestion: room.currentQuestion + 1,
-          questionStartTime: Date.now(),
-          [`players.${myUid}.solved`]: false,
-          [`players.${oppUid ?? myUid}.solved`]: false,
-          [`players.${myUid}.timeMs`]: null,
-          [`players.${oppUid ?? myUid}.timeMs`]: null,
-        });
-      }
-    } else {
-      // 等對方，只記錄自己的答案
-      await updateDoc(doc(db, "battleRooms", roomId), {
-        ...playerUpdate,
-        ...scoreUpdate,
-      });
-    }
+      [`players.${myUid}.timeMs`]: solved ? timeMs : 0,
+      [`scores.${myUid}`]: solved
+        ? (room?.scores[myUid] ?? 0) + 1
+        : (room?.scores[myUid] ?? 0),
+    }).catch((error) => {
+      console.error("[battle] submitAnswer 失敗：", error);
+    });
   }
 
   async function handleTimeOut() {
     clearTimers();
-    setSolvedThisQuestion(true); // 防止繼續走棋
+    setSolvedThisQuestion(true);
+    setLastAnswerResult("wrong");
     await submitAnswer(false, 0);
   }
 
   async function handleResign() {
-    if (!roomId || !room || !myUid || !opponentUid) return;
+    if (!roomId || !myUid || !opponentUid) return;
     clearTimers();
-    await finishBattle(room.scores[myUid] ?? 0, myUid, opponentUid, room, opponentUid);
-  }
-
-  async function finishBattle(
-    myFinalScore: number,
-    myUid: string,
-    oppUid: string | null,
-    currentRoom: BattleRoomDoc,
-    forceWinner?: string
-  ) {
-    if (!roomId) return;
-
-    const oppFinalScore = oppUid ? (currentRoom.scores[oppUid] ?? 0) : 0;
-    let winner: string | null = forceWinner ?? null;
-
-    if (!forceWinner) {
-      if (myFinalScore > oppFinalScore) winner = myUid;
-      else if (oppFinalScore > myFinalScore) winner = oppUid;
-      else winner = null; // 平局（暫不處理時間決勝，先都算平局）
-    }
-
+    // 認輸：直接把對手設為贏家
     await updateDoc(doc(db, "battleRooms", roomId), {
       status: "finished",
-      winner: winner ?? null,
-    });
+      winner: opponentUid,
+    }).catch(console.error);
   }
 
   function applyBattleResult(data: BattleRoomDoc, uid: string) {
@@ -573,20 +571,11 @@ function BattlePageContent() {
         {solvedThisQuestion ? (
           <p className={[
             "mt-3 rounded-2xl px-4 py-2 text-center text-sm font-bold",
-            moveHistory.length > 0 && currentPuzzle
-              ? (() => {
-                  const allLines = [currentPuzzle.moves, ...(currentPuzzle.alternativeLines ?? []).map((l) => l.moves)];
-                  const correct = allLines.some((line) => line.length === moveHistory.length && line.every((m, i) => m === moveHistory[i]));
-                  return correct ? "bg-[#5B8C5A]/10 text-[#5B8C5A]" : "bg-[#C0392B]/10 text-[#C0392B]";
-                })()
-              : "bg-[#C0392B]/10 text-[#C0392B]"
+            lastAnswerResult === "correct"
+              ? "bg-[#5B8C5A]/10 text-[#5B8C5A]"
+              : "bg-[#C0392B]/10 text-[#C0392B]",
           ].join(" ")}>
-            {(() => {
-              if (!currentPuzzle) return "等待下一題…";
-              const allLines = [currentPuzzle.moves, ...(currentPuzzle.alternativeLines ?? []).map((l) => l.moves)];
-              const correct = allLines.some((line) => line.length === moveHistory.length && line.every((m, i) => m === moveHistory[i]));
-              return correct ? "✅ 答對！等待對手…" : "❌ 答錯，等待下一題…";
-            })()}
+            {lastAnswerResult === "correct" ? "✅ 答對！等待對手…" : "❌ 答錯，等待下一題…"}
           </p>
         ) : null}
 
