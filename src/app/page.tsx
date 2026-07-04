@@ -379,15 +379,18 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
 
   const [dailyGrantMessage, setDailyGrantMessage] = useState<string | null>(null);
 
-  // 進首頁時檢查每日救助金（飼料低於50且今天尚未領過，自動補到夠參加作戰）
-  useEffect(() => {
+  function handleStartBattle() {
+    // 按下配對時才檢查救助金——飼料不足 50 且今天還沒領過，先補再進
     const result = claimDailyGrant();
     if (result.granted) {
       setDailyGrantMessage("🎁 每日救助金 +50 飼料！讓你可以參加今天的作戰！");
       setTimeout(() => setDailyGrantMessage(null), 5000);
+      // 給 state 更新一個 tick 的時間後再跳轉
+      setTimeout(() => router.push("/battle"), 50);
+    } else {
+      router.push("/battle");
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }
 
   const jumpTriggerRef = useRef<(() => void) | null>(null);
 
@@ -830,19 +833,35 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
           <p className="mb-3 text-center text-xs text-[#1A1A2E]/60">
             與其他玩家即時對戰！共 10 題殘局，每題限時 30 秒，贏的一方 +50 飼料。
           </p>
-          {user.foodCount < 50 ? (
-            <p className="mb-3 rounded-xl bg-[#C0392B]/10 px-3 py-2 text-center text-xs font-semibold text-[#C0392B]">
-              飼料不足 50 無法參賽（目前 {user.foodCount} 飼料），解題或等明天領救助金吧！
-            </p>
-          ) : null}
-          <button
-            type="button"
-            onClick={() => router.push("/battle")}
-            disabled={user.foodCount < 50}
-            className="w-full rounded-2xl bg-gradient-to-b from-[#C0392B] to-[#922B21] px-4 py-3 text-base font-extrabold text-white shadow-md transition-transform active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            ⚔️ 進入作戰等待室（消耗 50 飼料）
-          </button>
+          {(() => {
+            // 計算按下按鈕後實際會有多少飼料（可能有救助金可領）
+            const todayStr = new Date().toISOString().slice(0, 10);
+            const canGetGrant = user.foodCount < 50 && user.lastDailyGrantDate !== todayStr;
+            const effectiveFoodCount = canGetGrant ? user.foodCount + 50 : user.foodCount;
+            const canBattle = effectiveFoodCount >= 50;
+
+            return (
+              <>
+                {!canBattle ? (
+                  <p className="mb-3 rounded-xl bg-[#C0392B]/10 px-3 py-2 text-center text-xs font-semibold text-[#C0392B]">
+                    飼料不足 50 且今天已領過救助金，無法參賽（目前 {user.foodCount} 飼料）
+                  </p>
+                ) : user.foodCount < 50 ? (
+                  <p className="mb-3 rounded-xl bg-[#5B8C5A]/10 px-3 py-2 text-center text-xs font-semibold text-[#5B8C5A]">
+                    🎁 飼料不足，按下配對會自動領取今日救助金 +50！
+                  </p>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={handleStartBattle}
+                  disabled={!canBattle}
+                  className="w-full rounded-2xl bg-gradient-to-b from-[#C0392B] to-[#922B21] px-4 py-3 text-base font-extrabold text-white shadow-md transition-transform active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  ⚔️ 開始配對（消耗 50 飼料）
+                </button>
+              </>
+            );
+          })()}
         </section>
 
         {/* ============================================================

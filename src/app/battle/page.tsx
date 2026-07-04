@@ -50,7 +50,6 @@ import type { BattleRoomDoc, MatchmakingQueueEntry, PuzzleDoc } from "@/types/da
 
 const BATTLE_ENTRY_COST = 50;
 const BATTLE_WIN_REWARD = 50;
-const BATTLE_LOSE_PENALTY = 50;
 const QUESTION_TIME_LIMIT_MS = 30_000;
 const TOTAL_QUESTIONS = 10;
 const MATCHMAKING_INTERVAL_MS = 3000;
@@ -377,6 +376,8 @@ function BattlePageContent() {
   // ---- 走棋 ----
   function handleMove(notation: string) {
     if (!engine || !board || !currentPuzzle || solvedThisQuestion || phase !== "playing") return;
+    // 只在輪到玩家（紅方 w）時接受輸入
+    if (sideToMove !== "w") return;
 
     if (!engine.isLegalMove(toFenStr(board, sideToMove), sideToMove, notation)) return;
 
@@ -391,7 +392,7 @@ function BattlePageContent() {
 
     const allLines = [currentPuzzle.moves, ...(currentPuzzle.alternativeLines ?? []).map((l) => l.moves)];
 
-    // 比對正解：走完的步數剛好等於某條線的長度且每步都對 → 答對
+    // 答對判定
     const isCorrect = allLines.some(
       (line) =>
         line.length === newHistory.length &&
@@ -407,9 +408,7 @@ function BattlePageContent() {
       return;
     }
 
-    // 判斷答錯：如果現有的走法序列已經無法符合任何一條正解線的前綴，
-    // 代表走錯了，直接算錯（不讓學生繼續走）。
-    // 例如正解是 [a, b, c]，學生走了 [a, x]，x ≠ b，這條線就永遠對不上了。
+    // 答錯判定：走法已無法符合任何正解前綴
     const canStillMatch = allLines.some((line) =>
       newHistory.length <= line.length &&
       newHistory.every((move, i) => move === line[i])
@@ -420,6 +419,32 @@ function BattlePageContent() {
       setLastAnswerResult("wrong");
       clearTimers();
       submitAnswer(false, 0);
+      return;
+    }
+
+    // 玩家走對了但還沒結束——自動替黑方走正解的下一步（題目電腦回應）。
+    // 找出「跟目前走法序列前綴一致」的正解線，取其下一步就是電腦要走的棋。
+    // 如果多條線的下一步不一樣，取第一條（主線優先）。
+    const nextBlackMove = allLines.find(
+      (line) =>
+        line.length > newHistory.length &&
+        newHistory.every((move, i) => move === line[i])
+    )?.[newHistory.length];
+
+    if (nextBlackMove && result.sideToMove === "b") {
+      // 延遲 400ms 讓玩家看到自己走的棋再看電腦走
+      setTimeout(() => {
+        setBoard((prevBoard) => {
+          if (!prevBoard || !engine) return prevBoard;
+          const fenForBlack = toFenStr(prevBoard, "b");
+          if (!engine.isLegalMove(fenForBlack, "b", nextBlackMove)) return prevBoard;
+          const blackResult = engine.applyMove(fenForBlack, "b", nextBlackMove);
+          setSideToMove(blackResult.sideToMove);
+          setLastMoveHighlight({ from: nextBlackMove.slice(0, 2), to: nextBlackMove.slice(2, 4) });
+          setMoveHistory((prev) => [...prev, nextBlackMove]);
+          return parseFen(blackResult.fen);
+        });
+      }, 400);
     }
   }
 
@@ -459,12 +484,14 @@ function BattlePageContent() {
   function applyBattleResult(data: BattleRoomDoc, uid: string) {
     if (!user) return;
     const winner = data.winner;
+    // 贏：退還入場費 50 + 額外獎勵 50 = 淨賺 50（因為進場已扣 50，現在補回來再多給 50）
+    // 輸：入場費 50 不退還，不再額外扣除
+    // 平局：退還入場費（不虧不賺）
     let delta = 0;
-    if (winner === uid) delta = BATTLE_WIN_REWARD;
-    else if (winner !== null) delta = -BATTLE_LOSE_PENALTY;
-    // 平局（winner === null）不扣不給
+    if (winner === uid) delta = BATTLE_ENTRY_COST + BATTLE_WIN_REWARD; // +100（退場費+獎勵）
+    else if (winner === null) delta = BATTLE_ENTRY_COST; // 退還入場費，平局不賺不虧
 
-    if (delta === 0) return;
+    if (delta === 0) return; // 輸了不退，delta 維持 0
     const newFood = Math.max(0, user.foodCount + delta);
     const updatedUser = { ...user, foodCount: newFood, updatedAt: Date.now() };
     setUser(updatedUser);
@@ -497,7 +524,11 @@ function BattlePageContent() {
             </div>
           </div>
           <p className="mt-3 rounded-xl bg-[#1A1A2E]/5 px-4 py-2 text-sm font-semibold text-[#1A1A2E]">
-            {isDraw ? "飼料不扣不給" : isWin ? `+${BATTLE_WIN_REWARD} 飼料 🎉` : `-${BATTLE_LOSE_PENALTY} 飼料`}
+            {isDraw
+              ? "平局，退還入場費 50 飼料"
+              : isWin
+              ? `+${BATTLE_WIN_REWARD} 飼料（退場費 +${BATTLE_ENTRY_COST} + 獎勵 +${BATTLE_WIN_REWARD}）🎉`
+              : "入場費 50 飼料不退還"}
           </p>
           <button
             type="button"

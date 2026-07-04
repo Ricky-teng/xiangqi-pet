@@ -590,13 +590,16 @@ function PuzzleSolverSection({
             </p>
           ) : null}
 
-          <button
-            type="button"
-            onClick={onRequestReset}
-            className="rounded-2xl bg-white px-3 py-2 text-sm font-bold text-[#C0392B] shadow-sm ring-1 ring-inset ring-[#C0392B]/30 transition-transform active:scale-95"
-          >
-            🔄 重新開始本題
-          </button>
+          {/* 重新開始：只在「還沒解出來」時顯示，解出來後不能重做（防刷） */}
+          {!solverState.isCompleted ? (
+            <button
+              type="button"
+              onClick={onRequestReset}
+              className="rounded-2xl bg-white px-3 py-2 text-sm font-bold text-[#C0392B] shadow-sm ring-1 ring-inset ring-[#C0392B]/30 transition-transform active:scale-95"
+            >
+              🔄 重新開始本題
+            </button>
+          ) : null}
         </div>
       </div>
 
