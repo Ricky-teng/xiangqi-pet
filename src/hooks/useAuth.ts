@@ -79,6 +79,7 @@ function createDefaultUserDoc(
     unlockedCatalogIds: [],
     rebirthCount: 0,
     fcmTokens: [],
+    lastDailyGrantDate: null,
     createdAt: now,
     updatedAt: now,
   };

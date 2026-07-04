@@ -375,6 +375,19 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
 
   const pet = useGameStore((s) => s.pet);
   const feedPet = useGameStore((s) => s.feedPet);
+  const claimDailyGrant = useGameStore((s) => s.claimDailyGrant);
+
+  const [dailyGrantMessage, setDailyGrantMessage] = useState<string | null>(null);
+
+  // 進首頁時檢查每日救助金（飼料低於50且今天尚未領過，自動補到夠參加作戰）
+  useEffect(() => {
+    const result = claimDailyGrant();
+    if (result.granted) {
+      setDailyGrantMessage("🎁 每日救助金 +50 飼料！讓你可以參加今天的作戰！");
+      setTimeout(() => setDailyGrantMessage(null), 5000);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const jumpTriggerRef = useRef<(() => void) | null>(null);
 
@@ -805,7 +818,35 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
         </section>
 
         {/* ============================================================
-            E. 最近對局：學生自己的對弈紀錄，點進去可以回顧+分析+推演
+            E. 殘局作戰入口
+           ============================================================ */}
+        {dailyGrantMessage ? (
+          <div className="mt-4 rounded-2xl bg-[#5B8C5A] px-4 py-3 text-center text-sm font-bold text-white shadow-md">
+            {dailyGrantMessage}
+          </div>
+        ) : null}
+        <section className="mt-4 rounded-3xl bg-white/60 px-4 py-5 shadow-sm">
+          <h2 className="mb-1 text-center text-sm font-bold text-[#1A1A2E]">⚔️ 殘局作戰</h2>
+          <p className="mb-3 text-center text-xs text-[#1A1A2E]/60">
+            與其他玩家即時對戰！共 10 題殘局，每題限時 30 秒，贏的一方 +50 飼料。
+          </p>
+          {user.foodCount < 50 ? (
+            <p className="mb-3 rounded-xl bg-[#C0392B]/10 px-3 py-2 text-center text-xs font-semibold text-[#C0392B]">
+              飼料不足 50 無法參賽（目前 {user.foodCount} 飼料），解題或等明天領救助金吧！
+            </p>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => router.push("/battle")}
+            disabled={user.foodCount < 50}
+            className="w-full rounded-2xl bg-gradient-to-b from-[#C0392B] to-[#922B21] px-4 py-3 text-base font-extrabold text-white shadow-md transition-transform active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            ⚔️ 進入作戰等待室（消耗 50 飼料）
+          </button>
+        </section>
+
+        {/* ============================================================
+            F. 最近對局：學生自己的對弈紀錄，點進去可以回顧+分析+推演
            ============================================================ */}
         <RecentGamesSection userUid={user.uid} />
       </div>

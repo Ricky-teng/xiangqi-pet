@@ -78,6 +78,13 @@ interface GameStoreState {
     outcome: "win" | "lose" | "draw",
     opponentLevel: ComputerLevel
   ) => { success: boolean; message: string; foodDelta: number };
+
+  /**
+   * 每日救助金：當天飼料低於 50 時發放一次 50 飼料。
+   * 首頁載入時呼叫，同一天第二次呼叫時什麼都不做。
+   * 回傳 granted=true 代表這次真的發放了，可以顯示提示給學生。
+   */
+  claimDailyGrant: () => { granted: boolean };
 }
 
 export const useGameStore = create<GameStoreState>((set, get) => ({
@@ -475,5 +482,40 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
           : `這局輸了，扣 ${LOSE_PENALTY_FOOD} 飼料，再接再厲！`;
 
     return { success: true, message, foodDelta };
+  },
+
+  claimDailyGrant: () => {
+    const { user } = get();
+    if (!user) return { granted: false };
+
+    const DAILY_GRANT_AMOUNT = 50;
+    const BATTLE_ENTRY_COST = 50;
+    const todayStr = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+
+    // 已經領過了，不重複發
+    if (user.lastDailyGrantDate === todayStr) return { granted: false };
+    // 飼料還夠，不需要補助
+    if (user.foodCount >= BATTLE_ENTRY_COST) return { granted: false };
+
+    const newFoodCount = user.foodCount + DAILY_GRANT_AMOUNT;
+    const now = Date.now();
+    const updatedUser: UserDoc = {
+      ...user,
+      foodCount: newFoodCount,
+      lastDailyGrantDate: todayStr,
+      updatedAt: now,
+    };
+
+    set({ user: updatedUser });
+
+    updateDoc(doc(db, "users", user.uid), {
+      foodCount: newFoodCount,
+      lastDailyGrantDate: todayStr,
+      updatedAt: now,
+    }).catch((error) => {
+      console.error("[useGameStore] claimDailyGrant 同步寫回 Firestore 失敗：", error);
+    });
+
+    return { granted: true };
   },
 }));

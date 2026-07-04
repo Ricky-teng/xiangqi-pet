@@ -14,6 +14,11 @@ export interface UserDoc {
   
   // 核心資源
   foodCount: number; // 飼料庫存數量
+
+  /** 每日救助金：當天飼料低於 50 時發放一次 50 飼料的補助，讓學生
+   *  剛好有資格參加作戰（需要 50 飼料）。用 "YYYY-MM-DD" 字串記錄
+   *  「上次領救助金的日期」，同一天不重複發。null 代表從未領過。 */
+  lastDailyGrantDate: string | null;
   
   // 體力值系統
   stamina: {
@@ -193,4 +198,55 @@ export interface VsComputerGameDoc {
   moveHistory: string[]; // 走法記號列表，依序
   fenHistory: string[]; // 每一步之後的局面 FEN，跟 moveHistory 等長，依序對應
   playedAt: number;
+}
+
+/**
+ * 6. 作戰配對隊列 (路徑: matchmakingQueue/{uid})
+ * ------------------------------------------------------------
+ * 學生進入等待室時寫入，配對成功或離開後刪除。
+ */
+export interface MatchmakingQueueEntry {
+  uid: string;
+  displayName: string;
+  chessLevel: number;
+  joinedAt: number;
+  /** 已被配對到的房間 ID，null 代表還在等待中 */
+  roomId: string | null;
+}
+
+/**
+ * 7. 作戰房間 (路徑: battleRooms/{roomId})
+ * ------------------------------------------------------------
+ * 配對成功後建立，整場對戰的狀態都存在這裡。
+ */
+export type BattleRoomStatus =
+  | "waiting"   // 等待第二位玩家加入
+  | "playing"   // 對戰進行中
+  | "finished"; // 對戰結束
+
+export interface BattlePlayerState {
+  displayName: string;
+  chessLevel: number;
+  /** 目前這一題有沒有解出來（或時間到算輸） */
+  solved: boolean;
+  /** 解題花費毫秒數（未解出時為 null） */
+  timeMs: number | null;
+}
+
+export interface BattleRoomDoc {
+  roomId: string;
+  status: BattleRoomStatus;
+  /** key 是玩家 uid */
+  players: Record<string, BattlePlayerState>;
+  /** 10 個 puzzleId，從 Lv.1-5 隨機抽 */
+  questions: string[];
+  /** 目前第幾題（0-indexed） */
+  currentQuestion: number;
+  /** 這一題的開始時間戳記（ms），用來算計時 */
+  questionStartTime: number;
+  /** 各玩家累積答對題數，key 是 uid */
+  scores: Record<string, number>;
+  /** 對戰結束時的贏家 uid，平局為 null，還沒結束為 undefined */
+  winner?: string | null;
+  createdAt: number;
 }
