@@ -29,7 +29,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { collection, getDocs, limit, orderBy, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -297,42 +297,51 @@ function formatTimestamp(ms: number): string {
  * 裡隨機挑一句，用對話框顯示幾秒後自動消失。
  */
 /**
- * 小雞展示元件：固定不動的圖片 + 不定時跳出對話框說話。
+ * 小雞展示元件：固定不動的圖片 + 不定時跳出對話框說話 + 跳動特效。
  * ------------------------------------------------------------
- * 原本有做過左右走動 + 雙幀跨步動畫的版本，後來覺得美術製作（每個
- * 階段要額外畫 2 張對齊一致的走路姿勢圖，又要花心力裁切對齊，不然
- * 播放起來會像在抖動）太麻煩，决定拿掉，改回固定站立不動，只保留
- * 「不定時說話」這個比較划算（不需要額外美術資源）的互動感來源。
- *
- * 死掉的小雞（healthStatus === "dead"）不會說話，靜靜待在原地——
- * 這個狀態的小雞理論上就是「沒在動」，繼續說話在情境上會很奇怪。
+ * triggerJump：外部呼叫這個函式時，小雞會做一次「跳一下」的動畫
+ * （用 CSS keyframe translate-y 上下彈跳，大約 400ms）。
+ * 餵食按鈕跟點擊小雞本身都會觸發這個特效。
  */
-function LivingPetDisplay({ stage, healthStatus }: { stage: string; healthStatus: string }) {
+function LivingPetDisplay({
+  stage,
+  healthStatus,
+  onJumpCallback,
+}: {
+  stage: string;
+  healthStatus: string;
+  /** 外部可呼叫此函式來觸發一次跳動動畫 */
+  onJumpCallback?: (triggerFn: () => void) => void;
+}) {
   const isAlive = healthStatus !== "dead";
-
+  const [isJumping, setIsJumping] = useState(false);
   const [dialogueText, setDialogueText] = useState<string | null>(null);
 
-  // 對話框排程：不是固定間隔，每次講完隨機決定「下一次再過幾秒說」，
-  // 講完之後對話框會自動消失（見下面顯示對話框那段的 setTimeout），
-  // 不需要使用者手動關閉。
+  function triggerJump() {
+    if (!isAlive) return;
+    setIsJumping(true);
+    setTimeout(() => setIsJumping(false), 400);
+  }
+
+  // 把 triggerJump 函式向上傳給父元件（餵食按鈕、點擊觸發用）
+  useEffect(() => {
+    onJumpCallback?.(triggerJump);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAlive]);
+
   useEffect(() => {
     if (!isAlive) return;
-
     let timeoutId: ReturnType<typeof setTimeout>;
-
     function scheduleNextLine() {
-      const delayMs = 8000 + Math.random() * 8000; // 8~16 秒說一次
+      const delayMs = 8000 + Math.random() * 8000;
       timeoutId = setTimeout(() => {
         const pool = PET_DIALOGUE_LINES[healthStatus] ?? PET_DIALOGUE_LINES.normal;
         const line = pool[Math.floor(Math.random() * pool.length)];
         setDialogueText(line);
-
-        // 對話框顯示 3.5 秒後自動消失
         setTimeout(() => setDialogueText(null), 3500);
         scheduleNextLine();
       }, delayMs);
     }
-
     scheduleNextLine();
     return () => clearTimeout(timeoutId);
   }, [isAlive, healthStatus]);
@@ -342,7 +351,6 @@ function LivingPetDisplay({ stage, healthStatus }: { stage: string; healthStatus
       {dialogueText ? (
         <div className="absolute top-0 z-10 max-w-[80%] rounded-2xl bg-white px-3 py-2 text-xs font-semibold text-[#1A1A2E] shadow-md">
           {dialogueText}
-          {/* 對話框小尾巴，指向下方的小雞 */}
           <div className="absolute left-1/2 top-full h-0 w-0 -translate-x-1/2 border-x-8 border-t-8 border-x-transparent border-t-white" />
         </div>
       ) : null}
@@ -350,7 +358,13 @@ function LivingPetDisplay({ stage, healthStatus }: { stage: string; healthStatus
       <img
         src={getPetImagePath(stage, healthStatus)}
         alt={`小雞，目前狀態：${HEALTH_STATUS_LABEL[healthStatus] ?? healthStatus}`}
-        className="h-48 w-48 object-contain"
+        onClick={triggerJump}
+        className={[
+          "h-48 w-48 cursor-pointer object-contain transition-transform",
+          isJumping ? "-translate-y-6 scale-110" : "translate-y-0 scale-100",
+          "duration-200 ease-out",
+        ].join(" ")}
+        style={{ transitionProperty: "transform" }}
       />
     </div>
   );
@@ -361,6 +375,13 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
 
   const pet = useGameStore((s) => s.pet);
   const feedPet = useGameStore((s) => s.feedPet);
+
+  const jumpTriggerRef = useRef<(() => void) | null>(null);
+
+  function handleFeedAndJump() {
+    feedPet();
+    jumpTriggerRef.current?.();
+  }
   const buyMedicine = useGameStore((s) => s.buyMedicine);
   const rebirthPet = useGameStore((s) => s.rebirthPet);
   const resurrectPet = useGameStore((s) => s.resurrectPet);
@@ -541,7 +562,11 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
             容器、不再互相擠壓。
            ============================================================ */}
         <section className="mt-4 flex flex-col items-center rounded-3xl bg-white/60 px-4 py-8 shadow-sm">
-          <LivingPetDisplay stage={pet.stage} healthStatus={pet.healthStatus} />
+          <LivingPetDisplay
+            stage={pet.stage}
+            healthStatus={pet.healthStatus}
+            onJumpCallback={(fn) => { jumpTriggerRef.current = fn; }}
+          />
 
           {/* 生病加重倒數提示：不是只在「剛好加重的那一刻」跳一次通知，
               平時待在這個頁面就能持續看到「還剩多久會惡化」，提醒要趕快去買藥。
@@ -693,7 +718,7 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
         <section className="mt-4 flex flex-col gap-3 rounded-3xl bg-white/60 px-4 py-4 shadow-sm">
           <button
             type="button"
-            onClick={() => feedPet()}
+            onClick={() => handleFeedAndJump()}
             disabled={user.foodCount < 10}
             className={[
               "w-full rounded-2xl px-4 py-3 text-base font-bold text-white shadow-md transition-transform",
