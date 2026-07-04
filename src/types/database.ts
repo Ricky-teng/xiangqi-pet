@@ -246,7 +246,7 @@ export interface BattleRoomDoc {
   questionStartTime: number;
   /** 各玩家累積答對題數，key 是 uid */
   scores: Record<string, number>;
-  /** 對戰結束時的贏家 uid，平局為 null，還沒結束為 undefined */
-  winner?: string | null;
+  /** 對戰結束時的贏家 uid，平局為 null；對戰還沒結束時也是 null（靠 status 判斷是否結束） */
+  winner: string | null;
   createdAt: number;
 }

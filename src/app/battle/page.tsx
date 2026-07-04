@@ -231,7 +231,7 @@ function BattlePageContent() {
           currentQuestion: 0,
           questionStartTime: now,
           scores: { [myUid]: 0, [opponent.uid]: 0 },
-          winner: undefined,
+          winner: null,
           createdAt: now,
         };
 
@@ -264,7 +264,7 @@ function BattlePageContent() {
       const oppUid = Object.keys(data.players).find((uid) => uid !== myUid) ?? null;
       if (oppUid) setOpponentUid(oppUid);
 
-      if (data.status === "finished" || data.winner !== undefined) {
+      if (data.status === "finished") {
         setPhase("finished");
         clearTimers();
         // 結算飼料
@@ -463,7 +463,7 @@ function BattlePageContent() {
   if (phase === "finished" && room) {
     const winner = room.winner;
     const isWin = winner === myUid;
-    const isDraw = winner === null || winner === undefined;
+    const isDraw = winner === null;
     const oppName = opponentUid ? (room.players[opponentUid]?.displayName ?? "對手") : "對手";
     return (
       <main className="flex min-h-screen flex-col items-center justify-center bg-[#FDF6E8] px-4">
