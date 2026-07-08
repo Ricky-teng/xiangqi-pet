@@ -103,6 +103,23 @@ export function applyPetTimeDecay(pet: PetDoc, now: number): PetDecayResult {
     changed = true;
   }
 
+  // ---- 2.5 飽食度歸零觸發生病 ----
+  // 飽食度降到 0 且目前健康，自動開始生小病——這樣不做題不餵食的學生
+  // 最終也會讓小雞生病甚至死亡，飼料系統才有意義。
+  if (
+    next.fullness <= 0 &&
+    next.healthStatus === "normal" &&
+    next.sickStartTime === null
+  ) {
+    next.healthStatus = "slightly_sick";
+    next.sickStartTime = now;
+    changed = true;
+    if (!pet.notifiedFlags.slightlySick) {
+      notifications.push("🤒 小雞太餓了，開始生病了！快去餵食並買小病藥水！");
+      next.notifiedFlags = { ...next.notifiedFlags, slightlySick: true };
+    }
+  }
+
   // ---- 3. 生病加重邏輯 ----
   if (pet.healthStatus === "slightly_sick" && pet.sickStartTime !== null) {
     const hoursSick = (now - pet.sickStartTime) / HOUR_MS;

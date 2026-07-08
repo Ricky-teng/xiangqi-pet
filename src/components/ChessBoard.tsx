@@ -317,23 +317,20 @@ export default function ChessBoard({ board, onMove, highlightMove, lastMove }: C
                 {cell ? (
                   <g
                     style={{
-                      transform: isSelected ? `translate(${x}px, ${y - CELL * 0.06}px) scale(1.12)` : `translate(${x}px, ${y}px) scale(1)`,
-                      transformOrigin: `${x}px ${y}px`,
-                      transition: "transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1)",
-                      filter: isSelected ? "drop-shadow(0 4px 8px rgba(0,0,0,0.45))" : "none",
+                      filter: isSelected ? "drop-shadow(0 2px 6px rgba(0,0,0,0.5))" : "none",
                     }}
                   >
                     <circle
-                      cx={0}
-                      cy={0}
+                      cx={x}
+                      cy={y}
                       r={CELL * 0.38}
                       fill={cell.color === "r" ? "#C0392B" : "#1A1A2E"}
                       stroke={isSelected ? "#E8B84B" : (cell.color === "r" ? "#8E2A1F" : "#0F0F1A")}
                       strokeWidth={isSelected ? 3 : 2}
                     />
                     <text
-                      x={0}
-                      y={0}
+                      x={x}
+                      y={y}
                       fontSize={CELL * 0.38}
                       fill="#FDF6E8"
                       fontWeight="bold"
