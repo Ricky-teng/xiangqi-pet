@@ -153,36 +153,42 @@ function FeedPageContent() {
         ) : null}
       </div>
 
-      {/* 小雞 + 碗 區域 */}
-      <div className="mx-auto mt-6 flex w-full max-w-sm flex-col items-center px-6">
+      {/* 小雞 + 碗 區域：整個圈都是放置目標 */}
+      <div
+        ref={bowlRef}
+        className={[
+          "mx-auto mt-6 flex w-full max-w-sm flex-col items-center rounded-3xl px-6 py-6 transition-all duration-150",
+          isOverBowl
+            ? "bg-[#FCE6A0] ring-4 ring-[#E8B84B]"
+            : "bg-white/40",
+          bowlBounce ? "scale-105" : "",
+        ].join(" ")}
+      >
         {/* 小雞圖片 */}
         <img
           src={getPetImagePath(pet.stage, pet.healthStatus)}
           alt="小雞"
           className={[
-            "h-40 w-40 object-contain transition-transform duration-200",
-            petJump ? "-translate-y-5 scale-110" : "translate-y-0 scale-100",
+            "h-44 w-44 object-contain transition-transform duration-200",
+            petJump ? "-translate-y-6 scale-110" : "translate-y-0 scale-100",
           ].join(" ")}
         />
 
-        {/* 碗：拖放目標 */}
-        <div
-          ref={bowlRef}
-          className={[
-            "mt-4 flex h-24 w-40 items-center justify-center rounded-[50%] border-4 transition-all duration-150",
-            isOverBowl
-              ? "border-[#E8B84B] bg-[#FCE6A0] scale-110"
-              : "border-[#A9764C]/50 bg-[#E8D5B5]/60",
-            bowlBounce ? "scale-125" : "",
-          ].join(" ")}
-        >
+        {/* 碗圖示：純裝飾，hit area 是整個外層容器 */}
+        <div className="mt-3 flex items-center gap-2">
           <span className="text-4xl select-none">
-            {bowlBounce ? "✨" : "🥣"}
+            {bowlBounce ? "✨" : isOverBowl ? "🫙" : "🥣"}
           </span>
         </div>
 
-        <p className="mt-3 text-xs text-[#1A1A2E]/50">
-          {canFeed ? "把飼料拖到碗裡餵食" : pet.healthStatus === "dead" ? "小雞已經死了…" : !canFeed && user.foodCount < FOOD_PER_FEED ? "飼料不足（需要 10 個）" : "小雞已吃飽！"}
+        <p className="mt-2 text-xs text-[#1A1A2E]/50">
+          {canFeed
+            ? isOverBowl ? "放開餵食！" : "把飼料拖進這裡餵食"
+            : pet.healthStatus === "dead"
+              ? "小雞已經死了…"
+              : user.foodCount < FOOD_PER_FEED
+                ? "飼料不足（需要 10 個）"
+                : "小雞已吃飽！"}
         </p>
       </div>
 
