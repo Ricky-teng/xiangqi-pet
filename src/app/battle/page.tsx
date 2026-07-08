@@ -231,6 +231,7 @@ function BattlePageContent() {
           currentQuestion: 0,
           questionStartTime: now,
           scores: { [myUid]: 0, [opponent.uid]: 0 },
+          totalSolveTimeMs: { [myUid]: 0, [opponent.uid]: 0 },
           winner: null,
           createdAt: now,
         };
@@ -296,9 +297,18 @@ function BattlePageContent() {
       if (isLastQuestion) {
         const oppFinalScore = data.scores[oppUid] ?? 0;
         let winner: string | null = null;
-        if (myFinalScore > oppFinalScore) winner = myUid;
-        else if (oppFinalScore > myFinalScore) winner = oppUid;
-        // 平局 winner 保持 null
+        if (myFinalScore > oppFinalScore) {
+          winner = myUid;
+        } else if (oppFinalScore > myFinalScore) {
+          winner = oppUid;
+        } else {
+          // 分數相同，比累計答對時間——時間短的贏
+          const myTime = data.totalSolveTimeMs?.[myUid] ?? 0;
+          const oppTime = data.totalSolveTimeMs?.[oppUid] ?? 0;
+          if (myTime < oppTime) winner = myUid;
+          else if (oppTime < myTime) winner = oppUid;
+          // 時間也一樣才算真正平局（極罕見）
+        }
 
         await updateDoc(doc(db, "battleRooms", roomId), {
           status: "finished",
@@ -451,14 +461,16 @@ function BattlePageContent() {
   async function submitAnswer(solved: boolean, timeMs: number) {
     if (!roomId || !myUid) return;
 
-    // 只寫自己的答案，不在這裡判斷推進邏輯。
-    // 推進下一題的邏輯統一在 onSnapshot 裡處理，避免兩方同時寫時的競態問題。
     await updateDoc(doc(db, "battleRooms", roomId), {
       [`players.${myUid}.solved`]: solved,
       [`players.${myUid}.timeMs`]: solved ? timeMs : 0,
       [`scores.${myUid}`]: solved
         ? (room?.scores[myUid] ?? 0) + 1
         : (room?.scores[myUid] ?? 0),
+      // 答對才累計時間，答錯/超時不計入
+      ...(solved ? {
+        [`totalSolveTimeMs.${myUid}`]: (room?.totalSolveTimeMs?.[myUid] ?? 0) + timeMs,
+      } : {}),
     }).catch((error) => {
       console.error("[battle] submitAnswer 失敗：", error);
     });
@@ -523,6 +535,14 @@ function BattlePageContent() {
               <p className="text-xs text-[#1A1A2E]/50">{oppName}</p>
             </div>
           </div>
+          {/* 題數相同時顯示決勝依據 */}
+          {myScore === oppScore && !isDraw ? (
+            <p className="mt-2 text-xs text-[#1A1A2E]/50">
+              題數相同，以答對時間決勝
+              （我：{((room.totalSolveTimeMs?.[myUid] ?? 0) / 1000).toFixed(1)}s，
+              對手：{((room.totalSolveTimeMs?.[opponentUid ?? ""] ?? 0) / 1000).toFixed(1)}s）
+            </p>
+          ) : null}
           <p className="mt-3 rounded-xl bg-[#1A1A2E]/5 px-4 py-2 text-sm font-semibold text-[#1A1A2E]">
             {isDraw
               ? "平局，退還入場費 50 飼料"

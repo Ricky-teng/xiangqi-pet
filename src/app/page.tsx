@@ -552,13 +552,7 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
         {/* ============================================================
             A. 頂部狀態列
            ============================================================ */}
-        <header className="flex items-center justify-between rounded-2xl bg-white/70 px-4 py-2 shadow-sm">
-          <div className="flex items-center gap-1 text-sm font-semibold text-[#1A1A2E]">
-            <span aria-hidden="true">⚡</span>
-            <span className="tabular-nums">
-              {user.stamina.current}/{user.stamina.max}
-            </span>
-          </div>
+        <header className="flex items-center justify-end rounded-2xl bg-white/70 px-4 py-2 shadow-sm">
           <div className="flex items-center gap-1 text-sm font-semibold text-[#8B5FBF]">
             <span aria-hidden="true">🟪</span>
             <span className="tabular-nums">{user.foodCount}</span>

@@ -60,6 +60,7 @@ import { useGameStore } from "@/stores/useGameStore";
 import { usePuzzleSolver } from "@/hooks/usePuzzleSolver";
 import RequireAuth from "@/components/RequireAuth";
 import ChessBoard from "@/components/ChessBoard";
+import { toChineseNotation } from "@/lib/xiangqi/chineseNotation";
 import type { PetHealthStatus, PuzzleDoc } from "@/types/database";
 import type { PuzzleLevel } from "@/types/xiangqi";
 
@@ -586,7 +587,7 @@ function PuzzleSolverSection({
 
           {showHint && hintNotation ? (
             <p className="rounded-2xl bg-[#FCE6A0] px-3 py-2 text-center text-xs font-semibold text-[#5C3D0A]">
-              提示：把「{hintNotation.slice(0, 2)}」的棋子走到「{hintNotation.slice(2, 4)}」
+              提示：{toChineseNotation(currentBoard, hintNotation)}
             </p>
           ) : null}
 

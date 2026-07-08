@@ -66,11 +66,6 @@ function createDefaultUserDoc(
     role,
     chessLevel: 1,
     foodCount: 20,
-    stamina: {
-      current: 40,
-      max: 40,
-      lastRefillTime: now,
-    },
     stats: {
       totalSolved: 0,
       totalAttempts: 0,

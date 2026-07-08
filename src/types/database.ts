@@ -20,13 +20,6 @@ export interface UserDoc {
    *  「上次領救助金的日期」，同一天不重複發。null 代表從未領過。 */
   lastDailyGrantDate: string | null;
   
-  // 體力值系統
-  stamina: {
-    current: number;        // 當前體力
-    max: number;            // 體力上限（預設 40）
-    lastRefillTime: number; // 上次自動回復體力的時間戳記 (milliseconds)
-  };
-  
   // 戰績統計
   stats: {
     totalSolved: number;   // 總共成功解題數
@@ -246,6 +239,10 @@ export interface BattleRoomDoc {
   questionStartTime: number;
   /** 各玩家累積答對題數，key 是 uid */
   scores: Record<string, number>;
+  /** 各玩家累積答對的總時間（毫秒），key 是 uid；只累計答對的題目的時間，
+   *  答錯/超時不計。平局時比較這個欄位，時間短的贏。
+   *  Optional 是因為舊有 battleRoom 文件沒有這個欄位，程式碼用 ?. 讀取。 */
+  totalSolveTimeMs?: Record<string, number>;
   /** 對戰結束時的贏家 uid，平局為 null；對戰還沒結束時也是 null（靠 status 判斷是否結束） */
   winner: string | null;
   createdAt: number;
