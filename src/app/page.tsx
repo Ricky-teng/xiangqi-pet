@@ -29,7 +29,7 @@
 
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { collection, getDocs, limit, orderBy, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -38,6 +38,7 @@ import { signOutUser } from "@/hooks/useAuth";
 import RequireAuth from "@/components/RequireAuth";
 import { STAGE_XP_THRESHOLDS } from "@/lib/pet/petGrowth";
 import { SICKNESS_ESCALATION_HOURS } from "@/lib/pet/petDecay";
+import { getPetImagePath } from "@/lib/pet/petImagePath";
 import { hasUnclaimedDailyTask } from "@/lib/tasks/dailyTasks";
 import type { DailyTaskDoc, UserDoc, VsComputerGameDoc } from "@/types/database";
 
@@ -63,50 +64,6 @@ import type { DailyTaskDoc, UserDoc, VsComputerGameDoc } from "@/types/database"
  * 死掉當下的值），所以不需要額外的資料欄位記錄「死掉時是第幾階段」，
  * 直接讀現有的 pet.stage 就能組出正確的檔名。
  */
-function getPetImagePath(stage: string, healthStatus: string): string {
-  // 生小病：依成長階段分別顯示（egg_sick / chick_sick / teen_sick / master_sick）
-  if (healthStatus === "slightly_sick") {
-    switch (stage) {
-      case "egg":    return "/pet/egg_sick.png";
-      case "chick":  return "/pet/chick_sick.png";
-      case "teen":   return "/pet/teen_sick.png";
-      case "master": return "/pet/master_sick.png";
-      default:       return "/pet/chick_sick.png";
-    }
-  }
-
-  // 生大病：依成長階段分別顯示（egg_serioussick / chick_serioussick / teen_serioussick / master_serioussick）
-  if (healthStatus === "severely_sick") {
-    switch (stage) {
-      case "egg":    return "/pet/egg_serioussick.png";
-      case "chick":  return "/pet/chick_serioussick.png";
-      case "teen":   return "/pet/teen_serioussick.png";
-      case "master": return "/pet/master_serioussick.png";
-      default:       return "/pet/chick_serioussick.png";
-    }
-  }
-
-  // 死亡：依成長階段分別顯示
-  if (healthStatus === "dead") {
-    switch (stage) {
-      case "egg":    return "/pet/egg_dead.png";
-      case "chick":  return "/pet/chick_dead.png";
-      case "teen":   return "/pet/teen_dead.png";
-      case "master": return "/pet/master_dead.png";
-      default:       return "/pet/chick_dead.png";
-    }
-  }
-
-  // 健康（normal）
-  switch (stage) {
-    case "egg":    return "/pet/egg.png";
-    case "chick":  return "/pet/chick.png";
-    case "teen":   return "/pet/teen.png";
-    case "master": return "/pet/master.png";
-    default:       return "/pet/chick.png";
-  }
-}
-
 /**
  * 小雞時不時會說的話，依健康狀態分組（不分成長階段——蛋還不會說話，
  * 但蛋的健康狀態理論上一定是 normal，所以共用 normal 那組台詞也沒問題，
@@ -306,12 +263,9 @@ function formatTimestamp(ms: number): string {
 function LivingPetDisplay({
   stage,
   healthStatus,
-  onJumpCallback,
 }: {
   stage: string;
   healthStatus: string;
-  /** 外部可呼叫此函式來觸發一次跳動動畫 */
-  onJumpCallback?: (triggerFn: () => void) => void;
 }) {
   const isAlive = healthStatus !== "dead";
   const [isJumping, setIsJumping] = useState(false);
@@ -322,12 +276,6 @@ function LivingPetDisplay({
     setIsJumping(true);
     setTimeout(() => setIsJumping(false), 400);
   }
-
-  // 把 triggerJump 函式向上傳給父元件（餵食按鈕、點擊觸發用）
-  useEffect(() => {
-    onJumpCallback?.(triggerJump);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAlive]);
 
   useEffect(() => {
     if (!isAlive) return;
@@ -374,7 +322,6 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
   const router = useRouter();
 
   const pet = useGameStore((s) => s.pet);
-  const feedPet = useGameStore((s) => s.feedPet);
   const claimDailyGrant = useGameStore((s) => s.claimDailyGrant);
 
   const [dailyGrantMessage, setDailyGrantMessage] = useState<string | null>(null);
@@ -392,12 +339,6 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
     }
   }
 
-  const jumpTriggerRef = useRef<(() => void) | null>(null);
-
-  function handleFeedAndJump() {
-    feedPet();
-    jumpTriggerRef.current?.();
-  }
   const buyMedicine = useGameStore((s) => s.buyMedicine);
   const rebirthPet = useGameStore((s) => s.rebirthPet);
   const resurrectPet = useGameStore((s) => s.resurrectPet);
@@ -575,7 +516,6 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
           <LivingPetDisplay
             stage={pet.stage}
             healthStatus={pet.healthStatus}
-            onJumpCallback={(fn) => { jumpTriggerRef.current = fn; }}
           />
 
           {/* 生病加重倒數提示：不是只在「剛好加重的那一刻」跳一次通知，
@@ -723,21 +663,21 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
         </section>
 
         {/* ============================================================
-            B'. 玩家資產與互動區（立即餵食 / 商店買藥）
+            B'. 玩家資產與互動區（餵食 / 商店買藥）
            ============================================================ */}
         <section className="mt-4 flex flex-col gap-3 rounded-3xl bg-white/60 px-4 py-4 shadow-sm">
           <button
             type="button"
-            onClick={() => handleFeedAndJump()}
-            disabled={user.foodCount < 10}
+            onClick={() => router.push("/feed")}
+            disabled={user.foodCount < 10 || pet.healthStatus === "dead" || pet.fullness >= 100}
             className={[
               "w-full rounded-2xl px-4 py-3 text-base font-bold text-white shadow-md transition-transform",
-              user.foodCount < 10
+              user.foodCount < 10 || pet.healthStatus === "dead" || pet.fullness >= 100
                 ? "cursor-not-allowed bg-[#A9764C]/50"
                 : "bg-[#C0392B] active:scale-95",
             ].join(" ")}
           >
-            🍚 立即餵食（消耗 10 飼料）
+            🍱 餵食小雞
           </button>
 
           <div className="grid grid-cols-2 gap-3">
