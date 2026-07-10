@@ -455,13 +455,20 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const winRewardFood = calculateWinRewardFood(opponentLevel, user.chessLevel);
     const foodDelta = outcome === "win" ? winRewardFood : outcome === "draw" ? DRAW_REWARD_FOOD : -LOSE_PENALTY_FOOD;
 
-    // 飼料不會扣到負數，避免顯示出奇怪的負數庫存
     const newFoodCount = Math.max(0, user.foodCount + foodDelta);
     const now = Date.now();
+
+    const statsDelta =
+      outcome === "win"
+        ? { vsComputerWins: (user.stats.vsComputerWins ?? 0) + 1 }
+        : outcome === "draw"
+          ? { vsComputerDraws: (user.stats.vsComputerDraws ?? 0) + 1 }
+          : { vsComputerLosses: (user.stats.vsComputerLosses ?? 0) + 1 };
 
     const updatedUser: UserDoc = {
       ...user,
       foodCount: newFoodCount,
+      stats: { ...user.stats, ...statsDelta },
       updatedAt: now,
     };
 
@@ -469,6 +476,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
     updateDoc(doc(db, "users", user.uid), {
       foodCount: newFoodCount,
+      [`stats.${Object.keys(statsDelta)[0]}`]: Object.values(statsDelta)[0],
       updatedAt: now,
     }).catch((error) => {
       console.error("[useGameStore] applyVsComputerResult 同步寫回 Firestore 失敗：", error);

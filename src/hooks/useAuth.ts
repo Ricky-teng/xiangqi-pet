@@ -69,6 +69,12 @@ function createDefaultUserDoc(
     stats: {
       totalSolved: 0,
       totalAttempts: 0,
+      vsComputerWins: 0,
+      vsComputerLosses: 0,
+      vsComputerDraws: 0,
+      battleWins: 0,
+      battleLosses: 0,
+      battleDraws: 0,
       winRate: 0,
     },
     unlockedCatalogIds: [],

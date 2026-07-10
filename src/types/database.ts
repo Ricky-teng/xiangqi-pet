@@ -22,9 +22,19 @@ export interface UserDoc {
   
   // 戰績統計
   stats: {
-    totalSolved: number;   // 總共成功解題數
-    totalAttempts: number; // 總共嘗試答題次數（包含答錯）
-    winRate: number;       // 答題正確率 / 勝率 (0 ~ 100)
+    // 解題統計
+    totalSolved: number;        // 答對題數（解題完成）
+    totalAttempts: number;      // 嘗試題數（含答錯）—— 一次通過率 = totalSolved / totalAttempts
+    // 對電腦對弈統計
+    vsComputerWins: number;     // 贏電腦次數
+    vsComputerLosses: number;   // 輸電腦次數
+    vsComputerDraws: number;    // 和電腦次數
+    // 殘局對戰統計
+    battleWins: number;         // 對戰勝場
+    battleLosses: number;       // 對戰敗場
+    battleDraws: number;        // 對戰平局
+    /** @deprecated 從未正確寫入，保留欄位不刪是為了相容舊資料，不要再用 */
+    winRate: number;
   };
   
   // 圖鑑系統：已解鎖的特殊小雞外觀 ID 陣列

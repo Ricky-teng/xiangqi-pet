@@ -210,6 +210,23 @@ export function usePuzzleSolver(puzzle: PuzzleDoc): UsePuzzleSolverResult {
     };
   }, [clearComputerMoveTimer]);
 
+  // 進入題目時立刻 +1 totalAttempts（不管有沒有答對，只要開始嘗試就算）
+  // 答對時再額外 +1 totalSolved，這樣 totalSolved/totalAttempts 才是真正的通過率
+  useEffect(() => {
+    if (!user) return;
+    updateDoc(doc(db, "users", user.uid), {
+      "stats.totalAttempts": increment(1),
+      updatedAt: Date.now(),
+    }).catch((error) => {
+      console.error("[usePuzzleSolver] 記錄嘗試次數失敗：", error);
+    });
+    setUser({
+      ...user,
+      stats: { ...user.stats, totalAttempts: user.stats.totalAttempts + 1 },
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [puzzle.id]); // puzzle.id 換了就是換題，重新計一次
+
   /**
    * 將棋盤重置為「目前正解進度」對應的正確盤面。
    * 作法：從題目初始 FEN 重新解析，再依序重播 [0, stepIndex) 的正解走法。
@@ -286,7 +303,6 @@ export function usePuzzleSolver(puzzle: PuzzleDoc): UsePuzzleSolverResult {
         updateDoc(doc(db, "users", user.uid), {
           foodCount: increment(earnedFood),
           "stats.totalSolved": increment(1),
-          "stats.totalAttempts": increment(1),
           updatedAt: now,
         }),
       ]);
@@ -297,7 +313,6 @@ export function usePuzzleSolver(puzzle: PuzzleDoc): UsePuzzleSolverResult {
         stats: {
           ...user.stats,
           totalSolved: user.stats.totalSolved + 1,
-          totalAttempts: user.stats.totalAttempts + 1,
         },
         updatedAt: now,
       });

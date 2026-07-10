@@ -80,6 +80,7 @@ function BattlePageContent() {
 
   const [phase, setPhase] = useState<PagePhase>("queuing");
   const [statusMessage, setStatusMessage] = useState("尋找對手中…");
+  const [waitSeconds, setWaitSeconds] = useState(0);
 
   // 配對 / 房間
   const [roomId, setRoomId] = useState<string | null>(null);
@@ -138,6 +139,13 @@ function BattlePageContent() {
 
   // 配對成功後設為 true，取消時用來判斷要不要退款
   const hasMatchedRef = useRef(false);
+
+  // 等待計時器：每秒 +1，讓學生知道系統還在運作
+  useEffect(() => {
+    if (phase !== "queuing") return;
+    const id = setInterval(() => setWaitSeconds((s) => s + 1), 1000);
+    return () => clearInterval(id);
+  }, [phase]);
 
   // ---- 扣費進場 ----
   useEffect(() => {
@@ -501,18 +509,37 @@ function BattlePageContent() {
   function applyBattleResult(data: BattleRoomDoc, uid: string) {
     if (!user) return;
     const winner = data.winner;
-    // 贏：退還入場費 50 + 額外獎勵 50 = 淨賺 50（因為進場已扣 50，現在補回來再多給 50）
-    // 輸：入場費 50 不退還，不再額外扣除
-    // 平局：退還入場費（不虧不賺）
-    let delta = 0;
-    if (winner === uid) delta = BATTLE_ENTRY_COST + BATTLE_WIN_REWARD; // +100（退場費+獎勵）
-    else if (winner === null) delta = BATTLE_ENTRY_COST; // 退還入場費，平局不賺不虧
+    const isWin = winner === uid;
+    const isDraw = winner === null;
 
-    if (delta === 0) return; // 輸了不退，delta 維持 0
+    // 飼料結算
+    let delta = 0;
+    if (isWin) delta = BATTLE_ENTRY_COST + BATTLE_WIN_REWARD;
+    else if (isDraw) delta = BATTLE_ENTRY_COST;
+
     const newFood = Math.max(0, user.foodCount + delta);
-    const updatedUser = { ...user, foodCount: newFood, updatedAt: Date.now() };
+    const now = Date.now();
+
+    // 勝負統計
+    const statsDelta = isWin
+      ? { battleWins: (user.stats.battleWins ?? 0) + 1 }
+      : isDraw
+        ? { battleDraws: (user.stats.battleDraws ?? 0) + 1 }
+        : { battleLosses: (user.stats.battleLosses ?? 0) + 1 };
+
+    const updatedUser = {
+      ...user,
+      foodCount: newFood,
+      stats: { ...user.stats, ...statsDelta },
+      updatedAt: now,
+    };
     setUser(updatedUser);
-    updateDoc(doc(db, "users", uid), { foodCount: newFood, updatedAt: Date.now() }).catch(console.error);
+
+    updateDoc(doc(db, "users", uid), {
+      foodCount: newFood,
+      [`stats.${Object.keys(statsDelta)[0]}`]: Object.values(statsDelta)[0],
+      updatedAt: now,
+    }).catch(console.error);
   }
 
   // ---- 結算畫面 ----
@@ -569,15 +596,56 @@ function BattlePageContent() {
 
   // ---- 等待配對 ----
   if (phase === "queuing" || !currentPuzzle || !board) {
+    const waitMin = Math.floor(waitSeconds / 60);
+    const waitSec = waitSeconds % 60;
+    const waitLabel = waitMin > 0
+      ? `已等待 ${waitMin} 分 ${waitSec} 秒`
+      : waitSeconds > 0
+        ? `已等待 ${waitSeconds} 秒`
+        : "正在連線…";
+
     return (
       <main className="flex min-h-screen flex-col items-center justify-center bg-[#FDF6E8] px-4">
         <section className="w-full max-w-sm rounded-3xl bg-white/70 px-6 py-8 text-center shadow-xl">
-          <p className="text-3xl">⚔️</p>
-          <p className="mt-2 text-base font-extrabold text-[#1A1A2E]">配對中…</p>
-          <p className="mt-1 text-sm text-[#1A1A2E]/60">{statusMessage}</p>
-          <div className="mt-4 flex justify-center">
-            <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#E8B84B] border-t-transparent" />
+          <p className="text-4xl">⚔️</p>
+          <p className="mt-3 text-lg font-extrabold text-[#1A1A2E]">尋找對手中</p>
+
+          {/* 跳動的點點，視覺確認系統還在運作 */}
+          <div className="mt-2 flex justify-center gap-1.5">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="h-2.5 w-2.5 rounded-full bg-[#E8B84B]"
+                style={{
+                  animation: `bounce 1.2s ease-in-out ${i * 0.2}s infinite`,
+                }}
+              />
+            ))}
           </div>
+          <style>{`
+            @keyframes bounce {
+              0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+              40% { transform: translateY(-6px); opacity: 1; }
+            }
+          `}</style>
+
+          {/* 等待時間 */}
+          <p className="mt-3 tabular-nums text-sm font-semibold text-[#1A1A2E]/60">
+            {waitLabel}
+          </p>
+
+          {/* 狀態訊息（例如題庫不足等錯誤） */}
+          {statusMessage !== "尋找對手中…" ? (
+            <p className="mt-1 text-xs text-[#C0392B]">{statusMessage}</p>
+          ) : null}
+
+          {/* 等超過 15 秒才顯示提示，避免剛進去就嚇到 */}
+          {waitSeconds >= 15 ? (
+            <p className="mt-2 text-xs text-[#1A1A2E]/40">
+              等待時間較長時，系統會嘗試配對任意等級的對手
+            </p>
+          ) : null}
+
           <button
             type="button"
             onClick={async () => { refundIfNotMatched(); await leaveAndCleanup(); router.push("/"); }}

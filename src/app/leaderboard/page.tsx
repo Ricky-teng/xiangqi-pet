@@ -30,7 +30,7 @@ import RequireAuth from "@/components/RequireAuth";
 import type { UserDoc } from "@/types/database";
 
 type FetchStatus = "loading" | "success" | "error";
-type SortKey = "totalSolved" | "chessLevel" | "rebirthCount" | "winRate";
+type SortKey = "totalSolved" | "chessLevel" | "rebirthCount" | "puzzlePassRate" | "vsComputerWinRate" | "battleWinRate";
 
 interface SortOption {
   key: SortKey;
@@ -40,10 +40,12 @@ interface SortOption {
 }
 
 const SORT_OPTIONS: SortOption[] = [
-  { key: "totalSolved", label: "解題數", icon: "🧩", unit: "題" },
-  { key: "chessLevel", label: "棋藝等級", icon: "♟️", unit: "級" },
-  { key: "rebirthCount", label: "轉生次數", icon: "✨", unit: "次" },
-  { key: "winRate", label: "勝率", icon: "🎯", unit: "%" },
+  { key: "totalSolved",       label: "解題數",     icon: "🧩", unit: "題" },
+  { key: "chessLevel",        label: "棋藝等級",   icon: "♟️", unit: "級" },
+  { key: "rebirthCount",      label: "轉生次數",   icon: "✨", unit: "次" },
+  { key: "puzzlePassRate",    label: "解題通過率", icon: "🎯", unit: "%" },
+  { key: "vsComputerWinRate", label: "對電腦勝率", icon: "🤖", unit: "%" },
+  { key: "battleWinRate",     label: "對戰勝率",   icon: "⚔️", unit: "%" },
 ];
 
 const RANK_MEDAL: Record<number, string> = {
@@ -52,23 +54,52 @@ const RANK_MEDAL: Record<number, string> = {
   3: "🥉",
 };
 
-/** 即時計算勝率，不依賴 user.stats.winRate（那個欄位從來沒被正確寫入過） */
-function getWinRatePercent(student: UserDoc): number {
-  return student.stats.totalAttempts > 0
-    ? Math.round((student.stats.totalSolved / student.stats.totalAttempts) * 100)
+/** 解題一次通過率：totalSolved / totalAttempts */
+function getPuzzlePassRate(s: UserDoc): number {
+  return s.stats.totalAttempts > 0
+    ? Math.round((s.stats.totalSolved / s.stats.totalAttempts) * 100)
     : 0;
+}
+
+/** 對電腦勝率：wins / (wins + losses + draws) */
+function getVsComputerWinRate(s: UserDoc): number {
+  const total = (s.stats.vsComputerWins ?? 0) + (s.stats.vsComputerLosses ?? 0) + (s.stats.vsComputerDraws ?? 0);
+  return total > 0 ? Math.round(((s.stats.vsComputerWins ?? 0) / total) * 100) : 0;
+}
+
+/** 殘局對戰勝率：wins / (wins + losses + draws) */
+function getBattleWinRate(s: UserDoc): number {
+  const total = (s.stats.battleWins ?? 0) + (s.stats.battleLosses ?? 0) + (s.stats.battleDraws ?? 0);
+  return total > 0 ? Math.round(((s.stats.battleWins ?? 0) / total) * 100) : 0;
 }
 
 function getSortValue(student: UserDoc, key: SortKey): number {
   switch (key) {
-    case "totalSolved":
-      return student.stats.totalSolved;
-    case "chessLevel":
-      return student.chessLevel;
-    case "rebirthCount":
-      return student.rebirthCount;
-    case "winRate":
-      return getWinRatePercent(student);
+    case "totalSolved":       return student.stats.totalSolved;
+    case "chessLevel":        return student.chessLevel;
+    case "rebirthCount":      return student.rebirthCount;
+    case "puzzlePassRate":    return getPuzzlePassRate(student);
+    case "vsComputerWinRate": return getVsComputerWinRate(student);
+    case "battleWinRate":     return getBattleWinRate(student);
+  }
+}
+
+/** 顯示時補充局數說明，讓百分比更有意義 */
+function getRateLabel(student: UserDoc, key: SortKey): string {
+  switch (key) {
+    case "puzzlePassRate": {
+      const n = student.stats.totalAttempts;
+      return n > 0 ? `${getPuzzlePassRate(student)}%（${n}題）` : "—";
+    }
+    case "vsComputerWinRate": {
+      const total = (student.stats.vsComputerWins ?? 0) + (student.stats.vsComputerLosses ?? 0) + (student.stats.vsComputerDraws ?? 0);
+      return total > 0 ? `${getVsComputerWinRate(student)}%（${total}局）` : "—";
+    }
+    case "battleWinRate": {
+      const total = (student.stats.battleWins ?? 0) + (student.stats.battleLosses ?? 0) + (student.stats.battleDraws ?? 0);
+      return total > 0 ? `${getBattleWinRate(student)}%（${total}場）` : "—";
+    }
+    default: return `${getSortValue(student, key)}`;
   }
 }
 
@@ -193,8 +224,9 @@ function LeaderboardContent() {
                         </span>
                       </div>
                       <span className="text-sm font-extrabold text-[#5C3D0A] tabular-nums">
-                        {getSortValue(student, sortKey)}
-                        {activeSortOption.unit}
+                        {["puzzlePassRate","vsComputerWinRate","battleWinRate"].includes(sortKey)
+                          ? getRateLabel(student, sortKey)
+                          : `${getSortValue(student, sortKey)}${activeSortOption.unit}`}
                       </span>
                     </li>
                   );
@@ -214,8 +246,9 @@ function LeaderboardContent() {
                     </span>
                   </div>
                   <span className="text-sm font-extrabold text-[#5C3D0A] tabular-nums">
-                    {getSortValue(currentUser, sortKey)}
-                    {activeSortOption.unit}
+                    {["puzzlePassRate","vsComputerWinRate","battleWinRate"].includes(sortKey)
+                      ? getRateLabel(currentUser, sortKey)
+                      : `${getSortValue(currentUser, sortKey)}${activeSortOption.unit}`}
                   </span>
                 </div>
               ) : null}
