@@ -25,6 +25,8 @@ import { useRouter } from "next/navigation";
 import { useGameStore } from "@/stores/useGameStore";
 import RequireAuth from "@/components/RequireAuth";
 import ChessBoard from "@/components/ChessBoard";
+import { PetCommentary, EMPTY_COMMENTARY_LINES } from "@/components/PetCommentary";
+import type { PetCommentaryTrigger } from "@/components/PetCommentary";
 import { useRulesEngine } from "@/hooks/useRulesEngine";
 import { parseFen, STANDARD_START_FEN } from "@/lib/xiangqi/fen";
 import {
@@ -44,6 +46,7 @@ function VsComputerContent() {
   const router = useRouter();
   const { engine, error: engineError, isLoading: engineLoading } = useRulesEngine();
   const user = useGameStore((s) => s.user);
+  const pet = useGameStore((s) => s.pet);
   const applyVsComputerResult = useGameStore((s) => s.applyVsComputerResult);
 
   const [opponentLevel, setOpponentLevel] = useState<ComputerLevel | null>(null);
@@ -54,6 +57,7 @@ function VsComputerContent() {
   const [lastMove, setLastMove] = useState<{ from: string; to: string } | null>(null);
   const [sideToMove, setSideToMove] = useState<"w" | "b">("w");
   const [moveError, setMoveError] = useState<string | null>(null);
+  const [commentaryTrigger, setCommentaryTrigger] = useState<PetCommentaryTrigger>(null);
 
   // 認輸：兩段式確認（先按一次顯示「確定要認輸嗎？」，再按一次才真的執行），
   // 避免不小心點到就直接判輸。
@@ -262,6 +266,19 @@ function VsComputerContent() {
 
         if (!resolveGameOverIfNeeded(result.fen, result.sideToMove, newMoveHistory, newFenHistory)) {
           setGamePhase("student_turn");
+          // 電腦走完後輕量評估局面，觸發小雞台詞（depth 低，快速回應）
+          fetch("/api/analyze-position", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ fen: result.fen, sideToMove: "w", depth: 4 }),
+          })
+            .then((r) => r.json())
+            .then((data: { scoreCp?: number }) => {
+              if (isCancelled || data.scoreCp === undefined) return;
+              // scoreCp 是紅方視角：正數紅方優，負數黑方優
+              setCommentaryTrigger({ kind: "score", cp: data.scoreCp });
+            })
+            .catch(() => {}); // 分析失敗不影響對局
         }
       } catch (error) {
         console.error("[play] 電腦走子失敗：", error);
@@ -331,6 +348,16 @@ function VsComputerContent() {
               <div className="mt-3 min-h-[1.5rem] text-center text-xs">
                 {moveError ? <span className="text-[#C0392B]">{moveError}</span> : null}
               </div>
+
+              {/* 小雞講話 */}
+              {pet ? (
+                <PetCommentary
+                  stage={pet.stage}
+                  healthStatus={pet.healthStatus}
+                  trigger={commentaryTrigger}
+                  lines={EMPTY_COMMENTARY_LINES}
+                />
+              ) : null}
 
               {isStudentTurn ? (
                 <div className="mt-2">

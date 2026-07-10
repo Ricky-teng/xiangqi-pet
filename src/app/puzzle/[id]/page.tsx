@@ -60,6 +60,8 @@ import { useGameStore } from "@/stores/useGameStore";
 import { usePuzzleSolver } from "@/hooks/usePuzzleSolver";
 import RequireAuth from "@/components/RequireAuth";
 import ChessBoard from "@/components/ChessBoard";
+import { PetCommentary, EMPTY_COMMENTARY_LINES } from "@/components/PetCommentary";
+import type { PetCommentaryTrigger } from "@/components/PetCommentary";
 import { toChineseNotation } from "@/lib/xiangqi/chineseNotation";
 import type { PetHealthStatus, PuzzleDoc } from "@/types/database";
 import type { PuzzleLevel } from "@/types/xiangqi";
@@ -418,6 +420,7 @@ function PuzzleSolverSection({
 }) {
   const router = useRouter();
   const [isLoadingNext, setIsLoadingNext] = useState(false);
+  const [commentaryTrigger, setCommentaryTrigger] = useState<PetCommentaryTrigger>(null);
 
   async function handleNextPuzzle() {
     if (sourceLevel === null) {
@@ -472,6 +475,20 @@ function PuzzleSolverSection({
     setShowHint(false);
     setHintError(null);
   }, [solverState.currentStep]);
+
+  // 答對觸發
+  useEffect(() => {
+    if (solverState.isCompleted) {
+      setCommentaryTrigger({ kind: "correct" });
+    }
+  }, [solverState.isCompleted]);
+
+  // 答錯觸發（lastErrorMessage 每次新的答錯才會換新字串）
+  useEffect(() => {
+    if (lastErrorMessage) {
+      setCommentaryTrigger({ kind: "wrong" });
+    }
+  }, [lastErrorMessage]);
 
   // 用 leadLine（目前還跟得上的正解線之中排第一的那條）而不是 puzzle.moves，
   // 因為題目可能有多條正解線，學生可能正走在某條替代線上，這時候
@@ -603,6 +620,16 @@ function PuzzleSolverSection({
           ) : null}
         </div>
       </div>
+
+      {/* 小雞講話 */}
+      {pet ? (
+        <PetCommentary
+          stage={pet.stage}
+          healthStatus={pet.healthStatus}
+          trigger={commentaryTrigger}
+          lines={EMPTY_COMMENTARY_LINES}
+        />
+      ) : null}
 
       {/* ============================================================
           C 區：底部回饋與互動區

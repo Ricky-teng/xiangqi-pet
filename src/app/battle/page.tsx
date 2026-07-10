@@ -44,6 +44,8 @@ import { db } from "@/lib/firebase";
 import { useGameStore } from "@/stores/useGameStore";
 import RequireAuth from "@/components/RequireAuth";
 import ChessBoard from "@/components/ChessBoard";
+import { PetCommentary, EMPTY_COMMENTARY_LINES } from "@/components/PetCommentary";
+import type { PetCommentaryTrigger } from "@/components/PetCommentary";
 import { useRulesEngine } from "@/hooks/useRulesEngine";
 import { parseFen } from "@/lib/xiangqi/fen";
 import type { BattleRoomDoc, MatchmakingQueueEntry, PuzzleDoc } from "@/types/database";
@@ -72,6 +74,7 @@ function generateRoomId(): string {
 function BattlePageContent() {
   const router = useRouter();
   const user = useGameStore((s) => s.user);
+  const pet = useGameStore((s) => s.pet);
   const setUser = useGameStore((s) => s.setUser);
   const { engine } = useRulesEngine();
 
@@ -93,6 +96,7 @@ function BattlePageContent() {
   const [sideToMove, setSideToMove] = useState<"w" | "b">("w");
   const [solvedThisQuestion, setSolvedThisQuestion] = useState(false);
   const [lastAnswerResult, setLastAnswerResult] = useState<"correct" | "wrong" | null>(null);
+  const [commentaryTrigger, setCommentaryTrigger] = useState<PetCommentaryTrigger>(null);
   const [lastMoveHighlight, setLastMoveHighlight] = useState<{ from: string; to: string } | null>(null);
 
   // 計時
@@ -275,6 +279,7 @@ function BattlePageContent() {
       if (phase !== "playing") {
         hasMatchedRef.current = true;
         setPhase("playing");
+        setCommentaryTrigger({ kind: "battle" });
       }
 
       // 推進邏輯在這裡集中處理：偵測到「雙方都已回答（timeMs 不為 null）」時，
@@ -628,6 +633,18 @@ function BattlePageContent() {
           ].join(" ")}>
             {lastAnswerResult === "correct" ? "✅ 答對！等待對手…" : "❌ 答錯，等待下一題…"}
           </p>
+        ) : null}
+
+        {/* 小雞講話 */}
+        {pet ? (
+          <div className="mt-3">
+            <PetCommentary
+              stage={pet.stage}
+              healthStatus={pet.healthStatus}
+              trigger={commentaryTrigger}
+              lines={EMPTY_COMMENTARY_LINES}
+            />
+          </div>
         ) : null}
 
         {/* 認輸按鈕 */}
