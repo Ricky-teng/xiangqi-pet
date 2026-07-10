@@ -297,7 +297,7 @@ function LivingPetDisplay({
   return (
     <div className="relative flex h-56 w-full items-end justify-center">
       {dialogueText ? (
-        <div className="absolute top-0 z-10 max-w-[80%] rounded-2xl bg-white px-3 py-2 text-xs font-semibold text-[#1A1A2E] shadow-md">
+        <div className="pointer-events-none absolute top-0 z-10 max-w-[80%] rounded-2xl bg-white px-3 py-2 text-xs font-semibold text-[#1A1A2E] shadow-md">
           {dialogueText}
           <div className="absolute left-1/2 top-full h-0 w-0 -translate-x-1/2 border-x-8 border-t-8 border-x-transparent border-t-white" />
         </div>
@@ -518,11 +518,7 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
             healthStatus={pet.healthStatus}
           />
 
-          {/* 生病加重倒數提示：不是只在「剛好加重的那一刻」跳一次通知，
-              平時待在這個頁面就能持續看到「還剩多久會惡化」，提醒要趕快去買藥。
-              這裡用 SICKNESS_ESCALATION_HOURS 跟 sickStartTime/severeSickStartTime
-              即時算出剩餘時間，數字每次畫面重新渲染就會重算一次
-              （usePetTimeDecayTicker 每分鐘觸發一次重渲染，所以大約每分鐘會更新）。 */}
+          {/* 生病加重倒數提示 */}
           {pet.healthStatus === "slightly_sick" && pet.sickStartTime !== null ? (
             <SicknessCountdownBadge
               startTime={pet.sickStartTime}
@@ -536,6 +532,21 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
               nextLabel="死亡"
             />
           ) : null}
+
+          {/* 餵食按鈕：放在小雞正下方，一眼就找得到 */}
+          <button
+            type="button"
+            onClick={() => router.push("/feed")}
+            disabled={user.foodCount < 10 || pet.healthStatus === "dead" || pet.fullness >= 100}
+            className={[
+              "mt-5 rounded-2xl px-8 py-3 text-base font-bold text-white shadow-md transition-transform active:scale-95",
+              user.foodCount < 10 || pet.healthStatus === "dead" || pet.fullness >= 100
+                ? "cursor-not-allowed bg-[#A9764C]/40"
+                : "bg-[#C0392B]",
+            ].join(" ")}
+          >
+            🍱 餵食小雞
+          </button>
         </section>
 
         {/* ============================================================
@@ -663,23 +674,9 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
         </section>
 
         {/* ============================================================
-            B'. 玩家資產與互動區（餵食 / 商店買藥）
+            B'. 商店：買藥水
            ============================================================ */}
         <section className="mt-4 flex flex-col gap-3 rounded-3xl bg-white/60 px-4 py-4 shadow-sm">
-          <button
-            type="button"
-            onClick={() => router.push("/feed")}
-            disabled={user.foodCount < 10 || pet.healthStatus === "dead" || pet.fullness >= 100}
-            className={[
-              "w-full rounded-2xl px-4 py-3 text-base font-bold text-white shadow-md transition-transform",
-              user.foodCount < 10 || pet.healthStatus === "dead" || pet.fullness >= 100
-                ? "cursor-not-allowed bg-[#A9764C]/50"
-                : "bg-[#C0392B] active:scale-95",
-            ].join(" ")}
-          >
-            🍱 餵食小雞
-          </button>
-
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
