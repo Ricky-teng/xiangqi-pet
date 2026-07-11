@@ -817,6 +817,7 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
       <CheckinModal
         open={showCheckinModal}
         onClose={() => setShowCheckinModal(false)}
+        checkinTasks={activeDailyTasks.filter((t) => t.taskType === "checkin")}
       />
     </main>
   );

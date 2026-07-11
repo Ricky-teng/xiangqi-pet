@@ -69,8 +69,8 @@ interface GameStoreState {
    */
   claimDailyTask: (task: DailyTaskDoc) => { success: boolean; message: string };
 
-  /** 簽到：今天沒簽過才能簽，push 日期到 checkinHistory */
-  checkin: () => { success: boolean; message: string; alreadyDone: boolean };
+  /** 簽到：今天沒簽過才能簽，push 日期到 checkinHistory，並同時標記所有簽到類型的任務完成 */
+  checkin: (checkinTaskIds?: string[]) => { success: boolean; message: string; alreadyDone: boolean };
 
   /** 取得今天對弈電腦的局數（跨天自動歸零） */
   getDailyVsComputerCount: () => number;
@@ -466,7 +466,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   },
 
   // 6.5 簽到
-  checkin: () => {
+  checkin: (checkinTaskIds = []) => {
     const { user } = get();
     if (!user) return { success: false, message: "找不到資料", alreadyDone: false };
 
@@ -480,9 +480,18 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const now = Date.now();
     const newHistory = [...history, today];
 
+    // 同時把所有簽到任務標記為完成
+    const completedToday = getTodaysCompletedTaskIds(user);
+    const newCompletedIds = Array.from(new Set([...completedToday, ...checkinTaskIds]));
+    const updatedDailyTaskProgress = {
+      date: today,
+      completedTaskIds: newCompletedIds,
+    };
+
     const updatedUser: UserDoc = {
       ...user,
       checkinHistory: newHistory,
+      dailyTaskProgress: updatedDailyTaskProgress,
       updatedAt: now,
     };
 
@@ -490,6 +499,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
     updateDoc(doc(db, "users", user.uid), {
       checkinHistory: newHistory,
+      dailyTaskProgress: updatedDailyTaskProgress,
       updatedAt: now,
     }).catch((error) => {
       console.error("[useGameStore] checkin 同步寫回 Firestore 失敗：", error);

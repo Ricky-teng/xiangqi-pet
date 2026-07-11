@@ -12,11 +12,14 @@
 
 import { useState } from "react";
 import { useGameStore } from "@/stores/useGameStore";
-import { getTodayDateString } from "@/lib/tasks/dailyTasks";
+import { getTodayDateString, getTodaysCompletedTaskIds } from "@/lib/tasks/dailyTasks";
+import type { DailyTaskDoc } from "@/types/database";
 
 interface CheckinModalProps {
   open: boolean;
   onClose: () => void;
+  /** 所有啟用中的簽到類型任務（用來一起標記完成 + 給飼料） */
+  checkinTasks?: DailyTaskDoc[];
 }
 
 /** 產生最近 5 週（35 天）的日期字串陣列，最舊的在最前 */
@@ -36,9 +39,10 @@ function getRecentDates(weeksBack = 5): string[] {
 
 const WEEKDAY_LABELS = ["日", "一", "二", "三", "四", "五", "六"];
 
-export function CheckinModal({ open, onClose }: CheckinModalProps) {
+export function CheckinModal({ open, onClose, checkinTasks = [] }: CheckinModalProps) {
   const user = useGameStore((s) => s.user);
   const checkin = useGameStore((s) => s.checkin);
+  const setUser = useGameStore((s) => s.setUser);
   const [message, setMessage] = useState<string | null>(null);
   const [done, setDone] = useState(false);
 
@@ -47,17 +51,40 @@ export function CheckinModal({ open, onClose }: CheckinModalProps) {
   const today = getTodayDateString();
   const history = new Set(user.checkinHistory ?? []);
   const alreadyCheckedIn = history.has(today);
+  const completedToday = getTodaysCompletedTaskIds(user);
   const dates = getRecentDates();
 
-  // 月曆起始要對齊星期幾，第一天是 dates[0]
   const firstDate = new Date(dates[0] + "T00:00:00");
-  const startDow = firstDate.getDay(); // 0=日
-  // 補空格讓第一格對齊
+  const startDow = firstDate.getDay();
   const emptySlots = startDow;
 
+  // 今天還沒完成的簽到任務（簽到後要給飼料的）
+  const pendingCheckinTasks = checkinTasks.filter((t) => !completedToday.includes(t.id));
+  const totalRewardFood = pendingCheckinTasks.reduce((sum, t) => sum + t.rewardFood, 0);
+
   function handleCheckin() {
-    const result = checkin();
-    setMessage(result.message);
+    const taskIds = checkinTasks.map((t) => t.id);
+    const result = checkin(taskIds);
+    if (result.success && totalRewardFood > 0) {
+      // 給簽到任務的飼料獎勵
+      const updatedUser = {
+        ...user,
+        foodCount: user.foodCount + totalRewardFood,
+        updatedAt: Date.now(),
+      };
+      setUser(updatedUser);
+      import("firebase/firestore").then(({ doc, updateDoc }) => {
+        import("@/lib/firebase").then(({ db }) => {
+          updateDoc(doc(db, "users", user.uid), {
+            foodCount: updatedUser.foodCount,
+            updatedAt: updatedUser.updatedAt,
+          }).catch(console.error);
+        });
+      });
+      setMessage(`簽到成功！獲得 ${totalRewardFood} 飼料！`);
+    } else {
+      setMessage(result.message);
+    }
     if (result.success) setDone(true);
   }
 
@@ -134,6 +161,11 @@ export function CheckinModal({ open, onClose }: CheckinModalProps) {
           {message ? (
             <p className="mb-2 rounded-xl bg-[#5B8C5A]/10 px-3 py-2 text-center text-xs font-semibold text-[#5B8C5A]">
               {message}
+            </p>
+          ) : null}
+          {totalRewardFood > 0 && !alreadyCheckedIn && !done ? (
+            <p className="mb-2 text-center text-xs text-[#8B5FBF] font-semibold">
+              簽到獎勵：+{totalRewardFood} 飼料
             </p>
           ) : null}
           <button

@@ -197,6 +197,7 @@ function TasksContent() {
       <CheckinModal
         open={showCheckinModal}
         onClose={() => setShowCheckinModal(false)}
+        checkinTasks={tasks.filter((t) => t.taskType === "checkin")}
       />
     </main>
   );
