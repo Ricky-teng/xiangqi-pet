@@ -69,6 +69,12 @@ interface GameStoreState {
    */
   claimDailyTask: (task: DailyTaskDoc) => { success: boolean; message: string };
 
+  /** 簽到：今天沒簽過才能簽，push 日期到 checkinHistory */
+  checkin: () => { success: boolean; message: string; alreadyDone: boolean };
+
+  /** 取得今天對弈電腦的局數（跨天自動歸零） */
+  getDailyVsComputerCount: () => number;
+
   /**
    * 對弈電腦結束後，依結果（贏/輸/和）跟「對手等級 vs 學生自己等級」的
    * 差距結算飼料獎懲，並更新 foodCount。見
@@ -418,6 +424,18 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       return { success: false, message: "今天已經完成這個任務了，明天再來！" };
     }
 
+    // 驗證 vs_computer 任務是否達標
+    if (task.taskType === "vs_computer") {
+      const prog = user.dailyVsComputerProgress;
+      const todayCount = prog?.date === today ? prog.count : 0;
+      if (todayCount < (task.requiredCount ?? 1)) {
+        return {
+          success: false,
+          message: `今天還需要再對弈 ${(task.requiredCount ?? 1) - todayCount} 局才能領取！`,
+        };
+      }
+    }
+
     const now = Date.now();
     const updatedDailyTaskProgress = {
       date: today,
@@ -447,6 +465,48 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     };
   },
 
+  // 6.5 簽到
+  checkin: () => {
+    const { user } = get();
+    if (!user) return { success: false, message: "找不到資料", alreadyDone: false };
+
+    const today = getTodayDateString();
+    const history = user.checkinHistory ?? [];
+
+    if (history.includes(today)) {
+      return { success: false, message: "今天已經簽到了！", alreadyDone: true };
+    }
+
+    const now = Date.now();
+    const newHistory = [...history, today];
+
+    const updatedUser: UserDoc = {
+      ...user,
+      checkinHistory: newHistory,
+      updatedAt: now,
+    };
+
+    set({ user: updatedUser });
+
+    updateDoc(doc(db, "users", user.uid), {
+      checkinHistory: newHistory,
+      updatedAt: now,
+    }).catch((error) => {
+      console.error("[useGameStore] checkin 同步寫回 Firestore 失敗：", error);
+    });
+
+    return { success: true, message: "簽到成功！", alreadyDone: false };
+  },
+
+  // 6.6 取得今天對弈電腦局數
+  getDailyVsComputerCount: () => {
+    const { user } = get();
+    if (!user) return 0;
+    const today = getTodayDateString();
+    const prog = user.dailyVsComputerProgress;
+    return prog?.date === today ? prog.count : 0;
+  },
+
   // 7. 對弈電腦結算
   applyVsComputerResult: (outcome, opponentLevel) => {
     const { user } = get();
@@ -465,10 +525,17 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
           ? { vsComputerDraws: (user.stats.vsComputerDraws ?? 0) + 1 }
           : { vsComputerLosses: (user.stats.vsComputerLosses ?? 0) + 1 };
 
+    // 更新當天對弈局數（用於對弈任務進度追蹤）
+    const today = getTodayDateString();
+    const prevProg = user.dailyVsComputerProgress;
+    const newVsCount = prevProg?.date === today ? prevProg.count + 1 : 1;
+    const newVsProg = { date: today, count: newVsCount };
+
     const updatedUser: UserDoc = {
       ...user,
       foodCount: newFoodCount,
       stats: { ...user.stats, ...statsDelta },
+      dailyVsComputerProgress: newVsProg,
       updatedAt: now,
     };
 
@@ -477,6 +544,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     updateDoc(doc(db, "users", user.uid), {
       foodCount: newFoodCount,
       [`stats.${Object.keys(statsDelta)[0]}`]: Object.values(statsDelta)[0],
+      dailyVsComputerProgress: newVsProg,
       updatedAt: now,
     }).catch((error) => {
       console.error("[useGameStore] applyVsComputerResult 同步寫回 Firestore 失敗：", error);

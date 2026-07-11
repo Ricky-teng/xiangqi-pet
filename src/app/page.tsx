@@ -39,7 +39,8 @@ import RequireAuth from "@/components/RequireAuth";
 import { STAGE_XP_THRESHOLDS } from "@/lib/pet/petGrowth";
 import { SICKNESS_ESCALATION_HOURS } from "@/lib/pet/petDecay";
 import { getPetImagePath } from "@/lib/pet/petImagePath";
-import { hasUnclaimedDailyTask } from "@/lib/tasks/dailyTasks";
+import { hasUnclaimedDailyTask, getTodayDateString } from "@/lib/tasks/dailyTasks";
+import { CheckinModal } from "@/components/CheckinModal";
 import type { DailyTaskDoc, UserDoc, VsComputerGameDoc } from "@/types/database";
 
 // ============================================================
@@ -324,7 +325,18 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
   const pet = useGameStore((s) => s.pet);
   const claimDailyGrant = useGameStore((s) => s.claimDailyGrant);
 
+  const [showCheckinModal, setShowCheckinModal] = useState(false);
   const [dailyGrantMessage, setDailyGrantMessage] = useState<string | null>(null);
+
+  // 進大廳時：今天還沒簽到就自動跳出簽到彈框
+  useEffect(() => {
+    const today = getTodayDateString();
+    const history = user.checkinHistory ?? [];
+    if (!history.includes(today)) {
+      setShowCheckinModal(true);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function handleStartBattle() {
     // 按下配對時才檢查救助金——飼料不足 50 且今天還沒領過，先補再進
@@ -800,6 +812,12 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
            ============================================================ */}
         <RecentGamesSection userUid={user.uid} />
       </div>
+
+      {/* 每日簽到彈框 */}
+      <CheckinModal
+        open={showCheckinModal}
+        onClose={() => setShowCheckinModal(false)}
+      />
     </main>
   );
 }

@@ -18,6 +18,7 @@ import { useRouter } from "next/navigation";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useGameStore } from "@/stores/useGameStore";
+import { CheckinModal } from "@/components/CheckinModal";
 import RequireAuth from "@/components/RequireAuth";
 import { getTodaysCompletedTaskIds } from "@/lib/tasks/dailyTasks";
 import type { DailyTaskDoc } from "@/types/database";
@@ -28,6 +29,9 @@ function TasksContent() {
   const router = useRouter();
   const user = useGameStore((s) => s.user);
   const claimDailyTask = useGameStore((s) => s.claimDailyTask);
+  const getDailyVsComputerCount = useGameStore((s) => s.getDailyVsComputerCount);
+  const checkin = useGameStore((s) => s.checkin);
+  const [showCheckinModal, setShowCheckinModal] = useState(false);
 
   const [status, setStatus] = useState<FetchStatus>("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -117,6 +121,14 @@ function TasksContent() {
                 const isCompleted = completedToday.includes(task.id);
                 const isClaiming = claimingTaskId === task.id;
 
+                // 對弈任務進度
+                const vsCount = task.taskType === "vs_computer" ? getDailyVsComputerCount() : 0;
+                const required = task.requiredCount ?? 1;
+                const vsReady = task.taskType === "vs_computer" && vsCount >= required;
+
+                // 是否可以領取
+                const canClaim = !isCompleted && (task.taskType !== "vs_computer" || vsReady);
+
                 return (
                   <div
                     key={task.id}
@@ -134,23 +146,40 @@ function TasksContent() {
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-bold text-[#1A1A2E]">{task.title}</p>
                       <p className="text-xs text-[#1A1A2E]/60">{task.description}</p>
+                      {task.taskType === "vs_computer" && !isCompleted ? (
+                        <p className="mt-0.5 text-xs font-semibold text-[#5B8C5A]">
+                          進度：{vsCount}/{required} 局
+                        </p>
+                      ) : null}
                       <p className="mt-0.5 text-xs font-semibold text-[#8B5FBF]">
                         +{task.rewardFood} 飼料
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => handleClaim(task)}
-                      disabled={isCompleted || isClaiming}
-                      className={[
-                        "shrink-0 rounded-xl px-3 py-2 text-xs font-bold transition-transform active:scale-95",
-                        isCompleted
-                          ? "cursor-not-allowed bg-[#1A1A2E]/10 text-[#1A1A2E]/40"
-                          : "bg-[#E8B84B] text-[#1A1A2E]",
-                      ].join(" ")}
-                    >
-                      {isCompleted ? "✅ 已完成" : isClaiming ? "領取中…" : "領取獎勵"}
-                    </button>
+                    {task.taskType === "checkin" && !isCompleted ? (
+                      <button
+                        type="button"
+                        onClick={() => setShowCheckinModal(true)}
+                        className="shrink-0 rounded-xl bg-[#E8B84B] px-3 py-2 text-xs font-bold text-[#1A1A2E] transition-transform active:scale-95"
+                      >
+                        簽到
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => handleClaim(task)}
+                        disabled={!canClaim || isClaiming}
+                        className={[
+                          "shrink-0 rounded-xl px-3 py-2 text-xs font-bold transition-transform active:scale-95",
+                          isCompleted
+                            ? "cursor-not-allowed bg-[#1A1A2E]/10 text-[#1A1A2E]/40"
+                            : canClaim
+                              ? "bg-[#E8B84B] text-[#1A1A2E]"
+                              : "cursor-not-allowed bg-[#1A1A2E]/10 text-[#1A1A2E]/40",
+                        ].join(" ")}
+                      >
+                        {isCompleted ? "✅ 已完成" : isClaiming ? "領取中…" : canClaim ? "領取獎勵" : "未達標"}
+                      </button>
+                    )}
                   </div>
                 );
               })}
@@ -164,6 +193,11 @@ function TasksContent() {
           </p>
         ) : null}
       </div>
+
+      <CheckinModal
+        open={showCheckinModal}
+        onClose={() => setShowCheckinModal(false)}
+      />
     </main>
   );
 }

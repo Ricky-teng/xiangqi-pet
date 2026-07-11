@@ -58,6 +58,22 @@ export interface UserDoc {
     completedTaskIds: string[];
   };
 
+  /**
+   * 簽到歷史：每次簽到就 push 當天的 "YYYY-MM-DD" 字串。
+   * 月曆用這個陣列渲染哪幾天有簽到的標記。
+   */
+  checkinHistory?: string[];
+
+  /**
+   * 當天對弈電腦局數（用於對弈任務進度追蹤）。
+   * 格式：{ date: "YYYY-MM-DD", count: N }
+   * 跨天時 date 不同，count 重置為 0。
+   */
+  dailyVsComputerProgress?: {
+    date: string;
+    count: number;
+  };
+
   createdAt: number; // 帳號建立時間
   updatedAt: number; // 資料更新時間
 }
@@ -169,17 +185,24 @@ export interface PuzzleDoc {
  * 自己新增/編輯/刪除任務。現在改成跟 PuzzleDoc 一樣存在 Firestore，
  * 老師透過 /admin/tasks 後台管理，學生端從這個 collection 動態讀取。
  */
+export type DailyTaskType = "checkin" | "vs_computer";
+
 export interface DailyTaskDoc {
   id: string;
-  title: string;       // 任務名稱（例如：每日簽到）
-  description: string; // 任務說明文字
-  icon: string;        // 顯示用 emoji（直接打字輸入，不是圖片檔案）
-  rewardFood: number;  // 完成後獲得的飼料數量
-
-  /** 是否啟用：停用的任務不會出現在學生的任務頁面，但保留資料方便老師之後重新啟用 */
+  /** 任務類型：checkin = 簽到，vs_computer = 當天對弈電腦 N 局 */
+  taskType: DailyTaskType;
+  title: string;
+  description: string;
+  icon: string;
+  rewardFood: number;
+  /**
+   * 任務完成門檻（僅 vs_computer 有意義）：
+   * vs_computer：當天對弈幾局才算完成，預設 1
+   * checkin：固定 1，不用設定
+   */
+  requiredCount: number;
   isActive: boolean;
-
-  createdBy: string; // 建立任務的老師 uid
+  createdBy: string;
   createdAt: number;
   updatedAt: number;
 }

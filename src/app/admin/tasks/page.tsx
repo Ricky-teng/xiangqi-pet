@@ -46,6 +46,8 @@ function AdminTasksContent() {
 
   // ---- 表單欄位 ----
   const [taskId, setTaskId] = useState("");
+  const [taskType, setTaskType] = useState<"checkin" | "vs_computer">("checkin");
+  const [requiredCount, setRequiredCount] = useState(1);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [icon, setIcon] = useState("📅");
@@ -98,6 +100,8 @@ function AdminTasksContent() {
 
   function resetFormToBlankState() {
     setTaskId("");
+    setTaskType("checkin");
+    setRequiredCount(1);
     setTitle("");
     setDescription("");
     setIcon("📅");
@@ -109,6 +113,8 @@ function AdminTasksContent() {
 
   function handleEditTask(task: DailyTaskDoc) {
     setTaskId(task.id);
+    setTaskType(task.taskType ?? "checkin");
+    setRequiredCount(task.requiredCount ?? 1);
     setTitle(task.title);
     setDescription(task.description);
     setIcon(task.icon);
@@ -163,6 +169,8 @@ function AdminTasksContent() {
 
     const payload: DailyTaskDoc = {
       id: trimmedId,
+      taskType,
+      requiredCount: taskType === "vs_computer" ? requiredCount : 1,
       title: trimmedTitle,
       description: description.trim(),
       icon: trimmedIcon,
@@ -273,6 +281,30 @@ function AdminTasksContent() {
           ) : null}
 
           <div className="mt-3 flex flex-col gap-3">
+            <Field label="任務類型">
+              <select
+                value={taskType}
+                onChange={(e) => setTaskType(e.target.value as "checkin" | "vs_computer")}
+                disabled={editingTaskId !== null}
+                className={INPUT_CLASS_NAME}
+              >
+                <option value="checkin">📅 每日簽到</option>
+                <option value="vs_computer">🤖 對弈電腦</option>
+              </select>
+            </Field>
+
+            {taskType === "vs_computer" ? (
+              <Field label="需要對弈幾局">
+                <input
+                  type="number"
+                  min={1}
+                  value={requiredCount}
+                  onChange={(e) => setRequiredCount(Number(e.target.value))}
+                  className={INPUT_CLASS_NAME}
+                />
+              </Field>
+            ) : null}
+
             <Field label="任務 ID（將作為 Firestore 文件 ID：dailyTasks/{id}）">
               <input
                 type="text"
