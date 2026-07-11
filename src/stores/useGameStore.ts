@@ -565,7 +565,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     if (!user) return { granted: false };
 
     const DAILY_GRANT_AMOUNT = 50;
-    const BATTLE_ENTRY_COST = 50;
+    const BATTLE_ENTRY_COST = 20;
     const todayStr = new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
 
     // 已經領過了，不重複發

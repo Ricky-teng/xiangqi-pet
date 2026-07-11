@@ -50,7 +50,7 @@ import { useRulesEngine } from "@/hooks/useRulesEngine";
 import { parseFen } from "@/lib/xiangqi/fen";
 import type { BattleRoomDoc, MatchmakingQueueEntry, PuzzleDoc } from "@/types/database";
 
-const BATTLE_ENTRY_COST = 50;
+const BATTLE_ENTRY_COST = 20;
 const BATTLE_WIN_REWARD = 50;
 const QUESTION_TIME_LIMIT_MS = 30_000;
 const TOTAL_QUESTIONS = 10;
@@ -577,10 +577,10 @@ function BattlePageContent() {
           ) : null}
           <p className="mt-3 rounded-xl bg-[#1A1A2E]/5 px-4 py-2 text-sm font-semibold text-[#1A1A2E]">
             {isDraw
-              ? "平局，退還入場費 50 飼料"
+              ? "平局，退還入場費 20 飼料"
               : isWin
               ? `+${BATTLE_WIN_REWARD} 飼料（退場費 +${BATTLE_ENTRY_COST} + 獎勵 +${BATTLE_WIN_REWARD}）🎉`
-              : "入場費 50 飼料不退還"}
+              : "入場費 20 飼料不退還"}
           </p>
           <button
             type="button"
@@ -651,7 +651,7 @@ function BattlePageContent() {
             onClick={async () => { refundIfNotMatched(); await leaveAndCleanup(); router.push("/"); }}
             className="mt-6 w-full rounded-2xl bg-white px-4 py-2.5 text-sm font-bold text-[#1A1A2E]/70 ring-1 ring-inset ring-[#A9764C]/30 transition-transform active:scale-95"
           >
-            取消並返回大廳（退回 50 飼料）
+            取消並返回大廳（退回 20 飼料）
           </button>
         </section>
       </main>

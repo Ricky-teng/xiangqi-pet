@@ -305,13 +305,19 @@ export default function ChessBoard({ board, onMove, highlightMove, lastMove }: C
                 <circle cx={x} cy={y} r={CELL * 0.48} fill="transparent" />
 
                 {isSelected ? (
-                  <circle
-                    cx={x}
-                    cy={y}
-                    r={CELL * 0.48}
-                    fill="#E8B84B"
-                    opacity={0.25}
-                  />
+                  <>
+                    {/* 外圈：白色底再疊金色，讓高光在深色棋盤上也清晰 */}
+                    <circle cx={x} cy={y} r={CELL * 0.49} fill="white" opacity={0.6} />
+                    <circle
+                      cx={x} cy={y} r={CELL * 0.49}
+                      fill="none"
+                      stroke="#E8B84B"
+                      strokeWidth={3}
+                      opacity={1}
+                    />
+                    {/* 內圈金色填充 */}
+                    <circle cx={x} cy={y} r={CELL * 0.44} fill="#E8B84B" opacity={0.35} />
+                  </>
                 ) : null}
 
                 {cell ? (
