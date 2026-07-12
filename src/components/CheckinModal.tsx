@@ -43,7 +43,6 @@ export function CheckinModal({ open, onClose, checkinTasks = [] }: CheckinModalP
   const user = useGameStore((s) => s.user);
   const checkin = useGameStore((s) => s.checkin);
   const setUser = useGameStore((s) => s.setUser);
-  const [message, setMessage] = useState<string | null>(null);
   const [done, setDone] = useState(false);
 
   if (!open || !user) return null;
@@ -82,9 +81,6 @@ export function CheckinModal({ open, onClose, checkinTasks = [] }: CheckinModalP
           }).catch(console.error);
         });
       });
-      setMessage(`簽到成功！獲得 ${totalRewardFood} 飼料！`);
-    } else {
-      setMessage(result.message);
     }
     if (result.success) setDone(true);
   }
@@ -103,83 +99,109 @@ export function CheckinModal({ open, onClose, checkinTasks = [] }: CheckinModalP
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
       <div className="w-full max-w-sm rounded-3xl bg-[#FDF6E8] px-5 py-6 shadow-2xl">
-        {/* 標題 */}
-        <div className="flex items-center justify-between">
-          <h2 className="text-base font-extrabold text-[#1A1A2E]">📅 每日簽到</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-full bg-[#1A1A2E]/10 px-2.5 py-1 text-xs font-bold text-[#1A1A2E]/60 transition-transform active:scale-95"
-          >
-            ✕
-          </button>
-        </div>
 
-        {/* 連續天數 */}
-        <p className="mt-1 text-xs text-[#1A1A2E]/50">
-          連續簽到 <span className="font-extrabold text-[#E8B84B]">{streak}</span> 天
-        </p>
-
-        {/* 最近 5 週月曆 */}
-        <div className="mt-4">
-          {/* 星期標題 */}
-          <div className="grid grid-cols-7 gap-1 text-center">
-            {WEEKDAY_LABELS.map((l) => (
-              <div key={l} className="text-[10px] font-semibold text-[#1A1A2E]/40">{l}</div>
-            ))}
-          </div>
-          {/* 日期格 */}
-          <div className="mt-1 grid grid-cols-7 gap-1">
-            {/* 補空格對齊 */}
-            {Array.from({ length: emptySlots }).map((_, i) => (
-              <div key={`empty-${i}`} />
-            ))}
-            {dates.map((dateStr) => {
-              const isToday = dateStr === today;
-              const checked = history.has(dateStr);
-              const dayNum = parseInt(dateStr.slice(8));
-              return (
-                <div
-                  key={dateStr}
-                  className={[
-                    "flex h-8 w-full items-center justify-center rounded-lg text-xs font-bold",
-                    checked
-                      ? "bg-[#E8B84B] text-[#5C3D0A]"
-                      : isToday
-                        ? "bg-[#1A1A2E]/10 text-[#1A1A2E]"
-                        : "text-[#1A1A2E]/30",
-                  ].join(" ")}
-                >
-                  {checked ? "✓" : dayNum}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* 簽到按鈕 */}
-        <div className="mt-5">
-          {message ? (
-            <p className="mb-2 rounded-xl bg-[#5B8C5A]/10 px-3 py-2 text-center text-xs font-semibold text-[#5B8C5A]">
-              {message}
+        {done ? (
+          /* ---- 簽到成功畫面 ---- */
+          <div className="flex flex-col items-center py-4 text-center">
+            <div className="text-6xl animate-bounce">🎉</div>
+            <p className="mt-4 text-xl font-extrabold text-[#1A1A2E]">簽到成功！</p>
+            <p className="mt-1 text-sm text-[#1A1A2E]/60">
+              連續簽到 <span className="font-extrabold text-[#E8B84B]">{streak + 1}</span> 天
             </p>
-          ) : null}
-          {totalRewardFood > 0 && !alreadyCheckedIn && !done ? (
-            <p className="mb-2 text-center text-xs text-[#8B5FBF] font-semibold">
-              簽到獎勵：+{totalRewardFood} 飼料
+            {totalRewardFood > 0 ? (
+              <div className="mt-5 flex items-center gap-2 rounded-2xl bg-[#E8B84B]/20 px-6 py-4">
+                <span className="text-3xl">🟪</span>
+                <span className="text-2xl font-extrabold text-[#5C3D0A]">+{totalRewardFood} 飼料</span>
+              </div>
+            ) : null}
+            <button
+              type="button"
+              onClick={onClose}
+              className="mt-6 w-full rounded-2xl bg-[#E8B84B] px-4 py-3 text-base font-extrabold text-[#5C3D0A] shadow-md transition-transform active:scale-95"
+            >
+              太好了！
+            </button>
+          </div>
+        ) : (
+          /* ---- 一般簽到畫面 ---- */
+          <>
+            {/* 標題 */}
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-extrabold text-[#1A1A2E]">📅 每日簽到</h2>
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-full bg-[#1A1A2E]/10 px-2.5 py-1 text-xs font-bold text-[#1A1A2E]/60 transition-transform active:scale-95"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* 連續天數 */}
+            <p className="mt-1 text-xs text-[#1A1A2E]/50">
+              連續簽到 <span className="font-extrabold text-[#E8B84B]">{streak}</span> 天
             </p>
-          ) : null}
-          <button
-            type="button"
-            onClick={alreadyCheckedIn || done ? onClose : handleCheckin}
-            className={[
-              "w-full rounded-2xl px-4 py-3 text-base font-extrabold text-white shadow-md transition-transform active:scale-95",
-              alreadyCheckedIn || done ? "bg-[#1A1A2E]/40" : "bg-[#E8B84B] text-[#5C3D0A]",
-            ].join(" ")}
-          >
-            {alreadyCheckedIn || done ? "今天已簽到 ✓" : "✅ 簽到"}
-          </button>
-        </div>
+
+            {/* 最近 5 週月曆 */}
+            <div className="mt-4">
+              <div className="grid grid-cols-7 gap-1 text-center">
+                {WEEKDAY_LABELS.map((l) => (
+                  <div key={l} className="text-[10px] font-semibold text-[#1A1A2E]/40">{l}</div>
+                ))}
+              </div>
+              <div className="mt-1 grid grid-cols-7 gap-1">
+                {Array.from({ length: emptySlots }).map((_, i) => (
+                  <div key={`empty-${i}`} />
+                ))}
+                {dates.map((dateStr) => {
+                  const isToday = dateStr === today;
+                  const checked = history.has(dateStr);
+                  const dayNum = parseInt(dateStr.slice(8));
+                  return (
+                    <div
+                      key={dateStr}
+                      className={[
+                        "flex h-8 w-full items-center justify-center rounded-lg text-xs font-bold",
+                        checked
+                          ? "bg-[#E8B84B] text-[#5C3D0A]"
+                          : isToday
+                            ? "bg-[#1A1A2E]/10 text-[#1A1A2E]"
+                            : "text-[#1A1A2E]/30",
+                      ].join(" ")}
+                    >
+                      {checked ? "✓" : dayNum}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 簽到按鈕 */}
+            <div className="mt-5">
+              {alreadyCheckedIn ? (
+                <p className="mb-3 rounded-xl bg-[#1A1A2E]/5 px-3 py-2 text-center text-xs font-semibold text-[#1A1A2E]/50">
+                  今天已經簽到了，明天再來！
+                </p>
+              ) : totalRewardFood > 0 ? (
+                <p className="mb-3 text-center text-xs font-semibold text-[#8B5FBF]">
+                  簽到獎勵：+{totalRewardFood} 飼料
+                </p>
+              ) : null}
+              <button
+                type="button"
+                onClick={alreadyCheckedIn ? onClose : handleCheckin}
+                className={[
+                  "w-full rounded-2xl px-4 py-3 text-base font-extrabold shadow-md transition-transform active:scale-95",
+                  alreadyCheckedIn
+                    ? "bg-[#1A1A2E]/20 text-[#1A1A2E]/40"
+                    : "bg-[#E8B84B] text-[#5C3D0A]",
+                ].join(" ")}
+              >
+                {alreadyCheckedIn ? "已簽到" : "✅ 簽到"}
+              </button>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
