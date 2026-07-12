@@ -63,6 +63,7 @@ export function CheckinModal({ open, onClose, checkinTasks = [] }: CheckinModalP
   const totalRewardFood = pendingCheckinTasks.reduce((sum, t) => sum + t.rewardFood, 0);
 
   function handleCheckin() {
+    if (!user) return;
     const taskIds = checkinTasks.map((t) => t.id);
     const result = checkin(taskIds);
     if (result.success && totalRewardFood > 0) {
