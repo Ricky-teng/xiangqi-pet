@@ -454,7 +454,13 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
       : 0;
 
   return (
-    <main className="min-h-screen bg-[#FDF6E8] pb-10">
+    <main
+      className="min-h-screen pb-10"
+      style={user.activeBackground
+        ? { backgroundImage: `url(/backgrounds/${user.activeBackground}.jpg)`, backgroundSize: "cover", backgroundPosition: "center", backgroundAttachment: "fixed" }
+        : { backgroundColor: "#FDF6E8" }
+      }
+    >
       <div className="mx-auto max-w-md px-4 pt-4">
         {/* ============================================================
             登入身分列：顯示名稱、登出
@@ -483,6 +489,13 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
               className="text-xs font-bold text-[#1A1A2E]/70 hover:underline"
             >
               🏆 排行榜
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push("/shop")}
+              className="text-xs font-bold text-[#1A1A2E]/70 hover:underline"
+            >
+              🏪 商店
             </button>
             <button
               type="button"

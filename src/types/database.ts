@@ -47,6 +47,25 @@ export interface UserDoc {
   fcmTokens: string[];
 
   /**
+   * 商店背包：道具持有數量
+   * revival_potion        復活藥水（死亡後保留狀態原地復活，700飼料）
+   * double_reward_voucher 雙倍飼料券（2小時內解題/對弈獎勵×2，500飼料）
+   */
+  inventory?: {
+    revival_potion?: number;
+    double_reward_voucher?: number;
+  };
+
+  /** 目前使用的背景 ID，null 或 undefined = 預設米黃 */
+  activeBackground?: string | null;
+
+  /** 雙倍飼料券到期時間戳（ms），null 或過期代表沒有效果 */
+  doubleRewardExpiry?: number | null;
+
+  /** 已購買的背景 ID 陣列 */
+  unlockedBackgrounds?: string[];
+
+  /**
    * 每日任務完成進度（可選欄位：舊帳號沒有這個欄位時，視為「今天還沒
    * 完成任何任務」，見 @/lib/tasks/dailyTasks.ts 的 getTodaysCompletedTaskIds）。
    * date 用本地（瀏覽器所在時區）的 YYYY-MM-DD 字串記錄「上次更新是哪一天」，

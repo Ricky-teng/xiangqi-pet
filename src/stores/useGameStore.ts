@@ -91,6 +91,18 @@ interface GameStoreState {
    * 回傳 granted=true 代表這次真的發放了，可以顯示提示給學生。
    */
   claimDailyGrant: () => { granted: boolean };
+
+  /** 購買道具或背景 */
+  buyShopItem: (itemId: string, price: number, category: "consumable" | "background") => { success: boolean; message: string };
+
+  /** 使用消耗道具（雙倍券/復活藥水） */
+  useItem: (itemId: string) => { success: boolean; message: string };
+
+  /** 切換使用中的背景 */
+  setActiveBackground: (backgroundId: string | null) => void;
+
+  /** 取得目前雙倍飼料券是否有效 */
+  isDoubleRewardActive: () => boolean;
 }
 
 export const useGameStore = create<GameStoreState>((set, get) => ({
@@ -603,5 +615,136 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     });
 
     return { granted: true };
+  },
+
+  buyShopItem: (itemId, price, category) => {
+    const { user } = get();
+    if (!user) return { success: false, message: "找不到資料" };
+    if (user.foodCount < price) return { success: false, message: `飼料不足，需要 ${price} 飼料` };
+
+    const now = Date.now();
+    let updatedUser: UserDoc;
+
+    if (category === "background") {
+      // 背景：存到 unlockedCatalogIds（借用現有欄位，或改成 unlockedBackgrounds）
+      // 用獨立欄位避免跟寵物圖鑑混淆
+      const alreadyOwned = user.unlockedBackgrounds?.includes(itemId);
+      if (alreadyOwned) return { success: false, message: "已經擁有這個背景了" };
+
+      updatedUser = {
+        ...user,
+        foodCount: user.foodCount - price,
+        updatedAt: now,
+      };
+      const newUnlocked = [...(user.unlockedBackgrounds ?? []), itemId];
+
+      set({ user: { ...updatedUser, unlockedBackgrounds: newUnlocked } });
+      updateDoc(doc(db, "users", user.uid), {
+        foodCount: updatedUser.foodCount,
+        unlockedBackgrounds: newUnlocked,
+        updatedAt: now,
+      }).catch(console.error);
+    } else {
+      // 消耗道具：加進背包
+      const currentCount = user.inventory?.[itemId as keyof typeof user.inventory] ?? 0;
+      updatedUser = {
+        ...user,
+        foodCount: user.foodCount - price,
+        inventory: { ...user.inventory, [itemId]: currentCount + 1 },
+        updatedAt: now,
+      };
+      set({ user: updatedUser });
+      updateDoc(doc(db, "users", user.uid), {
+        foodCount: updatedUser.foodCount,
+        [`inventory.${itemId}`]: currentCount + 1,
+        updatedAt: now,
+      }).catch(console.error);
+    }
+
+    return { success: true, message: "購買成功！" };
+  },
+
+  useItem: (itemId) => {
+    const { user } = get();
+    if (!user) return { success: false, message: "找不到資料" };
+
+    const count = user.inventory?.[itemId as keyof typeof user.inventory] ?? 0;
+    if (count <= 0) return { success: false, message: "背包裡沒有這個道具" };
+
+    const now = Date.now();
+
+    if (itemId === "revival_potion") {
+      const { pet } = get();
+      if (!pet) return { success: false, message: "找不到寵物資料" };
+      if (pet.healthStatus !== "dead") return { success: false, message: "小雞還沒有死，不需要使用復活藥水" };
+
+      // 保留死前所有狀態，只把 healthStatus 改回 normal，清除計時器
+      const revivedPet = {
+        ...pet,
+        healthStatus: "normal" as const,
+        sickStartTime: null,
+        severeSickStartTime: null,
+        updatedAt: now,
+      };
+      set({
+        pet: revivedPet,
+        user: {
+          ...user,
+          inventory: { ...user.inventory, revival_potion: count - 1 },
+          updatedAt: now,
+        },
+      });
+      updateDoc(doc(db, "pets", user.uid), {
+        healthStatus: "normal",
+        sickStartTime: null,
+        severeSickStartTime: null,
+        updatedAt: now,
+      }).catch(console.error);
+      updateDoc(doc(db, "users", user.uid), {
+        "inventory.revival_potion": count - 1,
+        updatedAt: now,
+      }).catch(console.error);
+      return { success: true, message: "✨ 小雞復活了！所有狀態都保留下來了！" };
+    }
+
+    if (itemId === "double_reward_voucher") {
+      const currentExpiry = user.doubleRewardExpiry ?? 0;
+      if (currentExpiry > now) return { success: false, message: "雙倍飼料券效果還在生效中！不需要再使用" };
+
+      const newExpiry = now + 2 * 60 * 60 * 1000; // 2小時
+      const updatedUser = {
+        ...user,
+        inventory: { ...user.inventory, double_reward_voucher: count - 1 },
+        doubleRewardExpiry: newExpiry,
+        updatedAt: now,
+      };
+      set({ user: updatedUser });
+      updateDoc(doc(db, "users", user.uid), {
+        "inventory.double_reward_voucher": count - 1,
+        doubleRewardExpiry: newExpiry,
+        updatedAt: now,
+      }).catch(console.error);
+      return { success: true, message: "🎟️ 雙倍飼料券已啟動！2 小時內獎勵 ×2！" };
+    }
+
+    return { success: false, message: "未知道具" };
+  },
+
+  setActiveBackground: (backgroundId) => {
+    const { user } = get();
+    if (!user) return;
+    const updatedUser = { ...user, activeBackground: backgroundId, updatedAt: Date.now() };
+    set({ user: updatedUser });
+    updateDoc(doc(db, "users", user.uid), {
+      activeBackground: backgroundId ?? null,
+      updatedAt: Date.now(),
+    }).catch(console.error);
+  },
+
+  isDoubleRewardActive: () => {
+    const { user } = get();
+    if (!user) return false;
+    const expiry = user.doubleRewardExpiry ?? 0;
+    return expiry > Date.now();
   },
 }));
