@@ -503,11 +503,6 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
             </button>
           ))}
         </nav>
-          <div className="flex items-center gap-1 text-sm font-semibold text-[#8B5FBF]">
-            <span aria-hidden="true">🟪</span>
-            <span className="tabular-nums">{user.foodCount}</span>
-          </div>
-        </header>
 
         {/* ============================================================
             B. 小雞展示區（獨立卡片，給小雞圖像足夠的呼吸空間）
