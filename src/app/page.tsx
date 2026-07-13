@@ -351,7 +351,6 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
     }
   }
 
-  const buyMedicine = useGameStore((s) => s.buyMedicine);
   const rebirthPet = useGameStore((s) => s.rebirthPet);
   const resurrectPet = useGameStore((s) => s.resurrectPet);
 
@@ -388,15 +387,6 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
       console.error("[home] 登出失敗：", error);
       setIsSigningOut(false);
     }
-  }
-
-  // ---- 商店購買藥水後的提示訊息（短暫顯示用） ----
-  const [shopMessage, setShopMessage] = useState<string | null>(null);
-
-  /** 處理購買藥水按鈕點擊 */
-  function handleBuyMedicine(type: "slightly" | "severely") {
-    const result = buyMedicine(type);
-    setShopMessage(result.message);
   }
 
   // ---- 轉生（圖鑑收藏系統）相關狀態 ----
@@ -469,56 +459,50 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
           <p className="text-xs font-medium text-[#1A1A2E]/60">
             👋 {user.displayName}（學生）
           </p>
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => router.push("/tasks")}
-              className="relative text-xs font-bold text-[#1A1A2E]/70 hover:underline"
-            >
-              📋 任務
-              {hasUnclaimedDailyTask(user, activeDailyTasks) ? (
-                <span
-                  aria-label="有未領取的任務"
-                  className="absolute -right-1.5 -top-1.5 h-2 w-2 rounded-full bg-[#C0392B]"
-                />
-              ) : null}
-            </button>
-            <button
-              type="button"
-              onClick={() => router.push("/leaderboard")}
-              className="text-xs font-bold text-[#1A1A2E]/70 hover:underline"
-            >
-              🏆 排行榜
-            </button>
-            <button
-              type="button"
-              onClick={() => router.push("/shop")}
-              className="text-xs font-bold text-[#1A1A2E]/70 hover:underline"
-            >
-              🏪 商店
-            </button>
-            <button
-              type="button"
-              onClick={() => router.push("/catalog")}
-              className="text-xs font-bold text-[#1A1A2E]/70 hover:underline"
-            >
-              📖 圖鑑
-            </button>
-            <button
-              type="button"
-              onClick={handleSignOut}
-              disabled={isSigningOut}
-              className="text-xs font-bold text-[#C0392B] hover:underline disabled:opacity-50"
-            >
-              {isSigningOut ? "登出中…" : "登出"}
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={handleSignOut}
+            disabled={isSigningOut}
+            className="text-xs font-bold text-[#C0392B] hover:underline disabled:opacity-50"
+          >
+            {isSigningOut ? "登出中…" : "登出"}
+          </button>
         </div>
 
         {/* ============================================================
             A. 頂部狀態列
            ============================================================ */}
         <header className="flex items-center justify-end rounded-2xl bg-white/70 px-4 py-2 shadow-sm">
+          <div className="flex items-center gap-1 text-sm font-semibold text-[#8B5FBF]">
+            <span aria-hidden="true">🟪</span>
+            <span className="tabular-nums">{user.foodCount}</span>
+          </div>
+        </header>
+
+        {/* ============================================================
+            A2. 主導覽 Tab Bar
+           ============================================================ */}
+        <nav className="mt-3 grid grid-cols-4 gap-2 rounded-2xl bg-white/70 p-2 shadow-sm">
+          {[
+            { href: "/shop", icon: "🏪", label: "商店" },
+            { href: "/inventory", icon: "🎒", label: "裝備" },
+            { href: "/tasks", icon: "📋", label: "任務", badge: hasUnclaimedDailyTask(user, activeDailyTasks) },
+            { href: "/leaderboard", icon: "🏆", label: "排行榜" },
+          ].map(({ href, icon, label, badge }) => (
+            <button
+              key={href}
+              type="button"
+              onClick={() => router.push(href)}
+              className="relative flex flex-col items-center gap-0.5 rounded-xl py-2 text-[#1A1A2E] transition-transform active:scale-95 hover:bg-[#E8B84B]/20"
+            >
+              <span className="text-xl">{icon}</span>
+              <span className="text-xs font-bold">{label}</span>
+              {badge ? (
+                <span className="absolute right-2 top-1.5 h-2 w-2 rounded-full bg-[#C0392B]" />
+              ) : null}
+            </button>
+          ))}
+        </nav>
           <div className="flex items-center gap-1 text-sm font-semibold text-[#8B5FBF]">
             <span aria-hidden="true">🟪</span>
             <span className="tabular-nums">{user.foodCount}</span>
@@ -695,50 +679,6 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
             <p className="mt-3 w-full rounded-xl bg-white/80 px-3 py-2 text-center text-xs font-medium text-[#8B5FBF]">
               {resurrectMessage}
             </p>
-          ) : null}
-        </section>
-
-        {/* ============================================================
-            B'. 商店：買藥水
-           ============================================================ */}
-        <section className="mt-4 flex flex-col gap-3 rounded-3xl bg-white/60 px-4 py-4 shadow-sm">
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={() => handleBuyMedicine("slightly")}
-              disabled={pet.healthStatus !== "slightly_sick" || user.foodCount < 20}
-              className={[
-                "rounded-2xl px-3 py-2 text-sm font-bold text-white shadow-md transition-transform",
-                pet.healthStatus !== "slightly_sick" || user.foodCount < 20
-                  ? "cursor-not-allowed bg-[#5B8C5A]/40"
-                  : "bg-[#5B8C5A] active:scale-95",
-              ].join(" ")}
-            >
-              💊 小病藥水（20 飼料）
-            </button>
-            <button
-              type="button"
-              onClick={() => handleBuyMedicine("severely")}
-              disabled={pet.healthStatus !== "severely_sick" || user.foodCount < 40}
-              className={[
-                "rounded-2xl px-3 py-2 text-sm font-bold text-white shadow-md transition-transform",
-                pet.healthStatus !== "severely_sick" || user.foodCount < 40
-                  ? "cursor-not-allowed bg-[#8B5FBF]/40"
-                  : "bg-[#8B5FBF] active:scale-95",
-              ].join(" ")}
-            >
-              🧪 大病藥水（40 飼料）
-            </button>
-          </div>
-
-          {pet.healthStatus === "normal" || pet.healthStatus === "dead" ? (
-            <p className="text-center text-[11px] text-[#1A1A2E]/40">
-              小雞目前不需要吃藥，藥水按鈕已鎖定。
-            </p>
-          ) : null}
-
-          {shopMessage ? (
-            <p className="text-center text-xs font-medium text-[#1A1A2E]/70">{shopMessage}</p>
           ) : null}
         </section>
 
