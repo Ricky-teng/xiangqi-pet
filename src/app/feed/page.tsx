@@ -102,7 +102,7 @@ function FeedPageContent() {
   const fullnessPercent = Math.min(100, Math.max(0, pet.fullness));
 
   return (
-    <main className="flex h-screen flex-col" style={bgStyle} style={{ touchAction: "none" }}>
+    <main className="flex h-screen flex-col" style={{ ...bgStyle, touchAction: "none" }}>
       {/* 頂部列 */}
       <header className="flex shrink-0 items-center justify-between px-4 pt-4">
         <button
