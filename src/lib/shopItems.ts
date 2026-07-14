@@ -24,6 +24,22 @@ export interface ShopItem {
 export const SHOP_ITEMS: ShopItem[] = [
   // ---- 消耗道具 ----
   {
+    id: "slight_sick_potion",
+    category: "consumable",
+    name: "小病藥水",
+    description: "小雞生小病時使用，立刻治癒恢復健康。",
+    icon: "💊",
+    price: 20,
+  },
+  {
+    id: "severe_sick_potion",
+    category: "consumable",
+    name: "大病藥水",
+    description: "小雞生大病時使用，立刻治癒恢復健康。",
+    icon: "🧪",
+    price: 40,
+  },
+  {
     id: "revival_potion",
     category: "consumable",
     name: "復活藥水",
