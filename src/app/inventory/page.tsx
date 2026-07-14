@@ -1,3 +1,4 @@
+// src/app/inventory/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -9,6 +10,7 @@ import { SHOP_ITEMS } from "@/lib/shopItems";
 function InventoryContent() {
   const router = useRouter();
   const user = useGameStore((s) => s.user);
+  const pet = useGameStore((s) => s.pet);
   const useItem = useGameStore((s) => s.useItem);
   const setActiveBackground = useGameStore((s) => s.setActiveBackground);
   const isDoubleRewardActive = useGameStore((s) => s.isDoubleRewardActive);
@@ -20,6 +22,10 @@ function InventoryContent() {
   const remainingMin = doubleActive
     ? Math.ceil(((user.doubleRewardExpiry ?? 0) - Date.now()) / 60000)
     : 0;
+
+  const shieldExpiry = pet?.fullnessProtectionUntil ?? 0;
+  const shieldActive = shieldExpiry > Date.now();
+  const shieldRemainingHours = shieldActive ? Math.ceil((shieldExpiry - Date.now()) / (60 * 60 * 1000)) : 0;
 
   function showMessage(msg: string) {
     setMessage(msg);
@@ -76,15 +82,20 @@ function InventoryContent() {
           <div className="flex flex-col gap-2">
             {consumables.map((item) => {
               const count = user.inventory?.[item.id as keyof typeof user.inventory] ?? 0;
-              const isExpiry = item.id === "double_reward_voucher" && doubleActive;
+              const isExpiry =
+                (item.id === "double_reward_voucher" && doubleActive) ||
+                (item.id === "fullness_shield" && shieldActive);
               return (
                 <div key={item.id} className="flex items-center gap-3 rounded-2xl bg-white/80 px-4 py-3">
                   <span className="text-2xl">{item.icon}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-[#1A1A2E]">{item.name}</p>
                     <p className="text-xs text-[#1A1A2E]/50">{item.description}</p>
-                    {isExpiry ? (
+                    {item.id === "double_reward_voucher" && doubleActive ? (
                       <p className="text-xs font-bold text-[#E8B84B]">生效中，還剩 {remainingMin} 分鐘</p>
+                    ) : null}
+                    {item.id === "fullness_shield" && shieldActive ? (
+                      <p className="text-xs font-bold text-[#E8B84B]">生效中，還剩 {shieldRemainingHours} 小時</p>
                     ) : null}
                   </div>
                   <div className="flex flex-col items-end gap-1.5">
@@ -148,7 +159,7 @@ function InventoryContent() {
                   <div className="flex-1">
                     <p className="text-sm font-bold text-[#1A1A2E]">{item.name}</p>
                     <p className="text-xs text-[#1A1A2E]/50">
-                      {owned ? "已擁有" : `🟪 ${item.price} 飼料（前往商店購買）`}
+                      {owned ? "已擁有" : "尚未擁有（前往商店抽獎取得）"}
                     </p>
                   </div>
                   {owned ? (
@@ -164,7 +175,7 @@ function InventoryContent() {
                   ) : (
                     <button type="button" onClick={() => router.push("/shop")}
                       className="rounded-xl bg-[#8B5FBF]/20 px-3 py-1.5 text-xs font-bold text-[#8B5FBF] transition-transform active:scale-95">
-                      前往商店
+                      前往抽獎
                     </button>
                   )}
                 </div>

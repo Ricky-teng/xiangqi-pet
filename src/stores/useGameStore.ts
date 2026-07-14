@@ -12,6 +12,7 @@ import {
   DRAW_REWARD_FOOD,
   type ComputerLevel,
 } from "@/lib/engine/computerPlayer";
+import { BACKGROUND_GACHA_COST, drawRandomBackground } from "@/lib/shopItems";
 
 // 定義我們遊戲總機裡面有哪些資料與開關
 interface GameStoreState {
@@ -92,10 +93,16 @@ interface GameStoreState {
    */
   claimDailyGrant: () => { granted: boolean };
 
-  /** 購買道具或背景 */
+  /** 購買消耗道具（背景已改為抽獎取得，不再走這個函式） */
   buyShopItem: (itemId: string, price: number, category: "consumable" | "background") => { success: boolean; message: string };
 
-  /** 使用消耗道具（雙倍券/復活藥水） */
+  /**
+   * 抽一次背景（花費 BACKGROUND_GACHA_COST 飼料）。
+   * 抽到已擁有的背景時全額退還飼料（等於沒扣錢），抽到新的則加入 unlockedBackgrounds。
+   */
+  drawBackgroundGacha: () => { success: boolean; message: string; itemId?: string; isDuplicate?: boolean };
+
+  /** 使用消耗道具（雙倍券/復活藥水/飽食護盾） */
   useItem: (itemId: string) => { success: boolean; message: string };
 
   /** 切換使用中的背景 */
@@ -633,51 +640,82 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   buyShopItem: (itemId, price, category) => {
     const { user } = get();
     if (!user) return { success: false, message: "找不到資料" };
+
+    // 背景已改為抽獎取得，不再支援直接花飼料購買（見 drawBackgroundGacha）
+    if (category === "background") {
+      return { success: false, message: "背景已改為抽獎取得，請到商店的抽獎區試試手氣！" };
+    }
+
     if (user.foodCount < price) return { success: false, message: `飼料不足，需要 ${price} 飼料` };
 
     const now = Date.now();
-    let updatedUser: UserDoc;
 
-    if (category === "background") {
-      // 背景：存到 unlockedCatalogIds（借用現有欄位，或改成 unlockedBackgrounds）
-      // 用獨立欄位避免跟寵物圖鑑混淆
-      const alreadyOwned = user.unlockedBackgrounds?.includes(itemId);
-      if (alreadyOwned) return { success: false, message: "已經擁有這個背景了" };
-
-      updatedUser = {
-        ...user,
-        foodCount: user.foodCount - price,
-        updatedAt: now,
-      };
-      const newUnlocked = [...(user.unlockedBackgrounds ?? []), itemId];
-
-      set({ user: { ...updatedUser, unlockedBackgrounds: newUnlocked } });
-      updateDoc(doc(db, "users", user.uid), {
-        foodCount: updatedUser.foodCount,
-        unlockedBackgrounds: newUnlocked,
-        updatedAt: now,
-      }).catch(console.error);
-    } else {
-      // 消耗道具：加進背包
-      // 用 setDoc + merge 而不是 updateDoc dotted path，
-      // 避免 inventory 欄位不存在時靜默失敗（舊帳號沒有這個欄位）
-      const currentCount = user.inventory?.[itemId as keyof typeof user.inventory] ?? 0;
-      const newInventory = { ...(user.inventory ?? {}), [itemId]: currentCount + 1 };
-      updatedUser = {
-        ...user,
-        foodCount: user.foodCount - price,
-        inventory: newInventory,
-        updatedAt: now,
-      };
-      set({ user: updatedUser });
-      setDoc(doc(db, "users", user.uid), {
-        foodCount: updatedUser.foodCount,
-        inventory: newInventory,
-        updatedAt: now,
-      }, { merge: true }).catch(console.error);
-    }
+    // 消耗道具：加進背包
+    // 用 setDoc + merge 而不是 updateDoc dotted path，
+    // 避免 inventory 欄位不存在時靜默失敗（舊帳號沒有這個欄位）
+    const currentCount = user.inventory?.[itemId as keyof typeof user.inventory] ?? 0;
+    const newInventory = { ...(user.inventory ?? {}), [itemId]: currentCount + 1 };
+    const updatedUser: UserDoc = {
+      ...user,
+      foodCount: user.foodCount - price,
+      inventory: newInventory,
+      updatedAt: now,
+    };
+    set({ user: updatedUser });
+    setDoc(doc(db, "users", user.uid), {
+      foodCount: updatedUser.foodCount,
+      inventory: newInventory,
+      updatedAt: now,
+    }, { merge: true }).catch(console.error);
 
     return { success: true, message: "購買成功！" };
+  },
+
+  drawBackgroundGacha: () => {
+    const { user } = get();
+    if (!user) return { success: false, message: "找不到資料" };
+    if (user.foodCount < BACKGROUND_GACHA_COST) {
+      return { success: false, message: `飼料不足，抽一次需要 ${BACKGROUND_GACHA_COST} 飼料` };
+    }
+
+    const now = Date.now();
+    const drawn = drawRandomBackground();
+    const alreadyOwned = (user.unlockedBackgrounds ?? []).includes(drawn.id);
+
+    if (alreadyOwned) {
+      // 抽到重複的背景：全額退還飼料，等於沒扣錢，只是換一次手氣
+      // （不寫 Firestore 也沒差，因為 foodCount 沒變；但為了保險與時間戳一致還是同步一下 updatedAt）
+      set({ user: { ...user, updatedAt: now } });
+      updateDoc(doc(db, "users", user.uid), { updatedAt: now }).catch(console.error);
+      return {
+        success: true,
+        message: `${drawn.icon} 抽到「${drawn.name}」，但你已經擁有了，飼料全額退還！`,
+        itemId: drawn.id,
+        isDuplicate: true,
+      };
+    }
+
+    const newFoodCount = user.foodCount - BACKGROUND_GACHA_COST;
+    const newUnlocked = [...(user.unlockedBackgrounds ?? []), drawn.id];
+    const updatedUser: UserDoc = {
+      ...user,
+      foodCount: newFoodCount,
+      unlockedBackgrounds: newUnlocked,
+      updatedAt: now,
+    };
+    set({ user: updatedUser });
+    updateDoc(doc(db, "users", user.uid), {
+      foodCount: newFoodCount,
+      unlockedBackgrounds: newUnlocked,
+      updatedAt: now,
+    }).catch(console.error);
+
+    return {
+      success: true,
+      message: `🎉 恭喜抽到新背景「${drawn.name}」！`,
+      itemId: drawn.id,
+      isDuplicate: false,
+    };
   },
 
   useItem: (itemId) => {
@@ -739,6 +777,28 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       }).catch(console.error);
       setDoc(doc(db, "users", user.uid), { inventory: newInventory, updatedAt: now }, { merge: true }).catch(console.error);
       return { success: true, message: "✨ 小雞復活了！所有狀態都保留下來了！" };
+    }
+
+    if (itemId === "fullness_shield") {
+      const { pet } = get();
+      if (!pet) return { success: false, message: "找不到寵物資料" };
+      if (pet.healthStatus === "dead") return { success: false, message: "小雞已經死掉了，護盾對它沒用" };
+
+      const currentProtection = pet.fullnessProtectionUntil ?? 0;
+      if (currentProtection > now) {
+        return { success: false, message: "飽食護盾還在生效中！不需要再使用" };
+      }
+
+      const newProtection = now + 3 * 24 * 60 * 60 * 1000; // 3 天
+      const updatedPet = { ...pet, fullnessProtectionUntil: newProtection, updatedAt: now };
+      const newInventory = { ...(user.inventory ?? {}), fullness_shield: count - 1 };
+      set({ pet: updatedPet, user: { ...user, inventory: newInventory, updatedAt: now } });
+      updateDoc(doc(db, "pets", user.uid), {
+        fullnessProtectionUntil: newProtection,
+        updatedAt: now,
+      }).catch(console.error);
+      setDoc(doc(db, "users", user.uid), { inventory: newInventory, updatedAt: now }, { merge: true }).catch(console.error);
+      return { success: true, message: "🛡️ 飽食護盾啟動！3 天內飽食度不會下降！" };
     }
 
     if (itemId === "double_reward_voucher") {

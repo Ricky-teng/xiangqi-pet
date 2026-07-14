@@ -55,8 +55,19 @@ export const SHOP_ITEMS: ShopItem[] = [
     icon: "🎟️",
     price: 500,
   },
+  {
+    id: "fullness_shield",
+    category: "consumable",
+    name: "飽食護盾",
+    description: "使用後 3 天內，小雞飽食度不會下降，也不會因為太餓而生病。",
+    icon: "🛡️",
+    price: 400,
+  },
 
   // ---- 背景 ----
+  // 【注意】背景已改為「抽獎」取得，不能在商店直接花飼料購買。
+  // 這裡的 price 欄位保留但不再用於購買，只作為歷史參考／未來若要
+  // 顯示「等值」時使用。實際抽獎花費請看下面的 BACKGROUND_GACHA_COST。
   {
     id: "bamboo_forest",
     category: "background",
@@ -97,4 +108,23 @@ export function getShopItem(id: string): ShopItem | undefined {
 /** 判斷用戶是否已解鎖某個背景 */
 export function isBackgroundUnlocked(userId: string, itemId: string, unlockedIds: string[]): boolean {
   return unlockedIds.includes(itemId);
+}
+
+// ============================================================
+// 背景抽獎（取代直接購買）
+// ============================================================
+
+/** 抽一次背景要花多少飼料 */
+export const BACKGROUND_GACHA_COST = 20;
+
+/** 抽獎池：目前就是全部的背景款式，機率均等 */
+export function getBackgroundGachaPool(): ShopItem[] {
+  return SHOP_ITEMS.filter((item) => item.category === "background");
+}
+
+/** 從抽獎池中隨機抽出一款背景（均等機率） */
+export function drawRandomBackground(): ShopItem {
+  const pool = getBackgroundGachaPool();
+  const index = Math.floor(Math.random() * pool.length);
+  return pool[index];
 }

@@ -153,7 +153,14 @@ export interface PetDoc {
   };
   
   currentAppearanceId: string | null; // 當前穿戴的小雞特殊外觀 ID (轉生解鎖獲得)
-  
+
+  /**
+   * 飽食護盾到期時間戳（ms）。使用「飽食護盾」道具後設定為 now + 3 天。
+   * 在這個時間之前，petDecay.ts 不會扣飽食度，也不會因為餓而觸發生病。
+   * null 或已過期（now >= 此值）代表沒有生效中的護盾。
+   */
+  fullnessProtectionUntil?: number | null;
+
   createdAt: number;
   updatedAt: number;
 }

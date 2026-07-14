@@ -79,15 +79,27 @@ export function applyPetTimeDecay(pet: PetDoc, now: number): PetDecayResult {
   let changed = false;
 
   // ---- 1. 飽食度隨時間下降（死掉就不再繼續扣，沒有意義） ----
+  const isFullnessProtected =
+    !!pet.fullnessProtectionUntil && now < pet.fullnessProtectionUntil;
+
   if (pet.healthStatus !== "dead") {
-    const hoursSinceLastFed = (now - pet.lastFedTime) / HOUR_MS;
-    if (hoursSinceLastFed > 0) {
-      const decayAmount = hoursSinceLastFed * FULLNESS_DECAY_PERCENT_PER_HOUR;
-      const newFullness = Math.max(0, pet.fullness - decayAmount);
-      if (newFullness !== pet.fullness) {
-        next.fullness = newFullness;
-        next.lastFedTime = now; // 重設檢查點，避免下次計算重複扣這段時間
+    if (isFullnessProtected) {
+      // 護盾生效中：不扣飽食度，但要把「上次餵食」檢查點往前推到現在，
+      // 避免護盾到期後，這段被保護的時間被一次補扣（造成護盾一結束就暴跌）。
+      if (pet.lastFedTime < now) {
+        next.lastFedTime = now;
         changed = true;
+      }
+    } else {
+      const hoursSinceLastFed = (now - pet.lastFedTime) / HOUR_MS;
+      if (hoursSinceLastFed > 0) {
+        const decayAmount = hoursSinceLastFed * FULLNESS_DECAY_PERCENT_PER_HOUR;
+        const newFullness = Math.max(0, pet.fullness - decayAmount);
+        if (newFullness !== pet.fullness) {
+          next.fullness = newFullness;
+          next.lastFedTime = now; // 重設檢查點，避免下次計算重複扣這段時間
+          changed = true;
+        }
       }
     }
   }
