@@ -482,12 +482,13 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
         {/* ============================================================
             A2. 主導覽 Tab Bar
            ============================================================ */}
-        <nav className="mt-3 grid grid-cols-4 gap-2 rounded-2xl bg-white/70 p-2 shadow-sm">
+        <nav className="mt-3 grid grid-cols-5 gap-1.5 rounded-2xl bg-white/70 p-2 shadow-sm">
           {[
             { href: "/shop", icon: "🏪", label: "商店" },
             { href: "/inventory", icon: "🎒", label: "裝備" },
             { href: "/tasks", icon: "📋", label: "任務", badge: hasUnclaimedDailyTask(user, activeDailyTasks) },
             { href: "/leaderboard", icon: "🏆", label: "排行榜" },
+            { href: "/catalog", icon: "📖", label: "圖鑑" },
           ].map(({ href, icon, label, badge }) => (
             <button
               key={href}

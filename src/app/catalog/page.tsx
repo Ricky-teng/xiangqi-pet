@@ -19,10 +19,13 @@ import Image from "next/image";
 import { useGameStore } from "@/stores/useGameStore";
 import RequireAuth from "@/components/RequireAuth";
 import { CATALOG_ENTRIES, type CatalogEntry } from "@/lib/pet/catalog";
+import { useAppBackground } from "@/lib/useAppBackground";
 
 function CatalogContent() {
   const router = useRouter();
   const user = useGameStore((s) => s.user);
+
+  const bgStyle = useAppBackground();
 
   if (!user) {
     // RequireAuth 已經保證 user 存在，這裡純粹是型別防呆
@@ -32,7 +35,7 @@ function CatalogContent() {
   const unlockedSet = new Set(user.unlockedCatalogIds);
 
   return (
-    <main className="min-h-screen bg-[#FDF6E8] pb-10">
+    <main className="min-h-screen pb-10" style={bgStyle}>
       <div className="mx-auto max-w-md px-4 pt-4">
         <header className="flex items-center justify-between rounded-2xl bg-white/70 px-4 py-3 shadow-sm">
           <button
