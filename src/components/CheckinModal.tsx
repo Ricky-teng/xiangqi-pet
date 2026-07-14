@@ -42,7 +42,6 @@ const WEEKDAY_LABELS = ["日", "一", "二", "三", "四", "五", "六"];
 export function CheckinModal({ open, onClose, checkinTasks = [] }: CheckinModalProps) {
   const user = useGameStore((s) => s.user);
   const checkin = useGameStore((s) => s.checkin);
-  const setUser = useGameStore((s) => s.setUser);
   const [done, setDone] = useState(false);
 
   if (!open || !user) return null;
@@ -64,24 +63,9 @@ export function CheckinModal({ open, onClose, checkinTasks = [] }: CheckinModalP
   function handleCheckin() {
     if (!user) return;
     const taskIds = checkinTasks.map((t) => t.id);
-    const result = checkin(taskIds);
-    if (result.success && totalRewardFood > 0) {
-      // 給簽到任務的飼料獎勵
-      const updatedUser = {
-        ...user,
-        foodCount: user.foodCount + totalRewardFood,
-        updatedAt: Date.now(),
-      };
-      setUser(updatedUser);
-      import("firebase/firestore").then(({ doc, updateDoc }) => {
-        import("@/lib/firebase").then(({ db }) => {
-          updateDoc(doc(db, "users", user.uid), {
-            foodCount: updatedUser.foodCount,
-            updatedAt: updatedUser.updatedAt,
-          }).catch(console.error);
-        });
-      });
-    }
+    const taskRewards = pendingCheckinTasks.map((t) => t.rewardFood);
+    // store 的 checkin() 現在同時處理：標記任務完成 + 發飼料 + 寫 Firestore
+    const result = checkin(taskIds, taskRewards);
     if (result.success) setDone(true);
   }
 

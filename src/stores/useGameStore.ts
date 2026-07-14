@@ -69,8 +69,8 @@ interface GameStoreState {
    */
   claimDailyTask: (task: DailyTaskDoc) => { success: boolean; message: string };
 
-  /** 簽到：今天沒簽過才能簽，push 日期到 checkinHistory，並同時標記所有簽到類型的任務完成 */
-  checkin: (checkinTaskIds?: string[]) => { success: boolean; message: string; alreadyDone: boolean };
+  /** 簽到：今天沒簽過才能簽，push 日期到 checkinHistory，並同時標記所有簽到類型的任務完成並發飼料 */
+  checkin: (checkinTaskIds?: string[], checkinTaskRewards?: number[]) => { success: boolean; message: string; alreadyDone: boolean };
 
   /** 取得今天對弈電腦的局數（跨天自動歸零） */
   getDailyVsComputerCount: () => number;
@@ -478,7 +478,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   },
 
   // 6.5 簽到
-  checkin: (checkinTaskIds = []) => {
+  checkin: (checkinTaskIds = [], checkinTaskRewards = []) => {
     const { user } = get();
     if (!user) return { success: false, message: "找不到資料", alreadyDone: false };
 
@@ -492,7 +492,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const now = Date.now();
     const newHistory = [...history, today];
 
-    // 同時把所有簽到任務標記為完成
+    // 同時把所有簽到任務標記為完成（跟任務頁共用同一個 completedTaskIds）
     const completedToday = getTodaysCompletedTaskIds(user);
     const newCompletedIds = Array.from(new Set([...completedToday, ...checkinTaskIds]));
     const updatedDailyTaskProgress = {
@@ -500,8 +500,14 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       completedTaskIds: newCompletedIds,
     };
 
+    // 發放所有簽到任務的飼料獎勵（跟 claimDailyTask 等效，避免學生在彈框
+    // 簽到後，任務面顯示「已完成」但沒有收到飼料的問題）
+    const totalRewardFood = checkinTaskRewards.reduce((sum, r) => sum + r, 0);
+    const newFoodCount = user.foodCount + totalRewardFood;
+
     const updatedUser: UserDoc = {
       ...user,
+      foodCount: newFoodCount,
       checkinHistory: newHistory,
       dailyTaskProgress: updatedDailyTaskProgress,
       updatedAt: now,
@@ -509,15 +515,19 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
     set({ user: updatedUser });
 
-    updateDoc(doc(db, "users", user.uid), {
+    setDoc(doc(db, "users", user.uid), {
+      foodCount: newFoodCount,
       checkinHistory: newHistory,
       dailyTaskProgress: updatedDailyTaskProgress,
       updatedAt: now,
-    }).catch((error) => {
+    }, { merge: true }).catch((error) => {
       console.error("[useGameStore] checkin 同步寫回 Firestore 失敗：", error);
     });
 
-    return { success: true, message: "簽到成功！", alreadyDone: false };
+    const msg = totalRewardFood > 0
+      ? `簽到成功！獲得 ${totalRewardFood} 飼料！`
+      : "簽到成功！";
+    return { success: true, message: msg, alreadyDone: false };
   },
 
   // 6.6 取得今天對弈電腦局數
