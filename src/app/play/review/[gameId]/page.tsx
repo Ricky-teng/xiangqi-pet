@@ -215,7 +215,7 @@ function ReviewContent({ gameId }: { gameId: string }) {
     : null;
 
   return (
-    <main className="min-h-screenpb-10" style={bgStyle}>
+    <main className="min-h-screen pb-10" style={bgStyle}>
       <div className="mx-auto max-w-md px-4 pt-4">
         <header className="flex items-center justify-between rounded-2xl bg-white/70 px-4 py-3 shadow-sm">
           <button
@@ -403,7 +403,7 @@ function NavButton({
 
 function CenteredMessage({ children }: { children: React.ReactNode }) {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-centerpx-4 text-center" style={bgStyle}>
+    <main className="flex min-h-screen flex-col items-center justify-center px-4 text-center">
       {children}
     </main>
   );

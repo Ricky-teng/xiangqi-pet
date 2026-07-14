@@ -312,7 +312,7 @@ function PuzzleChallengePageContent({ params, searchParams }: PuzzlePageProps) {
   }
 
   return (
-    <main className="min-h-screenpb-10" style={bgStyle}>
+    <main className="min-h-screen pb-10" style={bgStyle}>
       <div className="mx-auto max-w-md px-4 pt-4 md:max-w-3xl">
         {/* ============================================================
             A. 頂部標題與狀態列
