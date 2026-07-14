@@ -22,12 +22,15 @@ import { CheckinModal } from "@/components/CheckinModal";
 import RequireAuth from "@/components/RequireAuth";
 import { getTodaysCompletedTaskIds } from "@/lib/tasks/dailyTasks";
 import type { DailyTaskDoc } from "@/types/database";
+import { useAppBackground } from "@/lib/useAppBackground";
 
 type FetchStatus = "loading" | "success" | "error";
 
 function TasksContent() {
   const router = useRouter();
   const user = useGameStore((s) => s.user);
+
+  const bgStyle = useAppBackground();
   const claimDailyTask = useGameStore((s) => s.claimDailyTask);
   const getDailyVsComputerCount = useGameStore((s) => s.getDailyVsComputerCount);
   const checkin = useGameStore((s) => s.checkin);
@@ -85,7 +88,7 @@ function TasksContent() {
   }
 
   return (
-    <main className="min-h-screen bg-[#FDF6E8] pb-10">
+    <main className="min-h-screenpb-10" style={bgStyle}>
       <div className="mx-auto max-w-md px-4 pt-4">
         <header className="flex items-center justify-between rounded-2xl bg-white/70 px-4 py-3 shadow-sm">
           <button
@@ -133,7 +136,7 @@ function TasksContent() {
                   <div
                     key={task.id}
                     className={[
-                      "flex items-center gap-3 rounded-2xl px-4 py-3 shadow-sm",
+"flex items-center gap-3 rounded-2xl px-4 py-3 shadow-sm",
                       isCompleted ? "bg-white/40" : "bg-white/80",
                     ].join(" ")}
                   >
@@ -169,7 +172,7 @@ function TasksContent() {
                         onClick={() => handleClaim(task)}
                         disabled={!canClaim || isClaiming}
                         className={[
-                          "shrink-0 rounded-xl px-3 py-2 text-xs font-bold transition-transform active:scale-95",
+"shrink-0 rounded-xl px-3 py-2 text-xs font-bold transition-transform active:scale-95",
                           isCompleted
                             ? "cursor-not-allowed bg-[#1A1A2E]/10 text-[#1A1A2E]/40"
                             : canClaim

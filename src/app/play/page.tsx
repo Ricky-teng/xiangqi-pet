@@ -39,6 +39,7 @@ import {
 } from "@/lib/engine/computerPlayer";
 import { recordVsComputerGame } from "@/lib/engine/gameRecording";
 import type { UserDoc } from "@/types/database";
+import { useAppBackground } from "@/lib/useAppBackground";
 
 type GamePhase = "choosing_difficulty" | "student_turn" | "computer_thinking" | "game_over";
 
@@ -46,6 +47,8 @@ function VsComputerContent() {
   const router = useRouter();
   const { engine, error: engineError, isLoading: engineLoading } = useRulesEngine();
   const user = useGameStore((s) => s.user);
+
+  const bgStyle = useAppBackground();
   const pet = useGameStore((s) => s.pet);
   const applyVsComputerResult = useGameStore((s) => s.applyVsComputerResult);
 
@@ -298,7 +301,7 @@ function VsComputerContent() {
   const isStudentTurn = gamePhase === "student_turn";
 
   return (
-    <main className="min-h-screen bg-[#FDF6E8] pb-10">
+    <main className="min-h-screenpb-10" style={bgStyle}>
       <div className="mx-auto max-w-md px-4 pt-4">
         <header className="flex items-center justify-between rounded-2xl bg-white/70 px-4 py-3 shadow-sm">
           <button
@@ -464,7 +467,7 @@ function DifficultyPicker({
               type="button"
               onClick={() => onPick(level)}
               className={[
-                "flex flex-col items-center gap-0.5 rounded-2xl px-3 py-3 shadow-sm transition-transform active:scale-95",
+"flex flex-col items-center gap-0.5 rounded-2xl px-3 py-3 shadow-sm transition-transform active:scale-95",
                 isOwnLevel ? "bg-[#E8B84B]/20 ring-2 ring-[#E8B84B]" : "bg-white/80",
               ].join(" ")}
             >

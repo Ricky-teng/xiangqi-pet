@@ -65,6 +65,7 @@ import type { PetCommentaryTrigger } from "@/components/PetCommentary";
 import { toChineseNotation } from "@/lib/xiangqi/chineseNotation";
 import type { PetHealthStatus, PuzzleDoc } from "@/types/database";
 import type { PuzzleLevel } from "@/types/xiangqi";
+import { useAppBackground } from "@/lib/useAppBackground";
 
 /** 使用一次提示需要扣除的飼料數量 */
 const HINT_COST_FOOD = 5;
@@ -225,6 +226,8 @@ function PuzzleChallengePageContent({ params, searchParams }: PuzzlePageProps) {
 
   // ---- 從全域狀態總機取出使用者與小雞資料（獨立 selector，避免不必要的重渲染） ----
   const user = useGameStore((s) => s.user);
+
+  const bgStyle = useAppBackground();
   const pet = useGameStore((s) => s.pet);
 
   const [fetchStatus, setFetchStatus] = useState<FetchStatus>("loading");
@@ -309,7 +312,7 @@ function PuzzleChallengePageContent({ params, searchParams }: PuzzlePageProps) {
   }
 
   return (
-    <main className="min-h-screen bg-[#FDF6E8] pb-10">
+    <main className="min-h-screenpb-10" style={bgStyle}>
       <div className="mx-auto max-w-md px-4 pt-4 md:max-w-3xl">
         {/* ============================================================
             A. 頂部標題與狀態列
@@ -582,7 +585,7 @@ function PuzzleSolverSection({
             onClick={handleToggleHint}
             disabled={!canShowHint}
             className={[
-              "rounded-2xl px-3 py-2 text-sm font-bold shadow-sm transition-transform active:scale-95",
+"rounded-2xl px-3 py-2 text-sm font-bold shadow-sm transition-transform active:scale-95",
               canShowHint
                 ? "bg-[#E8B84B] text-[#1A1A2E]"
                 : "cursor-not-allowed bg-[#E5DFCB] text-[#1A1A2E]/40",
@@ -674,7 +677,7 @@ function PuzzleSolverSection({
 
 function PuzzleLoadingScreen() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-5 bg-[#FDF6E8] px-6">
+    <main className="flex min-h-screen flex-col items-center justify-center gap-5px-6" style={bgStyle}>
       <style>{`
         @keyframes puzzle-loading-hop {
           0%, 100% { transform: translateY(0) rotate(-4deg); }
@@ -723,7 +726,7 @@ function PuzzleFetchErrorScreen({
   onBackToLobby: () => void;
 }) {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-[#FDF6E8] px-6 text-center">
+    <main className="flex min-h-screen flex-col items-center justify-center gap-4px-6 text-center" style={bgStyle}>
       <span role="img" aria-label="困惑的小雞" className="text-6xl">
         🐥
       </span>

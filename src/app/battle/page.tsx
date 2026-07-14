@@ -49,6 +49,7 @@ import type { PetCommentaryTrigger } from "@/components/PetCommentary";
 import { useRulesEngine } from "@/hooks/useRulesEngine";
 import { parseFen } from "@/lib/xiangqi/fen";
 import type { BattleRoomDoc, MatchmakingQueueEntry, PuzzleDoc } from "@/types/database";
+import { useAppBackground } from "@/lib/useAppBackground";
 
 const BATTLE_ENTRY_COST = 20;
 const BATTLE_WIN_REWARD = 50;
@@ -74,6 +75,8 @@ function generateRoomId(): string {
 function BattlePageContent() {
   const router = useRouter();
   const user = useGameStore((s) => s.user);
+
+  const bgStyle = useAppBackground();
   const pet = useGameStore((s) => s.pet);
   const setUser = useGameStore((s) => s.setUser);
   const { engine } = useRulesEngine();
@@ -549,7 +552,7 @@ function BattlePageContent() {
     const isDraw = winner === null;
     const oppName = opponentUid ? (room.players[opponentUid]?.displayName ?? "對手") : "對手";
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center bg-[#FDF6E8] px-4">
+      <main className="flex min-h-screen flex-col items-center justify-centerpx-4" style={bgStyle}>
         <section className="w-full max-w-sm rounded-3xl bg-white/70 px-6 py-8 text-center shadow-xl">
           <p className="text-4xl">{isDraw ? "🤝" : isWin ? "🏆" : "😢"}</p>
           <p className="mt-2 text-xl font-extrabold text-[#1A1A2E]">
@@ -605,7 +608,7 @@ function BattlePageContent() {
         : "正在連線…";
 
     return (
-      <main className="flex min-h-screen flex-col items-center justify-center bg-[#FDF6E8] px-4">
+      <main className="flex min-h-screen flex-col items-center justify-centerpx-4" style={bgStyle}>
         <section className="w-full max-w-sm rounded-3xl bg-white/70 px-6 py-8 text-center shadow-xl">
           <p className="text-4xl">⚔️</p>
           <p className="mt-3 text-lg font-extrabold text-[#1A1A2E]">尋找對手中</p>
@@ -663,7 +666,7 @@ function BattlePageContent() {
   const oppName = opponentUid ? (room?.players[opponentUid]?.displayName ?? "對手") : "對手";
 
   return (
-    <main className="min-h-screen bg-[#FDF6E8] pb-10">
+    <main className="min-h-screenpb-10" style={bgStyle}>
       <div className="mx-auto max-w-md px-4 pt-4">
         {/* 對戰資訊列 */}
         <div className="flex items-center justify-between rounded-2xl bg-white/70 px-4 py-3 shadow-sm">
@@ -694,7 +697,7 @@ function BattlePageContent() {
 
         {solvedThisQuestion ? (
           <p className={[
-            "mt-3 rounded-2xl px-4 py-2 text-center text-sm font-bold",
+"mt-3 rounded-2xl px-4 py-2 text-center text-sm font-bold",
             lastAnswerResult === "correct"
               ? "bg-[#5B8C5A]/10 text-[#5B8C5A]"
               : "bg-[#C0392B]/10 text-[#C0392B]",

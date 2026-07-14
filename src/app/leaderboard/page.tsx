@@ -28,6 +28,7 @@ import { db } from "@/lib/firebase";
 import { useGameStore } from "@/stores/useGameStore";
 import RequireAuth from "@/components/RequireAuth";
 import type { UserDoc } from "@/types/database";
+import { useAppBackground } from "@/lib/useAppBackground";
 
 type FetchStatus = "loading" | "success" | "error";
 type SortKey = "totalSolved" | "chessLevel" | "rebirthCount" | "vsComputerWinRate" | "battleWinRate";
@@ -92,6 +93,8 @@ function getRateLabel(student: UserDoc, key: SortKey): string {
 
 function LeaderboardContent() {
   const router = useRouter();
+
+  const bgStyle = useAppBackground();
   const currentUser = useGameStore((s) => s.user);
 
   const [status, setStatus] = useState<FetchStatus>("loading");
@@ -141,7 +144,7 @@ function LeaderboardContent() {
   const activeSortOption = SORT_OPTIONS.find((option) => option.key === sortKey) ?? SORT_OPTIONS[0];
 
   return (
-    <main className="min-h-screen bg-[#FDF6E8] pb-10">
+    <main className="min-h-screenpb-10" style={bgStyle}>
       <div className="mx-auto max-w-md px-4 pt-4">
         <header className="flex items-center justify-between rounded-2xl bg-white/70 px-4 py-3 shadow-sm">
           <button
@@ -164,7 +167,7 @@ function LeaderboardContent() {
               type="button"
               onClick={() => setSortKey(option.key)}
               className={[
-                "flex flex-col items-center gap-0.5 rounded-xl px-1 py-2 text-center transition-transform active:scale-95",
+"flex flex-col items-center gap-0.5 rounded-xl px-1 py-2 text-center transition-transform active:scale-95",
                 sortKey === option.key ? "bg-[#E8B84B] text-[#1A1A2E]" : "bg-white/60 text-[#1A1A2E]/60",
               ].join(" ")}
             >
@@ -197,7 +200,7 @@ function LeaderboardContent() {
                     <li
                       key={student.uid}
                       className={[
-                        "flex items-center justify-between gap-3 rounded-2xl px-4 py-3 shadow-sm",
+"flex items-center justify-between gap-3 rounded-2xl px-4 py-3 shadow-sm",
                         isCurrentUser ? "bg-[#FCE6A0] ring-2 ring-[#E8B84B]" : "bg-white/70",
                       ].join(" ")}
                     >

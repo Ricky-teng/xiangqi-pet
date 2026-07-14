@@ -31,6 +31,7 @@ import RequireAuth from "@/components/RequireAuth";
 import { useGameStore } from "@/stores/useGameStore";
 import type { PuzzleDoc } from "@/types/database";
 import type { PuzzleLevel } from "@/types/xiangqi";
+import { useAppBackground } from "@/lib/useAppBackground";
 
 const ALL_LEVELS: PuzzleLevel[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
@@ -51,6 +52,8 @@ type FetchStatus = "loading" | "success" | "error";
 function PuzzleLevelPickerContent() {
   const router = useRouter();
   const user = useGameStore((s) => s.user);
+
+  const bgStyle = useAppBackground();
 
   const [status, setStatus] = useState<FetchStatus>("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -106,7 +109,7 @@ function PuzzleLevelPickerContent() {
   }
 
   return (
-    <main className="min-h-screen bg-[#FDF6E8] pb-10">
+    <main className="min-h-screenpb-10" style={bgStyle}>
       <div className="mx-auto max-w-md px-4 pt-4">
         <header className="flex items-center justify-between rounded-2xl bg-white/70 px-4 py-3 shadow-sm">
           <button
@@ -148,7 +151,7 @@ function PuzzleLevelPickerContent() {
                     onClick={() => handleStartLevel(level)}
                     disabled={!hasPuzzles || isStartingLevel !== null}
                     className={[
-                      "flex flex-col items-center gap-0.5 rounded-2xl px-3 py-3 shadow-sm transition-transform active:scale-95 disabled:opacity-40",
+"flex flex-col items-center gap-0.5 rounded-2xl px-3 py-3 shadow-sm transition-transform active:scale-95 disabled:opacity-40",
                       isOwnLevel ? "bg-[#E8B84B]/20 ring-2 ring-[#E8B84B]" : "bg-white/80",
                     ].join(" ")}
                   >

@@ -33,6 +33,7 @@ import { usePositionAnalysis, toRedPerspectiveScore, toRedPerspectiveMateIn, get
 import { parseFen } from "@/lib/xiangqi/fen";
 import { toChineseNotation } from "@/lib/xiangqi/chineseNotation";
 import type { VsComputerGameDoc } from "@/types/database";
+import { useAppBackground } from "@/lib/useAppBackground";
 
 const OUTCOME_LABEL: Record<"win" | "lose" | "draw", string> = {
   win: "🏆 獲勝",
@@ -51,6 +52,8 @@ function sideToMoveAtStep(step: number): "w" | "b" {
 function ReviewContent({ gameId }: { gameId: string }) {
   const router = useRouter();
   const user = useGameStore((s) => s.user);
+
+  const bgStyle = useAppBackground();
   const { engine, error: engineError, isLoading: engineLoading } = useRulesEngine();
 
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
@@ -212,7 +215,7 @@ function ReviewContent({ gameId }: { gameId: string }) {
     : null;
 
   return (
-    <main className="min-h-screen bg-[#FDF6E8] pb-10">
+    <main className="min-h-screenpb-10" style={bgStyle}>
       <div className="mx-auto max-w-md px-4 pt-4">
         <header className="flex items-center justify-between rounded-2xl bg-white/70 px-4 py-3 shadow-sm">
           <button
@@ -248,7 +251,7 @@ function ReviewContent({ gameId }: { gameId: string }) {
         {analysis || isAnalyzing ? (
           <section
             className={[
-              "mt-3 rounded-2xl px-4 py-2 text-center",
+"mt-3 rounded-2xl px-4 py-2 text-center",
               analysis
                 ? SCORE_DISPLAY_STYLES[
                     getScoreDisplay(
@@ -343,7 +346,7 @@ function ReviewContent({ gameId }: { gameId: string }) {
               type="button"
               onClick={toggleAutoAnalyze}
               className={[
-                "flex-1 rounded-xl px-3 py-2 text-xs font-bold transition-transform active:scale-95",
+"flex-1 rounded-xl px-3 py-2 text-xs font-bold transition-transform active:scale-95",
                 autoAnalyze ? "bg-[#1A1A2E]/10 text-[#1A1A2E]/70" : "bg-[#E8B84B] text-[#1A1A2E]",
               ].join(" ")}
             >
@@ -400,7 +403,7 @@ function NavButton({
 
 function CenteredMessage({ children }: { children: React.ReactNode }) {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-[#FDF6E8] px-4 text-center">
+    <main className="flex min-h-screen flex-col items-center justify-centerpx-4 text-center" style={bgStyle}>
       {children}
     </main>
   );

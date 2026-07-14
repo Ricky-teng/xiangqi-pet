@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useGameStore } from "@/stores/useGameStore";
 import RequireAuth from "@/components/RequireAuth";
 import { getPetImagePath } from "@/lib/pet/petImagePath";
+import { useAppBackground } from "@/lib/useAppBackground";
 
 const FOOD_PER_FEED = 10;
 const MAX_FOOD_SHOWN = 5;
@@ -12,6 +13,8 @@ const MAX_FOOD_SHOWN = 5;
 function FeedPageContent() {
   const router = useRouter();
   const user = useGameStore((s) => s.user);
+
+  const bgStyle = useAppBackground();
   const pet = useGameStore((s) => s.pet);
   const feedPet = useGameStore((s) => s.feedPet);
 
@@ -90,7 +93,7 @@ function FeedPageContent() {
 
   if (!user || !pet) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#FDF6E8]">
+      <main className="flex min-h-screen items-center justify-center" style={bgStyle}>
         <p className="text-sm text-[#1A1A2E]/60">載入中…</p>
       </main>
     );
@@ -99,7 +102,7 @@ function FeedPageContent() {
   const fullnessPercent = Math.min(100, Math.max(0, pet.fullness));
 
   return (
-    <main className="flex h-screen flex-col bg-[#FDF6E8]" style={{ touchAction: "none" }}>
+    <main className="flex h-screen flex-col" style={bgStyle} style={{ touchAction: "none" }}>
       {/* 頂部列 */}
       <header className="flex shrink-0 items-center justify-between px-4 pt-4">
         <button
@@ -138,7 +141,7 @@ function FeedPageContent() {
       <div
         ref={bowlRef}
         className={[
-          "mx-auto mt-4 flex w-full max-w-sm flex-1 flex-col items-center justify-center rounded-3xl px-6 py-6 transition-colors duration-150",
+"mx-auto mt-4 flex w-full max-w-sm flex-1 flex-col items-center justify-center rounded-3xl px-6 py-6 transition-colors duration-150",
           isOverBowl ? "bg-[#FCE6A0] ring-4 ring-[#E8B84B]" : "bg-white/40",
         ].join(" ")}
       >
@@ -146,7 +149,7 @@ function FeedPageContent() {
           src={getPetImagePath(pet.stage, pet.healthStatus)}
           alt="小雞"
           className={[
-            "h-44 w-44 object-contain transition-transform duration-200",
+"h-44 w-44 object-contain transition-transform duration-200",
             petJump ? "-translate-y-6 scale-110" : "translate-y-0 scale-100",
             bowlBounce ? "scale-110" : "",
           ].join(" ")}
@@ -180,7 +183,7 @@ function FeedPageContent() {
               key={i}
               onPointerDown={handlePointerDown}
               className={[
-                "flex h-16 w-16 select-none items-center justify-center rounded-2xl bg-white text-3xl shadow-md",
+"flex h-16 w-16 select-none items-center justify-center rounded-2xl bg-white text-3xl shadow-md",
                 canFeed ? "cursor-grab active:scale-95" : "cursor-not-allowed opacity-40",
                 isDragging ? "opacity-20" : "",
               ].join(" ")}
