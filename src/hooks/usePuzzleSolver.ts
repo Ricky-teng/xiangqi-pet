@@ -283,7 +283,10 @@ export function usePuzzleSolver(puzzle: PuzzleDoc): UsePuzzleSolverResult {
       // 但用 puzzle.id 作為文件 ID 代表同一題只會有一筆記錄，若要每次都
       // 記錄可考慮之後改成用 timestamp 當 ID，目前先維持現有資料結構。
 
-      const earnedFood = calculateFoodReward(user.chessLevel, puzzle.level);
+      const baseFood = calculateFoodReward(user.chessLevel, puzzle.level);
+      // 雙倍飼料券：檢查 doubleRewardExpiry 是否還在有效期內
+      const isDoubleActive = (user.doubleRewardExpiry ?? 0) > Date.now();
+      const earnedFood = isDoubleActive ? baseFood * 2 : baseFood;
       const now = Date.now();
 
       const solvedRecord: SolvedPuzzleRecord = {
