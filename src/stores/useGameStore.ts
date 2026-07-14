@@ -534,7 +534,10 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const { user } = get();
     if (!user) return { success: false, message: "找不到資料", foodDelta: 0 };
 
-    const winRewardFood = calculateWinRewardFood(opponentLevel, user.chessLevel);
+    const baseWinReward = calculateWinRewardFood(opponentLevel, user.chessLevel);
+    // 雙倍飼料券：只在贏的情況下加倍（輸/和的懲罰/獎勵不加倍）
+    const isDoubleActive = (user.doubleRewardExpiry ?? 0) > Date.now();
+    const winRewardFood = isDoubleActive ? baseWinReward * 2 : baseWinReward;
     const foodDelta = outcome === "win" ? winRewardFood : outcome === "draw" ? DRAW_REWARD_FOOD : -LOSE_PENALTY_FOOD;
 
     const newFoodCount = Math.max(0, user.foodCount + foodDelta);
@@ -672,6 +675,28 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     if (count <= 0) return { success: false, message: "背包裡沒有這個道具" };
 
     const now = Date.now();
+
+    if (itemId === "slight_sick_potion") {
+      const { pet } = get();
+      if (!pet) return { success: false, message: "找不到寵物資料" };
+      if (pet.healthStatus !== "slightly_sick") return { success: false, message: "小雞目前沒有生小病" };
+      const healedPet = { ...pet, healthStatus: "normal" as const, sickStartTime: null, updatedAt: now };
+      set({ pet: healedPet, user: { ...user, inventory: { ...user.inventory, slight_sick_potion: count - 1 }, updatedAt: now } });
+      updateDoc(doc(db, "pets", user.uid), { healthStatus: "normal", sickStartTime: null, updatedAt: now }).catch(console.error);
+      updateDoc(doc(db, "users", user.uid), { "inventory.slight_sick_potion": count - 1, updatedAt: now }).catch(console.error);
+      return { success: true, message: "💊 小雞的小病治好了！" };
+    }
+
+    if (itemId === "severe_sick_potion") {
+      const { pet } = get();
+      if (!pet) return { success: false, message: "找不到寵物資料" };
+      if (pet.healthStatus !== "severely_sick") return { success: false, message: "小雞目前沒有生大病" };
+      const healedPet = { ...pet, healthStatus: "normal" as const, sickStartTime: null, severeSickStartTime: null, updatedAt: now };
+      set({ pet: healedPet, user: { ...user, inventory: { ...user.inventory, severe_sick_potion: count - 1 }, updatedAt: now } });
+      updateDoc(doc(db, "pets", user.uid), { healthStatus: "normal", sickStartTime: null, severeSickStartTime: null, updatedAt: now }).catch(console.error);
+      updateDoc(doc(db, "users", user.uid), { "inventory.severe_sick_potion": count - 1, updatedAt: now }).catch(console.error);
+      return { success: true, message: "🧪 小雞的大病治好了！" };
+    }
 
     if (itemId === "revival_potion") {
       const { pet } = get();
