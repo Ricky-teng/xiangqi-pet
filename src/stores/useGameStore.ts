@@ -1,6 +1,6 @@
 // src/stores/useGameStore.ts
 import { create } from "zustand";
-import { doc, updateDoc } from "firebase/firestore";
+import { doc, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { UserDoc, PetDoc, DailyTaskDoc } from "@/types/database";
 import { resolveStageForXp } from "@/lib/pet/petGrowth";
@@ -649,19 +649,22 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       }).catch(console.error);
     } else {
       // 消耗道具：加進背包
+      // 用 setDoc + merge 而不是 updateDoc dotted path，
+      // 避免 inventory 欄位不存在時靜默失敗（舊帳號沒有這個欄位）
       const currentCount = user.inventory?.[itemId as keyof typeof user.inventory] ?? 0;
+      const newInventory = { ...(user.inventory ?? {}), [itemId]: currentCount + 1 };
       updatedUser = {
         ...user,
         foodCount: user.foodCount - price,
-        inventory: { ...user.inventory, [itemId]: currentCount + 1 },
+        inventory: newInventory,
         updatedAt: now,
       };
       set({ user: updatedUser });
-      updateDoc(doc(db, "users", user.uid), {
+      setDoc(doc(db, "users", user.uid), {
         foodCount: updatedUser.foodCount,
-        [`inventory.${itemId}`]: currentCount + 1,
+        inventory: newInventory,
         updatedAt: now,
-      }).catch(console.error);
+      }, { merge: true }).catch(console.error);
     }
 
     return { success: true, message: "購買成功！" };
@@ -681,9 +684,10 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       if (!pet) return { success: false, message: "找不到寵物資料" };
       if (pet.healthStatus !== "slightly_sick") return { success: false, message: "小雞目前沒有生小病" };
       const healedPet = { ...pet, healthStatus: "normal" as const, sickStartTime: null, updatedAt: now };
-      set({ pet: healedPet, user: { ...user, inventory: { ...user.inventory, slight_sick_potion: count - 1 }, updatedAt: now } });
+      const newInventory = { ...(user.inventory ?? {}), slight_sick_potion: count - 1 };
+      set({ pet: healedPet, user: { ...user, inventory: newInventory, updatedAt: now } });
       updateDoc(doc(db, "pets", user.uid), { healthStatus: "normal", sickStartTime: null, updatedAt: now }).catch(console.error);
-      updateDoc(doc(db, "users", user.uid), { "inventory.slight_sick_potion": count - 1, updatedAt: now }).catch(console.error);
+      setDoc(doc(db, "users", user.uid), { inventory: newInventory, updatedAt: now }, { merge: true }).catch(console.error);
       return { success: true, message: "💊 小雞的小病治好了！" };
     }
 
@@ -692,9 +696,10 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       if (!pet) return { success: false, message: "找不到寵物資料" };
       if (pet.healthStatus !== "severely_sick") return { success: false, message: "小雞目前沒有生大病" };
       const healedPet = { ...pet, healthStatus: "normal" as const, sickStartTime: null, severeSickStartTime: null, updatedAt: now };
-      set({ pet: healedPet, user: { ...user, inventory: { ...user.inventory, severe_sick_potion: count - 1 }, updatedAt: now } });
+      const newInventory = { ...(user.inventory ?? {}), severe_sick_potion: count - 1 };
+      set({ pet: healedPet, user: { ...user, inventory: newInventory, updatedAt: now } });
       updateDoc(doc(db, "pets", user.uid), { healthStatus: "normal", sickStartTime: null, severeSickStartTime: null, updatedAt: now }).catch(console.error);
-      updateDoc(doc(db, "users", user.uid), { "inventory.severe_sick_potion": count - 1, updatedAt: now }).catch(console.error);
+      setDoc(doc(db, "users", user.uid), { inventory: newInventory, updatedAt: now }, { merge: true }).catch(console.error);
       return { success: true, message: "🧪 小雞的大病治好了！" };
     }
 
@@ -711,13 +716,10 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         severeSickStartTime: null,
         updatedAt: now,
       };
+      const newInventory = { ...(user.inventory ?? {}), revival_potion: count - 1 };
       set({
         pet: revivedPet,
-        user: {
-          ...user,
-          inventory: { ...user.inventory, revival_potion: count - 1 },
-          updatedAt: now,
-        },
+        user: { ...user, inventory: newInventory, updatedAt: now },
       });
       updateDoc(doc(db, "pets", user.uid), {
         healthStatus: "normal",
@@ -725,10 +727,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         severeSickStartTime: null,
         updatedAt: now,
       }).catch(console.error);
-      updateDoc(doc(db, "users", user.uid), {
-        "inventory.revival_potion": count - 1,
-        updatedAt: now,
-      }).catch(console.error);
+      setDoc(doc(db, "users", user.uid), { inventory: newInventory, updatedAt: now }, { merge: true }).catch(console.error);
       return { success: true, message: "✨ 小雞復活了！所有狀態都保留下來了！" };
     }
 
@@ -737,18 +736,19 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       if (currentExpiry > now) return { success: false, message: "雙倍飼料券效果還在生效中！不需要再使用" };
 
       const newExpiry = now + 2 * 60 * 60 * 1000; // 2小時
+      const newInventory = { ...(user.inventory ?? {}), double_reward_voucher: count - 1 };
       const updatedUser = {
         ...user,
-        inventory: { ...user.inventory, double_reward_voucher: count - 1 },
+        inventory: newInventory,
         doubleRewardExpiry: newExpiry,
         updatedAt: now,
       };
       set({ user: updatedUser });
-      updateDoc(doc(db, "users", user.uid), {
-        "inventory.double_reward_voucher": count - 1,
+      setDoc(doc(db, "users", user.uid), {
+        inventory: newInventory,
         doubleRewardExpiry: newExpiry,
         updatedAt: now,
-      }).catch(console.error);
+      }, { merge: true }).catch(console.error);
       return { success: true, message: "🎟️ 雙倍飼料券已啟動！2 小時內獎勵 ×2！" };
     }
 
