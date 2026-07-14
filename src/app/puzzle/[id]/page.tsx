@@ -677,7 +677,7 @@ function PuzzleSolverSection({
 
 function PuzzleLoadingScreen() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-5px-6" style={bgStyle}>
+    <main className="flex min-h-screen flex-col items-center justify-center gap-5 px-6">
       <style>{`
         @keyframes puzzle-loading-hop {
           0%, 100% { transform: translateY(0) rotate(-4deg); }
@@ -726,7 +726,7 @@ function PuzzleFetchErrorScreen({
   onBackToLobby: () => void;
 }) {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-4px-6 text-center" style={bgStyle}>
+    <main className="flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center">
       <span role="img" aria-label="困惑的小雞" className="text-6xl">
         🐥
       </span>
