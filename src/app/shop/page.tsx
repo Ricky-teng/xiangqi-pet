@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useGameStore } from "@/stores/useGameStore";
 import RequireAuth from "@/components/RequireAuth";
 import { SHOP_ITEMS, BACKGROUND_GACHA_COST, BACKGROUND_GACHA_WIN_RATE, getBackgroundGachaPool, type ShopItem } from "@/lib/shopItems";
+import GachaEgg, { type GachaPhase, type GachaResultData } from "@/components/shop/GachaEgg";
 
 function ShopContent() {
   const router = useRouter();
@@ -15,7 +16,9 @@ function ShopContent() {
   const [message, setMessage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"consumable" | "background">("consumable");
   const [isDrawing, setIsDrawing] = useState(false);
-  const [gachaResult, setGachaResult] = useState<{ item: ShopItem | null; isDuplicate: boolean; missed: boolean } | null>(null);
+  const [gachaPhase, setGachaPhase] = useState<GachaPhase>("idle");
+  const [gachaResult, setGachaResult] = useState<GachaResultData | null>(null);
+  const [drawSeq, setDrawSeq] = useState(0);
 
   if (!user) return null;
 
@@ -32,20 +35,36 @@ function ShopContent() {
   function handleDraw() {
     setIsDrawing(true);
     setGachaResult(null);
-    // 短暫延遲營造抽獎的儀式感，不是真的在等什麼非同步結果
+    setDrawSeq((n) => n + 1);
+    setGachaPhase("shaking");
+
+    // 搖晃醞釀期待感（時長需對齊 GachaEgg 的 gacha-shake 動畫：0.9s）
     setTimeout(() => {
       const result = drawBackgroundGacha();
-      showMessage(result.message);
-      if (result.success) {
-        if (result.itemId) {
-          const drawnItem = getBackgroundGachaPool().find((i) => i.id === result.itemId);
-          if (drawnItem) setGachaResult({ item: drawnItem, isDuplicate: !!result.isDuplicate, missed: false });
-        } else {
-          setGachaResult({ item: null, isDuplicate: false, missed: true });
-        }
+
+      if (!result.success) {
+        // 沒扣成功（例如飼料不夠時被卡在按鈕，理論上不會發生，防呆用）
+        showMessage(result.message);
+        setGachaPhase("idle");
+        setIsDrawing(false);
+        return;
       }
-      setIsDrawing(false);
-    }, 600);
+
+      const resultData: GachaResultData = result.itemId
+        ? { item: getBackgroundGachaPool().find((i) => i.id === result.itemId) ?? null, isDuplicate: !!result.isDuplicate, missed: false }
+        : { item: null, isDuplicate: false, missed: true };
+
+      setGachaPhase("cracking");
+
+      // 蛋殼裂開飛散（時長需對齊 gacha-crack-top/bottom 動畫：0.5s），
+      // 結束後才揭曉結果卡片跟文字訊息，讓視覺跟文字同步出現
+      setTimeout(() => {
+        setGachaResult(resultData);
+        setGachaPhase("revealed");
+        showMessage(result.message);
+        setIsDrawing(false);
+      }, 500);
+    }, 900);
   }
 
   const items = SHOP_ITEMS.filter((i) => i.category === activeTab);
@@ -126,33 +145,16 @@ function ShopContent() {
           <div className="mt-4 flex flex-col gap-4">
             {/* 抽獎主卡片 */}
             <div className="overflow-hidden rounded-3xl bg-white/70 p-5 text-center shadow-sm">
-              <p className="text-4xl">🎰</p>
-              <p className="mt-2 text-sm font-bold text-[#1A1A2E]">背景抽獎</p>
+              <p className="text-sm font-bold text-[#1A1A2E]">背景抽獎</p>
               <p className="mt-1 text-xs text-[#1A1A2E]/60 leading-relaxed">
                 每次有 {Math.round(BACKGROUND_GACHA_WIN_RATE * 100)}% 機率抽中任一款背景（均等機率），其餘會銘謝惠顧。
                 <br />抽到已擁有的背景，飼料會全額退還！
               </p>
 
-              {gachaResult ? (
-                <div className="mt-4 overflow-hidden rounded-2xl bg-white shadow-inner">
-                  {gachaResult.missed ? (
-                    <p className="px-3 py-4 text-xs font-bold text-[#1A1A2E]/60">😢 銘謝惠顧，再抽抽看吧！</p>
-                  ) : gachaResult.item ? (
-                    <>
-                      {gachaResult.item.backgroundSrc ? (
-                        <img src={gachaResult.item.backgroundSrc} alt={gachaResult.item.name} className="h-32 w-full object-cover object-top" />
-                      ) : null}
-                      <p className="px-3 py-2 text-xs font-bold text-[#1A1A2E]">
-                        {gachaResult.isDuplicate ? "🔁 重複，已退還飼料：" : "🎉 抽到新背景："}
-                        {gachaResult.item.icon} {gachaResult.item.name}
-                      </p>
-                    </>
-                  ) : null}
-                </div>
-              ) : null}
+              <GachaEgg key={drawSeq} phase={gachaPhase} result={gachaResult} />
 
               <button type="button" onClick={handleDraw} disabled={!canAffordGacha || isDrawing}
-                className={["mt-4 w-full rounded-xl py-2.5 text-sm font-bold transition-transform active:scale-95",
+                className={["mt-2 w-full rounded-xl py-2.5 text-sm font-bold transition-transform active:scale-95",
                   canAffordGacha && !isDrawing ? "bg-[#8B5FBF] text-white" : "cursor-not-allowed bg-[#1A1A2E]/10 text-[#1A1A2E]/30",
                 ].join(" ")}>
                 {isDrawing ? "抽獎中…" : canAffordGacha ? `抽一次 🟪 ${BACKGROUND_GACHA_COST}` : "飼料不足"}
