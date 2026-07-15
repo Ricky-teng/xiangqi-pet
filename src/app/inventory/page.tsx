@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useGameStore } from "@/stores/useGameStore";
 import RequireAuth from "@/components/RequireAuth";
-import { SHOP_ITEMS } from "@/lib/shopItems";
+import { SHOP_ITEMS, RARITY_LABELS, RARITY_COLORS } from "@/lib/shopItems";
 
 function InventoryContent() {
   const router = useRouter();
@@ -157,7 +157,15 @@ function InventoryContent() {
                 <div className="flex items-center gap-3 px-4 py-3">
                   <span className="text-2xl">{item.icon}</span>
                   <div className="flex-1">
-                    <p className="text-sm font-bold text-[#1A1A2E]">{item.name}</p>
+                    <p className="text-sm font-bold text-[#1A1A2E]">
+                      {item.name}
+                      <span
+                        className="ml-2 rounded-full px-2 py-0.5 text-[10px] font-extrabold text-white"
+                        style={{ backgroundColor: RARITY_COLORS[item.rarity ?? "common"] }}
+                      >
+                        {RARITY_LABELS[item.rarity ?? "common"]}
+                      </span>
+                    </p>
                     <p className="text-xs text-[#1A1A2E]/50">
                       {owned ? "已擁有" : "尚未擁有（前往商店抽獎取得）"}
                     </p>

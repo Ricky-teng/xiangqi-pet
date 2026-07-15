@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useGameStore } from "@/stores/useGameStore";
 import RequireAuth from "@/components/RequireAuth";
-import { SHOP_ITEMS, BACKGROUND_GACHA_COST, BACKGROUND_GACHA_WIN_RATE, getBackgroundGachaPool, type ShopItem } from "@/lib/shopItems";
+import { SHOP_ITEMS, BACKGROUND_GACHA_COST, BACKGROUND_GACHA_WIN_RATE, getBackgroundGachaPool, RARITY_LABELS, RARITY_COLORS, RARITY_ORDER, type ShopItem } from "@/lib/shopItems";
 import GachaEgg, { type GachaPhase, type GachaResultData } from "@/components/shop/GachaEgg";
 import { getTodayDateString } from "@/lib/tasks/dailyTasks";
 
@@ -163,10 +163,13 @@ function ShopContent() {
               </button>
             </div>
 
-            {/* 抽獎池一覽 */}
+            {/* 抽獎池一覽（依稀有度由低到高排序） */}
             <div className="flex flex-col gap-3">
-              {gachaPool.map((item) => {
+              {[...gachaPool]
+                .sort((a, b) => RARITY_ORDER.indexOf(a.rarity ?? "common") - RARITY_ORDER.indexOf(b.rarity ?? "common"))
+                .map((item) => {
                 const owned = (user.unlockedBackgrounds ?? []).includes(item.id);
+                const rarity = item.rarity ?? "common";
                 return (
                   <div key={item.id} className="overflow-hidden rounded-3xl bg-white/70 shadow-sm">
                     {item.backgroundSrc ? (
@@ -176,6 +179,12 @@ function ShopContent() {
                           alt={item.name}
                           className={["h-full w-full object-cover object-top", owned ? "" : "grayscale opacity-50"].join(" ")}
                         />
+                        <span
+                          className="absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-extrabold text-white shadow"
+                          style={{ backgroundColor: RARITY_COLORS[rarity] }}
+                        >
+                          {RARITY_LABELS[rarity]}
+                        </span>
                         {owned ? (
                           <div className="absolute inset-0 flex items-center justify-center bg-black/20">
                             <span className="rounded-full bg-[#E8B84B] px-3 py-1 text-xs font-extrabold text-[#5C3D0A]">✓ 已擁有</span>
