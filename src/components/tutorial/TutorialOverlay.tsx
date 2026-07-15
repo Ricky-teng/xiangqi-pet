@@ -58,6 +58,8 @@ interface TutorialCard {
     board: BoardGrid;
     blockedPoints: { row: number; col: number }[];
     caption: string;
+    /** 順便畫出「這個方向本來可以走，但現在被擋住了」的箭頭+落點虛圈 */
+    highlightMoves?: { from: string; to: string }[];
   };
   /**
    * 有這個欄位代表這張卡片是「互動吃子練習」，不是單純展示：
@@ -147,6 +149,7 @@ const CARDS: TutorialCard[] = [
     secondaryBoard: {
       board: elephantBlockedDemoBoard(),
       blockedPoints: [{ row: 6, col: 3 }],
+      highlightMoves: [{ from: sq(7, 4), to: sq(5, 2) }],
       caption: "塞象眼：田字中間那一點（叉叉處）被擋住，這個方向就不能走了",
     },
   },
@@ -172,6 +175,10 @@ const CARDS: TutorialCard[] = [
     secondaryBoard: {
       board: horseBlockedDemoBoard(),
       blockedPoints: [{ row: 4, col: 4 }],
+      highlightMoves: [
+        { from: sq(5, 4), to: sq(3, 3) },
+        { from: sq(5, 4), to: sq(3, 5) },
+      ],
       caption: "蹩馬腳：正上方（叉叉處）被擋住，往上的兩個方向就不能走了",
     },
   },
@@ -422,6 +429,7 @@ export default function TutorialOverlay({ onFinish }: { onFinish: () => void }) 
                   <ChessBoard
                     board={card.secondaryBoard.board}
                     onMove={() => {}}
+                    highlightMoves={card.secondaryBoard.highlightMoves}
                     blockedPoints={card.secondaryBoard.blockedPoints}
                   />
                   <p className="mt-2 text-center text-xs font-semibold text-[#C0392B]">
