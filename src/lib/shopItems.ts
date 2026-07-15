@@ -117,14 +117,26 @@ export function isBackgroundUnlocked(userId: string, itemId: string, unlockedIds
 /** 抽一次背景要花多少飼料 */
 export const BACKGROUND_GACHA_COST = 20;
 
-/** 抽獎池：目前就是全部的背景款式，機率均等 */
+/** 抽中「任一款背景」的機率（其餘機率是銘謝惠顧，飼料照扣但沒有背景） */
+export const BACKGROUND_GACHA_WIN_RATE = 0.15;
+
+/** 抽獎池：目前就是全部的背景款式，中獎時機率均等 */
 export function getBackgroundGachaPool(): ShopItem[] {
   return SHOP_ITEMS.filter((item) => item.category === "background");
 }
 
-/** 從抽獎池中隨機抽出一款背景（均等機率） */
+/** 從抽獎池中隨機抽出一款背景（均等機率，只在「有中獎」時呼叫） */
 export function drawRandomBackground(): ShopItem {
   const pool = getBackgroundGachaPool();
   const index = Math.floor(Math.random() * pool.length);
   return pool[index];
+}
+
+/**
+ * 完整抽一次的結果：先擲一次 BACKGROUND_GACHA_WIN_RATE 機率判斷有沒有中獎，
+ * 沒中回傳 null（銘謝惠顧），中了才從池子裡均等抽一款出來。
+ */
+export function drawBackgroundGachaResult(): ShopItem | null {
+  if (Math.random() >= BACKGROUND_GACHA_WIN_RATE) return null;
+  return drawRandomBackground();
 }

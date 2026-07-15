@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useGameStore } from "@/stores/useGameStore";
 import RequireAuth from "@/components/RequireAuth";
-import { SHOP_ITEMS, BACKGROUND_GACHA_COST, getBackgroundGachaPool, type ShopItem } from "@/lib/shopItems";
+import { SHOP_ITEMS, BACKGROUND_GACHA_COST, BACKGROUND_GACHA_WIN_RATE, getBackgroundGachaPool, type ShopItem } from "@/lib/shopItems";
 
 function ShopContent() {
   const router = useRouter();
@@ -15,7 +15,7 @@ function ShopContent() {
   const [message, setMessage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"consumable" | "background">("consumable");
   const [isDrawing, setIsDrawing] = useState(false);
-  const [gachaResult, setGachaResult] = useState<{ item: ShopItem; isDuplicate: boolean } | null>(null);
+  const [gachaResult, setGachaResult] = useState<{ item: ShopItem | null; isDuplicate: boolean; missed: boolean } | null>(null);
 
   if (!user) return null;
 
@@ -36,9 +36,13 @@ function ShopContent() {
     setTimeout(() => {
       const result = drawBackgroundGacha();
       showMessage(result.message);
-      if (result.success && result.itemId) {
-        const drawnItem = getBackgroundGachaPool().find((i) => i.id === result.itemId);
-        if (drawnItem) setGachaResult({ item: drawnItem, isDuplicate: !!result.isDuplicate });
+      if (result.success) {
+        if (result.itemId) {
+          const drawnItem = getBackgroundGachaPool().find((i) => i.id === result.itemId);
+          if (drawnItem) setGachaResult({ item: drawnItem, isDuplicate: !!result.isDuplicate, missed: false });
+        } else {
+          setGachaResult({ item: null, isDuplicate: false, missed: true });
+        }
       }
       setIsDrawing(false);
     }, 600);
@@ -125,19 +129,25 @@ function ShopContent() {
               <p className="text-4xl">🎰</p>
               <p className="mt-2 text-sm font-bold text-[#1A1A2E]">背景抽獎</p>
               <p className="mt-1 text-xs text-[#1A1A2E]/60 leading-relaxed">
-                背景已改為抽獎取得，每次均等機率抽中任一款式。
+                每次有 {Math.round(BACKGROUND_GACHA_WIN_RATE * 100)}% 機率抽中任一款背景（均等機率），其餘會銘謝惠顧。
                 <br />抽到已擁有的背景，飼料會全額退還！
               </p>
 
               {gachaResult ? (
                 <div className="mt-4 overflow-hidden rounded-2xl bg-white shadow-inner">
-                  {gachaResult.item.backgroundSrc ? (
-                    <img src={gachaResult.item.backgroundSrc} alt={gachaResult.item.name} className="h-32 w-full object-cover object-top" />
+                  {gachaResult.missed ? (
+                    <p className="px-3 py-4 text-xs font-bold text-[#1A1A2E]/60">😢 銘謝惠顧，再抽抽看吧！</p>
+                  ) : gachaResult.item ? (
+                    <>
+                      {gachaResult.item.backgroundSrc ? (
+                        <img src={gachaResult.item.backgroundSrc} alt={gachaResult.item.name} className="h-32 w-full object-cover object-top" />
+                      ) : null}
+                      <p className="px-3 py-2 text-xs font-bold text-[#1A1A2E]">
+                        {gachaResult.isDuplicate ? "🔁 重複，已退還飼料：" : "🎉 抽到新背景："}
+                        {gachaResult.item.icon} {gachaResult.item.name}
+                      </p>
+                    </>
                   ) : null}
-                  <p className="px-3 py-2 text-xs font-bold text-[#1A1A2E]">
-                    {gachaResult.isDuplicate ? "🔁 重複，已退還飼料：" : "🎉 抽到新背景："}
-                    {gachaResult.item.icon} {gachaResult.item.name}
-                  </p>
                 </div>
               ) : null}
 

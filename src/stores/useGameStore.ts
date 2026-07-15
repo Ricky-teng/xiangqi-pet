@@ -12,7 +12,7 @@ import {
   DRAW_REWARD_FOOD,
   type ComputerLevel,
 } from "@/lib/engine/computerPlayer";
-import { BACKGROUND_GACHA_COST, drawRandomBackground } from "@/lib/shopItems";
+import { BACKGROUND_GACHA_COST, drawBackgroundGachaResult } from "@/lib/shopItems";
 
 // 定義我們遊戲總機裡面有哪些資料與開關
 interface GameStoreState {
@@ -679,12 +679,26 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     }
 
     const now = Date.now();
-    const drawn = drawRandomBackground();
+
+    // 飼料無論有沒有中獎都會先扣（銘謝惠顧不退還，只有「抽中但已擁有」才退還）
+    const foodAfterDraw = user.foodCount - BACKGROUND_GACHA_COST;
+    const drawn = drawBackgroundGachaResult();
+
+    if (!drawn) {
+      // 沒中獎：銘謝惠顧
+      set({ user: { ...user, foodCount: foodAfterDraw, updatedAt: now } });
+      updateDoc(doc(db, "users", user.uid), { foodCount: foodAfterDraw, updatedAt: now }).catch(console.error);
+      return {
+        success: true,
+        message: `😢 銘謝惠顧，什麼都沒抽到，扣了 ${BACKGROUND_GACHA_COST} 飼料`,
+        isDuplicate: false,
+      };
+    }
+
     const alreadyOwned = (user.unlockedBackgrounds ?? []).includes(drawn.id);
 
     if (alreadyOwned) {
-      // 抽到重複的背景：全額退還飼料，等於沒扣錢，只是換一次手氣
-      // （不寫 Firestore 也沒差，因為 foodCount 沒變；但為了保險與時間戳一致還是同步一下 updatedAt）
+      // 中獎但抽到重複的背景：全額退還飼料，等於沒扣錢，只是換一次手氣
       set({ user: { ...user, updatedAt: now } });
       updateDoc(doc(db, "users", user.uid), { updatedAt: now }).catch(console.error);
       return {
@@ -695,17 +709,16 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       };
     }
 
-    const newFoodCount = user.foodCount - BACKGROUND_GACHA_COST;
     const newUnlocked = [...(user.unlockedBackgrounds ?? []), drawn.id];
     const updatedUser: UserDoc = {
       ...user,
-      foodCount: newFoodCount,
+      foodCount: foodAfterDraw,
       unlockedBackgrounds: newUnlocked,
       updatedAt: now,
     };
     set({ user: updatedUser });
     updateDoc(doc(db, "users", user.uid), {
-      foodCount: newFoodCount,
+      foodCount: foodAfterDraw,
       unlockedBackgrounds: newUnlocked,
       updatedAt: now,
     }).catch(console.error);
