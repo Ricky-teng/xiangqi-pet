@@ -31,11 +31,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { collection, getDocs, limit, orderBy, query, where } from "firebase/firestore";
+import { collection, doc, getDocs, limit, orderBy, query, updateDoc, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useGameStore } from "@/stores/useGameStore";
 import { signOutUser } from "@/hooks/useAuth";
 import RequireAuth from "@/components/RequireAuth";
+import TutorialOverlay from "@/components/tutorial/TutorialOverlay";
 import { STAGE_XP_THRESHOLDS } from "@/lib/pet/petGrowth";
 import { SICKNESS_ESCALATION_HOURS } from "@/lib/pet/petDecay";
 import { getPetImagePath } from "@/lib/pet/petImagePath";
@@ -324,19 +325,34 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
 
   const pet = useGameStore((s) => s.pet);
   const claimDailyGrant = useGameStore((s) => s.claimDailyGrant);
+  const setUser = useGameStore((s) => s.setUser);
 
   const [showCheckinModal, setShowCheckinModal] = useState(false);
   const [dailyGrantMessage, setDailyGrantMessage] = useState<string | null>(null);
 
+  // 新手教學：只有 hasSeenTutorial 明確是 false（新帳號）才會顯示，
+  // 舊帳號沒有這個欄位（undefined）不會被強制看教學。
+  const [showTutorial, setShowTutorial] = useState(user.hasSeenTutorial === false);
+
+  function finishTutorial() {
+    setShowTutorial(false);
+    const now = Date.now();
+    setUser({ ...user, hasSeenTutorial: true, updatedAt: now });
+    updateDoc(doc(db, "users", user.uid), { hasSeenTutorial: true, updatedAt: now }).catch(console.error);
+  }
+
   // 進大廳時：今天還沒簽到就自動跳出簽到彈框
+  // （教學顯示期間先不跳簽到彈框，避免兩個全螢幕的東西疊在一起；
+  // 教學結束後如果還沒簽到，下次進首頁還是會正常跳出來）
   useEffect(() => {
+    if (showTutorial) return;
     const today = getTodayDateString();
     const history = user.checkinHistory ?? [];
     if (!history.includes(today)) {
       setShowCheckinModal(true);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [showTutorial]);
 
   function handleStartBattle() {
     // 按下配對時才檢查救助金——飼料不足 50 且今天還沒領過，先補再進
@@ -427,6 +443,8 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
       : 0;
 
   return (
+    <>
+      {showTutorial ? <TutorialOverlay onFinish={finishTutorial} /> : null}
     <main
       className="min-h-screen pb-10"
       style={user.activeBackground
@@ -745,6 +763,7 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
         checkinTasks={activeDailyTasks.filter((t) => t.taskType === "checkin")}
       />
     </main>
+    </>
   );
 }
 

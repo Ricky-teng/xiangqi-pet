@@ -45,7 +45,22 @@ function SettingsContent() {
 
   const [isSigningOut, setIsSigningOut] = useState(false);
 
+  const [isResettingTutorial, setIsResettingTutorial] = useState(false);
+
   if (!user) return null;
+
+  async function handleRewatchTutorial() {
+    setIsResettingTutorial(true);
+    try {
+      const now = Date.now();
+      await updateDoc(doc(db, "users", user!.uid), { hasSeenTutorial: false, updatedAt: now });
+      setUser({ ...user!, hasSeenTutorial: false, updatedAt: now });
+      router.push("/");
+    } catch (error) {
+      console.error("[settings] 重設新手教學狀態失敗：", error);
+      setIsResettingTutorial(false);
+    }
+  }
 
   function startEditingName() {
     setNameInput(user!.displayName);
@@ -226,6 +241,16 @@ function SettingsContent() {
             </div>
           </div>
         </section>
+
+        {/* ---- 重新觀看新手教學 ---- */}
+        <button
+          type="button"
+          onClick={handleRewatchTutorial}
+          disabled={isResettingTutorial}
+          className="mt-3 w-full rounded-2xl bg-[#8B5FBF]/10 py-3 text-sm font-bold text-[#8B5FBF] transition-transform active:scale-95 disabled:opacity-50"
+        >
+          {isResettingTutorial ? "準備中…" : "🀄 重新觀看新手教學"}
+        </button>
 
         {/* ---- 登出 ---- */}
         <button

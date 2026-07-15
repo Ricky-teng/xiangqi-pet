@@ -80,6 +80,9 @@ function createDefaultUserDoc(
     unlockedCatalogIds: [],
     rebirthCount: 0,
     fcmTokens: [],
+    // 只有學生會觸發新手教學（教怎麼下象棋），老師後台是完全不同的介面，
+    // 不需要這個。
+    hasSeenTutorial: role === "student" ? false : true,
     lastDailyGrantDate: null,
     createdAt: now,
     updatedAt: now,

@@ -75,6 +75,17 @@ export interface UserDoc {
   doubleRewardExpiry?: number | null;
 
   /**
+   * 是否已經看過新手教學（教「完全不會下象棋的人」認識棋盤跟每個
+   * 棋子的走法，跟遊戲功能操作無關）。
+   * 新帳號在 createDefaultUserDoc 會明確設成 false，讓他們第一次
+   * 進首頁時觸發全螢幕教學。已存在的舊帳號沒有這個欄位（undefined），
+   * 刻意不觸發教學——判斷式用「=== false」而不是「!value」，
+   * 這樣 undefined 跟 true 都視為「不用再顯示」，只有明確是 false
+   * 才會顯示，避免舊帳號突然被強制看一次教學。
+   */
+  hasSeenTutorial?: boolean;
+
+  /**
    * 上次「購買」雙倍飼料券的日期（本地 YYYY-MM-DD，見 getTodayDateString）。
    * 用來限制每天只能買一次，跟 lastDailyGrantDate 是同一套日期比對邏輯。
    * 注意：這是「購買」限制，不是「使用」限制——買了可以先囤著，隔天才用也可以。
