@@ -180,10 +180,10 @@ export function isBackgroundUnlocked(userId: string, itemId: string, unlockedIds
 // ============================================================
 
 /** 抽一次背景要花多少飼料 */
-export const BACKGROUND_GACHA_COST = 20;
+export const BACKGROUND_GACHA_COST = 10;
 
 /** 抽中「任一款背景」的機率（其餘機率是銘謝惠顧，飼料照扣但沒有背景） */
-export const BACKGROUND_GACHA_WIN_RATE = 0.15;
+export const BACKGROUND_GACHA_WIN_RATE = 0.25;
 
 /** 抽獎池：目前就是全部的背景款式，中獎時機率均等 */
 export function getBackgroundGachaPool(): ShopItem[] {
