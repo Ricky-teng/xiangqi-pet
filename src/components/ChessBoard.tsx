@@ -96,6 +96,11 @@ export interface ChessBoardProps {
    * highlightMove，避免箭頭重複畫兩次。
    */
   highlightMoves?: { from: string; to: string }[];
+  /**
+   * 選用：在指定的交叉點畫一個醒目的大叉（教學用，示範「這個點被擋住
+   * 了」——例如蹩馬腳、塞象眼。純視覺標記，不影響棋盤其他行為）。
+   */
+  blockedPoints?: { row: number; col: number }[];
 }
 
 function parseSquareLabel(square: string): { row: number; col: number } {
@@ -108,7 +113,7 @@ function parseSquareLabel(square: string): { row: number; col: number } {
 // 4. 主體元件
 // ============================================================
 
-export default function ChessBoard({ board, onMove, highlightMove, lastMove, highlightMoves }: ChessBoardProps) {
+export default function ChessBoard({ board, onMove, highlightMove, lastMove, highlightMoves, blockedPoints }: ChessBoardProps) {
   const [selectedFrom, setSelectedFrom] = useState<{ row: number; col: number } | null>(null);
 
   function handleCellClick(row: number, col: number) {
@@ -290,6 +295,74 @@ export default function ChessBoard({ board, onMove, highlightMove, lastMove, hig
             })
           : null}
 
+        {/* 分析建議走法箭頭／教學多路線箭頭：用 marker 畫箭頭尖端，從起點畫到終點。
+            highlightMoves（陣列）優先於 highlightMove（單一），兩者渲染邏輯相同，
+            只是 highlightMoves 會畫出陣列裡的每一條。
+            這一段刻意放在「棋子渲染」之前，讓棋子疊在箭頭上面（棋子圖層優先），
+            不會被箭頭線條蓋住臉；箭頭終點另外畫一個虛線圈，標示「這是合法落點」。 */}
+        {(() => {
+          const movesToRender = highlightMoves ?? (highlightMove ? [highlightMove] : []);
+          if (movesToRender.length === 0) return null;
+
+          return (
+            <g style={{ pointerEvents: "none" }}>
+              <defs>
+                <marker
+                  id="analysis-arrow-head"
+                  viewBox="0 0 10 10"
+                  refX="8"
+                  refY="5"
+                  markerWidth="6"
+                  markerHeight="6"
+                  orient="auto-start-reverse"
+                >
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#8B5FBF" />
+                </marker>
+              </defs>
+              {movesToRender.map((move, i) => {
+                const fromSquare = parseSquareLabel(move.from);
+                const toSquare = parseSquareLabel(move.to);
+                const fromPoint = pointOf(fromSquare.row, fromSquare.col);
+                const toPoint = pointOf(toSquare.row, toSquare.col);
+                // 終點往回縮短一點距離，讓箭頭尖端不會完全插進落點虛線圈裡；
+                // 縮得比之前少（0.42 -> 0.2），箭頭視覺上會拉得更長、更醒目。
+                const dx = toPoint.x - fromPoint.x;
+                const dy = toPoint.y - fromPoint.y;
+                const length = Math.hypot(dx, dy) || 1;
+                const shrink = CELL * 0.2;
+                const trimmedToX = toPoint.x - (dx / length) * shrink;
+                const trimmedToY = toPoint.y - (dy / length) * shrink;
+                return (
+                  <g key={`${move.from}-${move.to}-${i}`}>
+                    <line
+                      x1={fromPoint.x}
+                      y1={fromPoint.y}
+                      x2={trimmedToX}
+                      y2={trimmedToY}
+                      stroke="#8B5FBF"
+                      strokeWidth={CELL * 0.1}
+                      strokeLinecap="round"
+                      markerEnd="url(#analysis-arrow-head)"
+                      opacity={0.8}
+                    />
+                    {/* 落點虛線圈：標示這個交叉點是棋子可以走到的合法位置 */}
+                    <circle
+                      cx={toPoint.x}
+                      cy={toPoint.y}
+                      r={CELL * 0.4}
+                      fill="none"
+                      stroke="#8B5FBF"
+                      strokeWidth={CELL * 0.06}
+                      strokeDasharray={`${CELL * 0.09} ${CELL * 0.09}`}
+                      opacity={0.9}
+                    />
+                  </g>
+                );
+              })}
+            </g>
+          );
+        })()}
+
         {/* ---- 交叉點：點擊熱區 + 選取高光 + 棋子 ---- */}
         {board.map((rowCells, rowIndex) =>
           rowCells.map((cell, colIndex) => {
@@ -360,60 +433,41 @@ export default function ChessBoard({ board, onMove, highlightMove, lastMove, hig
           })
         )}
 
-        {/* 分析建議走法箭頭／教學多路線箭頭：用 marker 畫箭頭尖端，從起點畫到終點，
-            終點稍微往回縮一點距離，不要整個箭頭蓋住棋子本身。
-            highlightMoves（陣列）優先於 highlightMove（單一），兩者渲染邏輯相同，
-            只是 highlightMoves 會畫出陣列裡的每一條。 */}
-        {(() => {
-          const movesToRender = highlightMoves ?? (highlightMove ? [highlightMove] : []);
-          if (movesToRender.length === 0) return null;
-
-          return (
-            <g style={{ pointerEvents: "none" }}>
-              <defs>
-                <marker
-                  id="analysis-arrow-head"
-                  viewBox="0 0 10 10"
-                  refX="8"
-                  refY="5"
-                  markerWidth="6"
-                  markerHeight="6"
-                  orient="auto-start-reverse"
-                >
-                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#8B5FBF" />
-                </marker>
-              </defs>
-              {movesToRender.map((move, i) => {
-                const fromSquare = parseSquareLabel(move.from);
-                const toSquare = parseSquareLabel(move.to);
-                const fromPoint = pointOf(fromSquare.row, fromSquare.col);
-                const toPoint = pointOf(toSquare.row, toSquare.col);
-                // 終點往回縮短一點距離，讓箭頭尖端停在棋子外緣附近，
-                // 不會完全蓋住目的地的棋子。
-                const dx = toPoint.x - fromPoint.x;
-                const dy = toPoint.y - fromPoint.y;
-                const length = Math.hypot(dx, dy) || 1;
-                const shrink = CELL * 0.42;
-                const trimmedToX = toPoint.x - (dx / length) * shrink;
-                const trimmedToY = toPoint.y - (dy / length) * shrink;
-                return (
+        {/* 教學用「此點被擋住」大叉標記（蹩馬腳／塞象眼示範）：刻意放在
+            棋子渲染「之後」，這樣大叉會疊在擋路的那顆棋子上面，清楚看得
+            到叉叉畫在哪顆子身上，不會被棋子蓋住。純視覺，不影響互動邏輯。 */}
+        {blockedPoints && blockedPoints.length > 0 ? (
+          <g style={{ pointerEvents: "none" }}>
+            {blockedPoints.map((point, i) => {
+              const { x, y } = pointOf(point.row, point.col);
+              const armLength = CELL * 0.32;
+              return (
+                <g key={`blocked-${point.row}-${point.col}-${i}`}>
                   <line
-                    key={`${move.from}-${move.to}-${i}`}
-                    x1={fromPoint.x}
-                    y1={fromPoint.y}
-                    x2={trimmedToX}
-                    y2={trimmedToY}
-                    stroke="#8B5FBF"
-                    strokeWidth={CELL * 0.1}
-                    strokeLinecap="round"
-                    markerEnd="url(#analysis-arrow-head)"
-                    opacity={0.8}
+                    x1={x - armLength} y1={y - armLength}
+                    x2={x + armLength} y2={y + armLength}
+                    stroke="#F6D87A" strokeWidth={CELL * 0.2} strokeLinecap="round"
                   />
-                );
-              })}
-            </g>
-          );
-        })()}
+                  <line
+                    x1={x + armLength} y1={y - armLength}
+                    x2={x - armLength} y2={y + armLength}
+                    stroke="#F6D87A" strokeWidth={CELL * 0.2} strokeLinecap="round"
+                  />
+                  <line
+                    x1={x - armLength} y1={y - armLength}
+                    x2={x + armLength} y2={y + armLength}
+                    stroke="#C0392B" strokeWidth={CELL * 0.1} strokeLinecap="round"
+                  />
+                  <line
+                    x1={x + armLength} y1={y - armLength}
+                    x2={x - armLength} y2={y + armLength}
+                    stroke="#C0392B" strokeWidth={CELL * 0.1} strokeLinecap="round"
+                  />
+                </g>
+              );
+            })}
+          </g>
+        ) : null}
       </svg>
     </div>
   );

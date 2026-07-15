@@ -31,10 +31,12 @@ import {
   chariotDemoBoard,
   cannonMovementDemoBoard,
   cannonDemoBoard,
-  pawnAfterRiverDemoBoard,
+  pawnComparisonDemoBoard,
   chariotCaptureExercise,
   cannonCaptureExercise,
   horseCaptureExercise,
+  horseBlockedDemoBoard,
+  elephantBlockedDemoBoard,
   applyMove,
 } from "@/lib/tutorial/demoBoards";
 import type { BoardGrid } from "@/types/xiangqi";
@@ -48,6 +50,15 @@ interface TutorialCard {
   /** 一次畫多條箭頭，展示某個棋子所有能走的路線（跟 highlightMove 二選一） */
   highlightMoves?: { from: string; to: string }[];
   boardCaption?: string;
+  /**
+   * 選用：在主要示範盤面「旁邊」再放一個獨立的小示範盤面，目前用於
+   * 蹩馬腳／塞象眼——不會動到、也不影響上面主要的 board/highlightMoves。
+   */
+  secondaryBoard?: {
+    board: BoardGrid;
+    blockedPoints: { row: number; col: number }[];
+    caption: string;
+  };
   /**
    * 有這個欄位代表這張卡片是「互動吃子練習」，不是單純展示：
    * board 會變成真的可以點擊的棋盤，玩家要自己點紅棋、點目標
@@ -133,6 +144,11 @@ const CARDS: TutorialCard[] = [
       { from: sq(7, 4), to: sq(9, 6) },
     ],
     boardCaption: "相走田字，不能過河，圖中是它所有能走的方向",
+    secondaryBoard: {
+      board: elephantBlockedDemoBoard(),
+      blockedPoints: [{ row: 6, col: 3 }],
+      caption: "塞象眼：田字中間那一點（叉叉處）被擋住，這個方向就不能走了",
+    },
   },
   {
     emoji: "🐴",
@@ -153,6 +169,11 @@ const CARDS: TutorialCard[] = [
       { from: sq(5, 4), to: sq(7, 5) },
     ],
     boardCaption: "馬走日字型（直一格+斜一格），圖中是它所有能走的方向",
+    secondaryBoard: {
+      board: horseBlockedDemoBoard(),
+      blockedPoints: [{ row: 4, col: 4 }],
+      caption: "蹩馬腳：正上方（叉叉處）被擋住，往上的兩個方向就不能走了",
+    },
   },
   {
     emoji: "🚗",
@@ -198,15 +219,18 @@ const CARDS: TutorialCard[] = [
     title: "兵／卒",
     body: [
       "兵（紅方）／卒（黑方）過河之前，只能一次往前走一格。",
-      "一旦過了河，就多了左右移動的能力（還是一次一格），但不管有沒有過河，永遠不能往後退。圖中示範的是「過河後」，所以有三個方向可以走。",
+      "一旦過了河，就多了左右移動的能力（還是一次一格），但不管有沒有過河，永遠不能往後退。圖中同時放了兩顆：下面那顆還沒過河，上面那顆已經過河了，可以比較看看走法差在哪。",
     ],
-    board: pawnAfterRiverDemoBoard(),
+    board: pawnComparisonDemoBoard(),
     highlightMoves: [
-      { from: sq(4, 4), to: sq(3, 4) },
-      { from: sq(4, 4), to: sq(4, 3) },
-      { from: sq(4, 4), to: sq(4, 5) },
+      // 還沒過河那顆：只有一個方向（往前）
+      { from: sq(6, 2), to: sq(5, 2) },
+      // 已經過河那顆：前/左/右三個方向都可以
+      { from: sq(4, 6), to: sq(3, 6) },
+      { from: sq(4, 6), to: sq(4, 5) },
+      { from: sq(4, 6), to: sq(4, 7) },
     ],
-    boardCaption: "過河後：可以往前、往左、往右，但不能後退",
+    boardCaption: "下面：還沒過河（只能往前）／上面：已經過河（前左右都可以）",
   },
   {
     emoji: "🏆",
@@ -391,6 +415,19 @@ export default function TutorialOverlay({ onFinish }: { onFinish: () => void }) 
               />
               {card.boardCaption ? (
                 <p className="mt-2 text-center text-xs font-semibold text-[#8B5FBF]">{card.boardCaption}</p>
+              ) : null}
+
+              {card.secondaryBoard ? (
+                <div className="mt-4 rounded-2xl bg-[#1A1A2E]/5 p-3">
+                  <ChessBoard
+                    board={card.secondaryBoard.board}
+                    onMove={() => {}}
+                    blockedPoints={card.secondaryBoard.blockedPoints}
+                  />
+                  <p className="mt-2 text-center text-xs font-semibold text-[#C0392B]">
+                    {card.secondaryBoard.caption}
+                  </p>
+                </div>
               ) : null}
             </div>
           ) : null}

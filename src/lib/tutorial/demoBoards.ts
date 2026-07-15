@@ -166,3 +166,42 @@ export function horseCaptureExercise(): BoardGrid {
   place(board, 4, 5, "p", "b"); // 日字方向（直2橫1）可以直接吃掉的黑卒
   return board;
 }
+
+// ============================================================
+// 「被擋住了」教學示範（蹩馬腳／塞象眼），搭配 ChessBoard 的
+// blockedPoints prop 在擋路的棋子上畫大叉。跟上面「展示所有走法」
+// 的主要示範盤面是分開的兩顆棋盤，不會互相影響。
+// ============================================================
+
+/**
+ * 馬蹩馬腳示範：馬正上方（走直線的那一格）有一顆棋子擋著，
+ * 往上的兩個日字方向（左上、右上）就都不能走了。
+ */
+export function horseBlockedDemoBoard(): BoardGrid {
+  const board = emptyBoard();
+  place(board, 5, 4, "h", "r"); // 馬
+  place(board, 4, 4, "p", "b"); // 擋在「馬腳」位置的黑卒
+  return board;
+}
+
+/**
+ * 象塞象眼示範：田字對角線中間那個點（象眼）有一顆棋子擋著，
+ * 這個方向就不能走了。
+ */
+export function elephantBlockedDemoBoard(): BoardGrid {
+  const board = emptyBoard();
+  place(board, 7, 4, "e", "r"); // 象
+  place(board, 6, 3, "p", "b"); // 塞住「象眼」的黑卒
+  return board;
+}
+
+/**
+ * 兵/卒比較示範：同時放兩顆紅兵，一顆還沒過河（下方）、一顆已經過河
+ * （上方），方便同時展示兩者走法的差異（各自搭配自己的箭頭）。
+ */
+export function pawnComparisonDemoBoard(): BoardGrid {
+  const board = emptyBoard();
+  place(board, 6, 2, "p", "r"); // 還沒過河：只能往前
+  place(board, 4, 6, "p", "r"); // 已經過河：前/左/右都可以
+  return board;
+}
