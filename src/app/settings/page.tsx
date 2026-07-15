@@ -247,7 +247,7 @@ function SettingsContent() {
           type="button"
           onClick={handleRewatchTutorial}
           disabled={isResettingTutorial}
-          className="mt-3 w-full rounded-2xl bg-[#8B5FBF]/10 py-3 text-sm font-bold text-[#8B5FBF] transition-transform active:scale-95 disabled:opacity-50"
+          className="mt-3 w-full rounded-2xl bg-[#8B5FBF] py-3 text-sm font-bold text-white shadow-sm transition-transform active:scale-95 disabled:opacity-50"
         >
           {isResettingTutorial ? "準備中…" : "🀄 重新觀看新手教學"}
         </button>
@@ -257,7 +257,7 @@ function SettingsContent() {
           type="button"
           onClick={handleSignOut}
           disabled={isSigningOut}
-          className="mt-4 w-full rounded-2xl bg-[#C0392B]/10 py-3 text-sm font-bold text-[#C0392B] transition-transform active:scale-95 disabled:opacity-50"
+          className="mt-3 w-full rounded-2xl bg-[#C0392B] py-3 text-sm font-bold text-white shadow-sm transition-transform active:scale-95 disabled:opacity-50"
         >
           {isSigningOut ? "登出中…" : "登出"}
         </button>
