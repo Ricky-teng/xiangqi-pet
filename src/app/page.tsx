@@ -436,28 +436,25 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
     >
       <div className="mx-auto max-w-md px-4 pt-4">
         {/* ============================================================
-            登入身分列：顯示名稱、設定入口
+            A. 頂部狀態列：顯示名稱在左，飼料數量＋設定入口在右，
+               合併成同一條列（原本分兩列，改成同一個白底卡片）。
            ============================================================ */}
-        <div className="mb-2 flex items-center justify-between px-1">
+        <header className="flex items-center justify-between rounded-2xl bg-white/70 px-4 py-2 shadow-sm">
           <p className="text-xs font-medium text-[#1A1A2E]/60">
             👋 {user.displayName}（學生）
           </p>
-          <button
-            type="button"
-            onClick={() => router.push("/settings")}
-            className="flex items-center gap-1 text-xs font-bold text-[#1A1A2E]/60 hover:underline"
-          >
-            ⚙️ 設定
-          </button>
-        </div>
-
-        {/* ============================================================
-            A. 頂部狀態列
-           ============================================================ */}
-        <header className="flex items-center justify-end rounded-2xl bg-white/70 px-4 py-2 shadow-sm">
-          <div className="flex items-center gap-1 text-sm font-semibold text-[#8B5FBF]">
-            <span aria-hidden="true">🟪</span>
-            <span className="tabular-nums">{user.foodCount}</span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1 text-sm font-semibold text-[#8B5FBF]">
+              <span aria-hidden="true">🟪</span>
+              <span className="tabular-nums">{user.foodCount}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => router.push("/settings")}
+              className="flex items-center gap-1 text-xs font-bold text-[#1A1A2E]/60 hover:underline"
+            >
+              ⚙️ 設定
+            </button>
           </div>
         </header>
 
