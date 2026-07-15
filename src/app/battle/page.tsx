@@ -519,8 +519,12 @@ function BattlePageContent() {
     let delta = 0;
     if (isWin) delta = BATTLE_ENTRY_COST + BATTLE_WIN_REWARD;
     else if (isDraw) delta = BATTLE_ENTRY_COST;
+    // 輸的話 delta 維持 0：入場費不退還，這才是真的「花掉」了，計入消費排行
+    // （贏或平手都會把入場費退回來，等於沒花錢，不計入）
+    const spentDelta = !isWin && !isDraw ? BATTLE_ENTRY_COST : 0;
 
     const newFood = Math.max(0, user.foodCount + delta);
+    const newTotalSpent = (user.totalFoodSpent ?? 0) + spentDelta;
     const now = Date.now();
 
     // 勝負統計
@@ -533,6 +537,7 @@ function BattlePageContent() {
     const updatedUser = {
       ...user,
       foodCount: newFood,
+      totalFoodSpent: newTotalSpent,
       stats: { ...user.stats, ...statsDelta },
       updatedAt: now,
     };
@@ -540,6 +545,7 @@ function BattlePageContent() {
 
     updateDoc(doc(db, "users", uid), {
       foodCount: newFood,
+      totalFoodSpent: newTotalSpent,
       [`stats.${Object.keys(statsDelta)[0]}`]: Object.values(statsDelta)[0],
       updatedAt: now,
     }).catch(console.error);

@@ -139,6 +139,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const updatedUser = {
       ...user,
       foodCount: Math.max(0, user.foodCount - 10),
+      totalFoodSpent: (user.totalFoodSpent ?? 0) + 10,
       updatedAt: now,
     };
 
@@ -213,6 +214,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const updatedUser = {
       ...user,
       foodCount: user.foodCount - cost,
+      totalFoodSpent: (user.totalFoodSpent ?? 0) + cost,
       updatedAt: now,
     };
 
@@ -233,6 +235,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     Promise.all([
       updateDoc(doc(db, "users", user.uid), {
         foodCount: updatedUser.foodCount,
+        totalFoodSpent: updatedUser.totalFoodSpent,
         updatedAt: now,
       }),
       updateDoc(doc(db, "pets", user.uid), {
@@ -384,6 +387,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const updatedUser: UserDoc = {
       ...user,
       foodCount: user.foodCount - cost,
+      totalFoodSpent: (user.totalFoodSpent ?? 0) + cost,
       updatedAt: now,
     };
 
@@ -409,6 +413,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     Promise.all([
       updateDoc(doc(db, "users", user.uid), {
         foodCount: updatedUser.foodCount,
+        totalFoodSpent: updatedUser.totalFoodSpent,
         updatedAt: now,
       }),
       updateDoc(doc(db, "pets", user.uid), {
@@ -665,6 +670,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const updatedUser: UserDoc = {
       ...user,
       foodCount: user.foodCount - price,
+      totalFoodSpent: (user.totalFoodSpent ?? 0) + price,
       inventory: newInventory,
       ...purchaseDateUpdate,
       updatedAt: now,
@@ -672,6 +678,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     set({ user: updatedUser });
     setDoc(doc(db, "users", user.uid), {
       foodCount: updatedUser.foodCount,
+      totalFoodSpent: updatedUser.totalFoodSpent,
       inventory: newInventory,
       ...purchaseDateUpdate,
       updatedAt: now,
@@ -691,12 +698,13 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
     // 飼料無論有沒有中獎都會先扣（銘謝惠顧不退還，只有「抽中但已擁有」才退還）
     const foodAfterDraw = user.foodCount - BACKGROUND_GACHA_COST;
+    const spentAfterDraw = (user.totalFoodSpent ?? 0) + BACKGROUND_GACHA_COST;
     const drawn = drawBackgroundGachaResult();
 
     if (!drawn) {
       // 沒中獎：銘謝惠顧
-      set({ user: { ...user, foodCount: foodAfterDraw, updatedAt: now } });
-      updateDoc(doc(db, "users", user.uid), { foodCount: foodAfterDraw, updatedAt: now }).catch(console.error);
+      set({ user: { ...user, foodCount: foodAfterDraw, totalFoodSpent: spentAfterDraw, updatedAt: now } });
+      updateDoc(doc(db, "users", user.uid), { foodCount: foodAfterDraw, totalFoodSpent: spentAfterDraw, updatedAt: now }).catch(console.error);
       return {
         success: true,
         message: `😢 銘謝惠顧，什麼都沒抽到，扣了 ${BACKGROUND_GACHA_COST} 飼料`,
@@ -707,7 +715,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const alreadyOwned = (user.unlockedBackgrounds ?? []).includes(drawn.id);
 
     if (alreadyOwned) {
-      // 中獎但抽到重複的背景：全額退還飼料，等於沒扣錢，只是換一次手氣
+      // 中獎但抽到重複的背景：全額退還飼料，等於沒扣錢（也不計入消費排行），只是換一次手氣
       set({ user: { ...user, updatedAt: now } });
       updateDoc(doc(db, "users", user.uid), { updatedAt: now }).catch(console.error);
       return {
@@ -722,12 +730,14 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const updatedUser: UserDoc = {
       ...user,
       foodCount: foodAfterDraw,
+      totalFoodSpent: spentAfterDraw,
       unlockedBackgrounds: newUnlocked,
       updatedAt: now,
     };
     set({ user: updatedUser });
     updateDoc(doc(db, "users", user.uid), {
       foodCount: foodAfterDraw,
+      totalFoodSpent: spentAfterDraw,
       unlockedBackgrounds: newUnlocked,
       updatedAt: now,
     }).catch(console.error);

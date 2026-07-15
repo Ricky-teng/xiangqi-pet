@@ -533,9 +533,10 @@ function PuzzleSolverSection({
     try {
       await updateDoc(doc(db, "users", user.uid), {
         foodCount: increment(-HINT_COST_FOOD),
+        totalFoodSpent: increment(HINT_COST_FOOD),
         updatedAt: Date.now(),
       });
-      setUser({ ...user, foodCount: user.foodCount - HINT_COST_FOOD });
+      setUser({ ...user, foodCount: user.foodCount - HINT_COST_FOOD, totalFoodSpent: (user.totalFoodSpent ?? 0) + HINT_COST_FOOD });
       setHintPurchasedStep(solverState.currentStep);
       setShowHint(true);
     } catch (error) {

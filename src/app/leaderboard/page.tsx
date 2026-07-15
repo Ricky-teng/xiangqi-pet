@@ -31,7 +31,7 @@ import type { UserDoc } from "@/types/database";
 import { useAppBackground } from "@/lib/useAppBackground";
 
 type FetchStatus = "loading" | "success" | "error";
-type SortKey = "totalSolved" | "chessLevel" | "rebirthCount" | "vsComputerWinRate" | "battleWinRate";
+type SortKey = "totalSolved" | "chessLevel" | "rebirthCount" | "vsComputerWinRate" | "battleWinRate" | "totalFoodSpent";
 
 interface SortOption {
   key: SortKey;
@@ -46,6 +46,7 @@ const SORT_OPTIONS: SortOption[] = [
   { key: "rebirthCount",      label: "轉生次數",   icon: "✨", unit: "次" },
   { key: "vsComputerWinRate", label: "對電腦勝率", icon: "🤖", unit: "%" },
   { key: "battleWinRate",     label: "對戰勝率",   icon: "⚔️", unit: "%" },
+  { key: "totalFoodSpent",    label: "消費排行",   icon: "🟪", unit: "飼料" },
 ];
 
 const RANK_MEDAL: Record<number, string> = {
@@ -73,6 +74,7 @@ function getSortValue(student: UserDoc, key: SortKey): number {
     case "rebirthCount":      return student.rebirthCount;
     case "vsComputerWinRate": return getVsComputerWinRate(student);
     case "battleWinRate":     return getBattleWinRate(student);
+    case "totalFoodSpent":    return student.totalFoodSpent ?? 0;
   }
 }
 
@@ -160,7 +162,7 @@ function LeaderboardContent() {
         </header>
 
         {/* 排行依據切換 */}
-        <div className="mt-3 grid grid-cols-4 gap-1.5">
+        <div className="mt-3 grid grid-cols-3 gap-1.5">
           {SORT_OPTIONS.map((option) => (
             <button
               key={option.key}
