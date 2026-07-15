@@ -30,6 +30,9 @@ import {
   chariotDemoBoard,
   cannonDemoBoard,
   pawnBeforeRiverDemoBoard,
+  chariotCaptureExercise,
+  cannonCaptureExercise,
+  applyMove,
 } from "@/lib/tutorial/demoBoards";
 import type { BoardGrid } from "@/types/xiangqi";
 
@@ -40,6 +43,16 @@ interface TutorialCard {
   board?: BoardGrid;
   highlightMove?: { from: string; to: string } | null;
   boardCaption?: string;
+  /**
+   * 有這個欄位代表這張卡片是「互動吃子練習」，不是單純展示：
+   * board 會變成真的可以點擊的棋盤，玩家要自己點紅棋、點目標
+   * 黑棋完成吃子。correctFrom/correctTo 是唯一正解的那一步。
+   */
+  practice?: {
+    correctFrom: string;
+    correctTo: string;
+    successMessage: string;
+  };
 }
 
 const sq = (row: number, col: number) => formatSquare({ row, col });
@@ -151,6 +164,49 @@ const CARDS: TutorialCard[] = [
     ],
   },
   {
+    emoji: "🎯",
+    title: "來練習吃子吧！",
+    body: [
+      "光看規則還不夠，實際點點看最快！下面是紅車，正前方有一顆黑馬——先點紅車，再點黑馬，試試看能不能吃掉它。",
+    ],
+    board: chariotCaptureExercise(),
+    practice: {
+      correctFrom: sq(9, 0),
+      correctTo: sq(5, 0),
+      successMessage: "🎉 沒錯！車直線吃掉了黑馬！",
+    },
+  },
+  {
+    emoji: "🎯",
+    title: "再練習一次：炮吃子",
+    body: [
+      "這次是炮。中間隔著一顆黑子（炮架），再過去才是真正的目標黑馬——記得，炮一定要隔剛好一個子才能吃！",
+      "一樣先點紅炮，再點最遠端的黑馬。",
+    ],
+    board: cannonCaptureExercise(),
+    practice: {
+      correctFrom: sq(6, 4),
+      correctTo: sq(1, 4),
+      successMessage: "🎉 答對了！炮跳過炮架，吃掉了黑馬！",
+    },
+  },
+  {
+    emoji: "🍚",
+    title: "小雞的飽食度",
+    body: [
+      "小雞會隨時間變餓：飽食度每小時下降 2%，記得常常回小雞主頁餵食（10 飼料可以恢復 5% 飽食度）。",
+      "飽食度歸零，或是殘局解謎連續答錯 3 次，都會讓小雞馬上生病，要特別注意。",
+    ],
+  },
+  {
+    emoji: "🤒",
+    title: "生病與死亡",
+    body: [
+      "生小病之後，如果 4 小時內沒有治療，會加重變成大病；大病再拖 4 小時沒治療，小雞就會死掉。",
+      "死掉了也別太緊張：花 30 飼料可以復活（重新從蛋開始養），或用商店賣的復活藥水原地滿血復活，不用整個重來。",
+    ],
+  },
+  {
     emoji: "🎮",
     title: "準備好了嗎？",
     body: [
@@ -166,16 +222,43 @@ export default function TutorialOverlay({ onFinish }: { onFinish: () => void }) 
   const isFirst = index === 0;
   const isLast = index === CARDS.length - 1;
 
+  // ---- 互動吃子練習的狀態 ----
+  // practiceBoard：目前畫面上顯示的盤面（答對時會真的把棋子移過去、
+  // 吃掉目標，給視覺回饋）。practiceStatus：idle 還沒動作／wrong 點錯
+  // 了／success 答對了。兩者都要在「換卡片」的時候重置，不然切到下一
+  // 張練習卡會沿用上一張的殘留狀態。
+  const [practiceBoard, setPracticeBoard] = useState<BoardGrid | null>(card.board ?? null);
+  const [practiceStatus, setPracticeStatus] = useState<"idle" | "wrong" | "success">("idle");
+
+  function goToIndex(i: number) {
+    const target = CARDS[i];
+    setPracticeBoard(target.board ?? null);
+    setPracticeStatus("idle");
+    setIndex(i);
+  }
+
   function goNext() {
     if (isLast) {
       onFinish();
       return;
     }
-    setIndex((i) => Math.min(i + 1, CARDS.length - 1));
+    goToIndex(Math.min(index + 1, CARDS.length - 1));
   }
 
   function goPrev() {
-    setIndex((i) => Math.max(i - 1, 0));
+    goToIndex(Math.max(index - 1, 0));
+  }
+
+  function handlePracticeMove(moveNotation: string) {
+    const practice = card.practice;
+    if (!practice || practiceStatus === "success") return;
+    const expected = practice.correctFrom + practice.correctTo;
+    if (moveNotation === expected) {
+      setPracticeBoard((prev) => (prev ? applyMove(prev, practice.correctFrom, practice.correctTo) : prev));
+      setPracticeStatus("success");
+    } else {
+      setPracticeStatus("wrong");
+    }
   }
 
   return (
@@ -218,7 +301,20 @@ export default function TutorialOverlay({ onFinish }: { onFinish: () => void }) 
             ))}
           </div>
 
-          {card.board ? (
+          {card.practice ? (
+            <div className="mt-4">
+              <ChessBoard board={practiceBoard ?? card.board!} onMove={handlePracticeMove} />
+              <div className="mt-2 text-center text-xs font-bold">
+                {practiceStatus === "success" ? (
+                  <p className="text-[#5B8C5A]">{card.practice.successMessage}</p>
+                ) : practiceStatus === "wrong" ? (
+                  <p className="text-[#C0392B]">❌ 還不對喔，再試一次！（先點紅棋子，再點要吃的目標）</p>
+                ) : (
+                  <p className="text-[#8B5FBF]/70">👆 點紅棋子，再點要吃的黑棋子</p>
+                )}
+              </div>
+            </div>
+          ) : card.board ? (
             <div className="mt-4">
               <ChessBoard board={card.board} onMove={() => {}} highlightMove={card.highlightMove ?? null} />
               {card.boardCaption ? (

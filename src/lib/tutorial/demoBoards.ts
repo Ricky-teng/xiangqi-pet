@@ -6,6 +6,7 @@
 // 所以刻意獨立成這個小檔案，不會跟遊戲邏輯互相影響。
 
 import type { BoardGrid, Piece, PieceType } from "@/types/xiangqi";
+import { parseSquare } from "@/lib/xiangqi/move";
 
 /** 10x9 全空棋盤 */
 export function emptyBoard(): BoardGrid {
@@ -22,6 +23,21 @@ export function place(
 ): BoardGrid {
   board[row][col] = { type, color };
   return board;
+}
+
+/**
+ * 把一步棋（例如 "a9a5"）套用到盤面上：起點棋子搬到終點，終點原本
+ * 的棋子（如果有）直接被吃掉消失。回傳一個新的 board（不修改原本的），
+ * 用於吃子練習答對時，讓畫面上真的看到「棋子被吃掉了」的回饋。
+ */
+export function applyMove(board: BoardGrid, fromNotation: string, toNotation: string): BoardGrid {
+  const from = parseSquare(fromNotation);
+  const to = parseSquare(toNotation);
+  const next = board.map((row) => [...row]);
+  const movingPiece = next[from.row][from.col];
+  next[from.row][from.col] = null;
+  next[to.row][to.col] = movingPiece;
+  return next;
 }
 
 /** 標準開局擺法（教學用的「認識棋盤」卡片示範） */
@@ -97,4 +113,28 @@ export function pawnBeforeRiverDemoBoard(): BoardGrid {
 /** 兵/卒過河後：可以往前或左右走一格（但永遠不能後退） */
 export function pawnAfterRiverDemoBoard(): BoardGrid {
   return place(emptyBoard(), 4, 4, "p", "r");
+}
+
+// ============================================================
+// 吃子練習用的初始盤面
+// ------------------------------------------------------------
+// 跟上面「單純展示走法」的盤面不同，這些是給互動練習用的：
+// 玩家要自己點紅棋、點黑棋完成吃子，元件會判斷是否吃對棋子。
+// ============================================================
+
+/** 車吃子練習：直線上有一顆黑子擋在路上，練習「直線吃子」最基本的情境 */
+export function chariotCaptureExercise(): BoardGrid {
+  const board = emptyBoard();
+  place(board, 9, 0, "r", "r"); // 紅車
+  place(board, 5, 0, "h", "b"); // 直線正前方的黑馬，可以直接吃掉
+  return board;
+}
+
+/** 炮吃子練習：中間隔一個炮架，練習「跳吃」這個炮專屬的規則 */
+export function cannonCaptureExercise(): BoardGrid {
+  const board = emptyBoard();
+  place(board, 6, 4, "c", "r"); // 紅炮
+  place(board, 4, 4, "p", "b"); // 炮架（這裡刻意放黑子，示範炮架不分敵我）
+  place(board, 1, 4, "h", "b"); // 隔著炮架，可以跳過去吃掉的黑馬
+  return board;
 }
