@@ -648,6 +648,12 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
     if (user.foodCount < price) return { success: false, message: `飼料不足，需要 ${price} 飼料` };
 
+    // 雙倍飼料券：每天限購一次，防止用飼料一直買來壓縮遊戲節奏
+    const todayStr = getTodayDateString();
+    if (itemId === "double_reward_voucher" && user.lastDoubleVoucherPurchaseDate === todayStr) {
+      return { success: false, message: "今天已經買過雙倍飼料券了，明天再來吧！" };
+    }
+
     const now = Date.now();
 
     // 消耗道具：加進背包
@@ -655,16 +661,19 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     // 避免 inventory 欄位不存在時靜默失敗（舊帳號沒有這個欄位）
     const currentCount = user.inventory?.[itemId as keyof typeof user.inventory] ?? 0;
     const newInventory = { ...(user.inventory ?? {}), [itemId]: currentCount + 1 };
+    const purchaseDateUpdate = itemId === "double_reward_voucher" ? { lastDoubleVoucherPurchaseDate: todayStr } : {};
     const updatedUser: UserDoc = {
       ...user,
       foodCount: user.foodCount - price,
       inventory: newInventory,
+      ...purchaseDateUpdate,
       updatedAt: now,
     };
     set({ user: updatedUser });
     setDoc(doc(db, "users", user.uid), {
       foodCount: updatedUser.foodCount,
       inventory: newInventory,
+      ...purchaseDateUpdate,
       updatedAt: now,
     }, { merge: true }).catch(console.error);
 
@@ -818,7 +827,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       const currentExpiry = user.doubleRewardExpiry ?? 0;
       if (currentExpiry > now) return { success: false, message: "雙倍飼料券效果還在生效中！不需要再使用" };
 
-      const newExpiry = now + 2 * 60 * 60 * 1000; // 2小時
+      const newExpiry = now + 30 * 60 * 1000; // 30 分鐘
       const newInventory = { ...(user.inventory ?? {}), double_reward_voucher: count - 1 };
       const updatedUser = {
         ...user,
@@ -832,7 +841,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         doubleRewardExpiry: newExpiry,
         updatedAt: now,
       }, { merge: true }).catch(console.error);
-      return { success: true, message: "🎟️ 雙倍飼料券已啟動！2 小時內獎勵 ×2！" };
+      return { success: true, message: "🎟️ 雙倍飼料券已啟動！30 分鐘內獎勵 ×2！" };
     }
 
     return { success: false, message: "未知道具" };

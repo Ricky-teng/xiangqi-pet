@@ -7,6 +7,7 @@ import { useGameStore } from "@/stores/useGameStore";
 import RequireAuth from "@/components/RequireAuth";
 import { SHOP_ITEMS, BACKGROUND_GACHA_COST, BACKGROUND_GACHA_WIN_RATE, getBackgroundGachaPool, type ShopItem } from "@/lib/shopItems";
 import GachaEgg, { type GachaPhase, type GachaResultData } from "@/components/shop/GachaEgg";
+import { getTodayDateString } from "@/lib/tasks/dailyTasks";
 
 function ShopContent() {
   const router = useRouter();
@@ -111,7 +112,8 @@ function ShopContent() {
           <div className="mt-4 flex flex-col gap-3">
             {items.map((item) => {
               const count = user.inventory?.[item.id as keyof typeof user.inventory] ?? 0;
-              const canAfford = user.foodCount >= item.price;
+              const boughtToday = item.id === "double_reward_voucher" && user.lastDoubleVoucherPurchaseDate === getTodayDateString();
+              const canAfford = user.foodCount >= item.price && !boughtToday;
 
               return (
                 <div key={item.id} className="overflow-hidden rounded-3xl bg-white/70 shadow-sm">
@@ -134,7 +136,7 @@ function ShopContent() {
                       className={["w-full rounded-xl py-2 text-xs font-bold transition-transform active:scale-95",
                         canAfford ? "bg-[#8B5FBF] text-white" : "cursor-not-allowed bg-[#1A1A2E]/10 text-[#1A1A2E]/30",
                       ].join(" ")}>
-                      {canAfford ? `購買 🟪 ${item.price}` : "飼料不足"}
+                      {boughtToday ? "今天已買過，明天再來" : canAfford ? `購買 🟪 ${item.price}` : "飼料不足"}
                     </button>
                   </div>
                 </div>

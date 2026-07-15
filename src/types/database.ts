@@ -49,11 +49,13 @@ export interface UserDoc {
   /**
    * 商店背包：道具持有數量
    * revival_potion        復活藥水（死亡後保留狀態原地復活，700飼料）
-   * double_reward_voucher 雙倍飼料券（2小時內解題/對弈獎勵×2，500飼料）
+   * double_reward_voucher 雙倍飼料券（30分鐘內解題/對弈獎勵×2，300飼料，每天限購一次）
+   * fullness_shield       飽食護盾（3天內飽食度不下降，400飼料）
    */
   inventory?: {
     revival_potion?: number;
     double_reward_voucher?: number;
+    fullness_shield?: number;
   };
 
   /** 目前使用的背景 ID，null 或 undefined = 預設米黃 */
@@ -61,6 +63,13 @@ export interface UserDoc {
 
   /** 雙倍飼料券到期時間戳（ms），null 或過期代表沒有效果 */
   doubleRewardExpiry?: number | null;
+
+  /**
+   * 上次「購買」雙倍飼料券的日期（本地 YYYY-MM-DD，見 getTodayDateString）。
+   * 用來限制每天只能買一次，跟 lastDailyGrantDate 是同一套日期比對邏輯。
+   * 注意：這是「購買」限制，不是「使用」限制——買了可以先囤著，隔天才用也可以。
+   */
+  lastDoubleVoucherPurchaseDate?: string | null;
 
   /** 已購買的背景 ID 陣列 */
   unlockedBackgrounds?: string[];

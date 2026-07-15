@@ -51,9 +51,9 @@ export const SHOP_ITEMS: ShopItem[] = [
     id: "double_reward_voucher",
     category: "consumable",
     name: "雙倍飼料券",
-    description: "使用後 2 小時內，所有解題與對弈的飼料獎勵變成兩倍。效果不可疊加。",
+    description: "使用後 30 分鐘內，所有解題與對弈的飼料獎勵變成兩倍。效果不可疊加，每天限購一次。",
     icon: "🎟️",
-    price: 500,
+    price: 300,
   },
   {
     id: "fullness_shield",
