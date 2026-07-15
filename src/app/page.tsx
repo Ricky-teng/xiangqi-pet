@@ -372,23 +372,6 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
     };
   }, []);
 
-  // ---- 登出狀態 ----
-  const [isSigningOut, setIsSigningOut] = useState(false);
-
-  async function handleSignOut() {
-    setIsSigningOut(true);
-    try {
-      await signOutUser();
-      // 登出後 onAuthStateChanged 會把 user 設成 null，
-      // 外層 <RequireAuth> 的 useEffect 偵測到後會自動導向 /login，
-      // 這裡不需要、也不應該手動 router.push("/login")，
-      // 避免跟 RequireAuth 的導頁邏輯互相搶跑。
-    } catch (error) {
-      console.error("[home] 登出失敗：", error);
-      setIsSigningOut(false);
-    }
-  }
-
   // ---- 轉生（圖鑑收藏系統）相關狀態 ----
   const [rebirthMessage, setRebirthMessage] = useState<string | null>(null);
   const [isRebirthing, setIsRebirthing] = useState(false);
@@ -453,7 +436,7 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
     >
       <div className="mx-auto max-w-md px-4 pt-4">
         {/* ============================================================
-            登入身分列：顯示名稱、登出
+            登入身分列：顯示名稱、設定入口
            ============================================================ */}
         <div className="mb-2 flex items-center justify-between px-1">
           <p className="text-xs font-medium text-[#1A1A2E]/60">
@@ -461,11 +444,10 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
           </p>
           <button
             type="button"
-            onClick={handleSignOut}
-            disabled={isSigningOut}
-            className="text-xs font-bold text-[#C0392B] hover:underline disabled:opacity-50"
+            onClick={() => router.push("/settings")}
+            className="flex items-center gap-1 text-xs font-bold text-[#1A1A2E]/60 hover:underline"
           >
-            {isSigningOut ? "登出中…" : "登出"}
+            ⚙️ 設定
           </button>
         </div>
 
