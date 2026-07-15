@@ -9,7 +9,8 @@
  *
  * 呈現形式：一頁一個重點的卡片，上一步/下一步切換，右上角可以跳過。
  * 每張卡片可以搭配一個示範棋盤（重用 ChessBoard 元件本身，onMove
- * 傳空函式讓它變成唯讀展示，highlightMove 畫一個示範箭頭）。
+ * 傳空函式讓它變成唯讀展示，highlightMoves 一次畫出這個棋子所有能走
+ * 的路線；只有單一路線可示範的情境則用 highlightMove）。
  *
  * 觸發時機：見 src/app/page.tsx，只在 user.hasSeenTutorial === false
  * 時顯示（新帳號預設值，見 useAuth.ts）。看完或跳過都會呼叫
@@ -28,10 +29,12 @@ import {
   elephantDemoBoard,
   horseDemoBoard,
   chariotDemoBoard,
+  cannonMovementDemoBoard,
   cannonDemoBoard,
-  pawnBeforeRiverDemoBoard,
+  pawnAfterRiverDemoBoard,
   chariotCaptureExercise,
   cannonCaptureExercise,
+  horseCaptureExercise,
   applyMove,
 } from "@/lib/tutorial/demoBoards";
 import type { BoardGrid } from "@/types/xiangqi";
@@ -42,6 +45,8 @@ interface TutorialCard {
   body: string[];
   board?: BoardGrid;
   highlightMove?: { from: string; to: string } | null;
+  /** 一次畫多條箭頭，展示某個棋子所有能走的路線（跟 highlightMove 二選一） */
+  highlightMoves?: { from: string; to: string }[];
   boardCaption?: string;
   /**
    * 有這個欄位代表這張卡片是「互動吃子練習」，不是單純展示：
@@ -92,16 +97,26 @@ const CARDS: TutorialCard[] = [
       "特殊規則：兩邊的帥／將不能在同一條直線上「面對面」、中間沒有任何棋子隔著，這叫「將帥不能對面」。",
     ],
     board: kingDemoBoard(),
-    highlightMove: { from: sq(8, 4), to: sq(7, 4) },
-    boardCaption: "帥只能在九宮格內直走一格",
+    highlightMoves: [
+      { from: sq(8, 4), to: sq(7, 4) },
+      { from: sq(8, 4), to: sq(9, 4) },
+      { from: sq(8, 4), to: sq(8, 3) },
+      { from: sq(8, 4), to: sq(8, 5) },
+    ],
+    boardCaption: "帥只能在九宮格內直走一格，圖中是它所有能走的方向",
   },
   {
     emoji: "🛡️",
     title: "仕／士",
     body: ["仕（紅方）／士（黑方）也只能在九宮格裡活動，一次斜走一格，負責保護帥／將。"],
     board: advisorDemoBoard(),
-    highlightMove: { from: sq(9, 3), to: sq(8, 4) },
-    boardCaption: "仕只能在九宮格內斜走一格",
+    highlightMoves: [
+      { from: sq(8, 4), to: sq(7, 3) },
+      { from: sq(8, 4), to: sq(7, 5) },
+      { from: sq(8, 4), to: sq(9, 3) },
+      { from: sq(8, 4), to: sq(9, 5) },
+    ],
+    boardCaption: "仕只能在九宮格內斜走一格，圖中是它所有能走的方向",
   },
   {
     emoji: "🐘",
@@ -111,8 +126,13 @@ const CARDS: TutorialCard[] = [
       "有兩個限制：不能過河（只能在自己這一半的棋盤活動），而且如果「田」字中間那一點有棋子擋著（叫「塞象眼」），就不能走。",
     ],
     board: elephantDemoBoard(),
-    highlightMove: { from: sq(9, 2), to: sq(7, 4) },
-    boardCaption: "相走田字，不能過河",
+    highlightMoves: [
+      { from: sq(7, 4), to: sq(5, 2) },
+      { from: sq(7, 4), to: sq(5, 6) },
+      { from: sq(7, 4), to: sq(9, 2) },
+      { from: sq(7, 4), to: sq(9, 6) },
+    ],
+    boardCaption: "相走田字，不能過河，圖中是它所有能走的方向",
   },
   {
     emoji: "🐴",
@@ -122,16 +142,30 @@ const CARDS: TutorialCard[] = [
       "如果馬正前方（走直線的那一格）有棋子擋著，就不能往那個方向走，這叫「蹩馬腳」。",
     ],
     board: horseDemoBoard(),
-    highlightMove: { from: sq(9, 1), to: sq(7, 2) },
-    boardCaption: "馬走日字型（直一格+斜一格）",
+    highlightMoves: [
+      { from: sq(5, 4), to: sq(3, 3) },
+      { from: sq(5, 4), to: sq(3, 5) },
+      { from: sq(5, 4), to: sq(4, 2) },
+      { from: sq(5, 4), to: sq(4, 6) },
+      { from: sq(5, 4), to: sq(6, 2) },
+      { from: sq(5, 4), to: sq(6, 6) },
+      { from: sq(5, 4), to: sq(7, 3) },
+      { from: sq(5, 4), to: sq(7, 5) },
+    ],
+    boardCaption: "馬走日字型（直一格+斜一格），圖中是它所有能走的方向",
   },
   {
     emoji: "🚗",
     title: "車",
     body: ["車是威力最強的棋子之一：可以直走或橫走，只要中間沒有棋子擋著，要走幾格都可以。"],
     board: chariotDemoBoard(),
-    highlightMove: { from: sq(9, 0), to: sq(3, 0) },
-    boardCaption: "車可以直線走任意格數",
+    highlightMoves: [
+      { from: sq(5, 4), to: sq(0, 4) },
+      { from: sq(5, 4), to: sq(9, 4) },
+      { from: sq(5, 4), to: sq(5, 0) },
+      { from: sq(5, 4), to: sq(5, 8) },
+    ],
+    boardCaption: "車可以直線走任意格數（箭頭畫到底線，示意方向）",
   },
   {
     emoji: "💣",
@@ -139,6 +173,21 @@ const CARDS: TutorialCard[] = [
     body: [
       "炮平常走法跟車一樣（直線走任意格數、中間不能擋子）。",
       "但吃子的時候規則不一樣：中間必須剛好隔一顆棋子（不管是自己還是對方的都可以，這顆叫「炮架」），才能跳過去吃掉再過去那顆棋子。",
+    ],
+    board: cannonMovementDemoBoard(),
+    highlightMoves: [
+      { from: sq(5, 4), to: sq(0, 4) },
+      { from: sq(5, 4), to: sq(9, 4) },
+      { from: sq(5, 4), to: sq(5, 0) },
+      { from: sq(5, 4), to: sq(5, 8) },
+    ],
+    boardCaption: "平常走法跟車一樣，吃子時才需要「炮架」（下一張示範）",
+  },
+  {
+    emoji: "💥",
+    title: "炮吃子：需要「炮架」",
+    body: [
+      "吃子的時候，中間必須剛好隔一顆棋子（不管是自己還是對方的都可以，這顆叫「炮架」），才能跳過去吃掉再過去那顆棋子。",
     ],
     board: cannonDemoBoard(),
     highlightMove: { from: sq(6, 4), to: sq(1, 4) },
@@ -149,11 +198,15 @@ const CARDS: TutorialCard[] = [
     title: "兵／卒",
     body: [
       "兵（紅方）／卒（黑方）過河之前，只能一次往前走一格。",
-      "一旦過了河，就多了左右移動的能力（還是一次一格），但不管有沒有過河，永遠不能往後退。",
+      "一旦過了河，就多了左右移動的能力（還是一次一格），但不管有沒有過河，永遠不能往後退。圖中示範的是「過河後」，所以有三個方向可以走。",
     ],
-    board: pawnBeforeRiverDemoBoard(),
-    highlightMove: { from: sq(6, 4), to: sq(5, 4) },
-    boardCaption: "過河前：只能往前走一格",
+    board: pawnAfterRiverDemoBoard(),
+    highlightMoves: [
+      { from: sq(4, 4), to: sq(3, 4) },
+      { from: sq(4, 4), to: sq(4, 3) },
+      { from: sq(4, 4), to: sq(4, 5) },
+    ],
+    boardCaption: "過河後：可以往前、往左、往右，但不能後退",
   },
   {
     emoji: "🏆",
@@ -188,6 +241,20 @@ const CARDS: TutorialCard[] = [
       correctFrom: sq(6, 4),
       correctTo: sq(1, 4),
       successMessage: "🎉 答對了！炮跳過炮架，吃掉了黑馬！",
+    },
+  },
+  {
+    emoji: "🎯",
+    title: "最後一個：馬吃子",
+    body: [
+      "馬走日字型，吃子的時候也是一樣的走法，沒有像炮那樣的特殊規則。",
+      "先點紅馬，再點日字方向上的黑卒，試試看。",
+    ],
+    board: horseCaptureExercise(),
+    practice: {
+      correctFrom: sq(6, 4),
+      correctTo: sq(4, 5),
+      successMessage: "🎉 太棒了！馬走日字型，吃掉了黑卒！",
     },
   },
   {
@@ -316,7 +383,12 @@ export default function TutorialOverlay({ onFinish }: { onFinish: () => void }) 
             </div>
           ) : card.board ? (
             <div className="mt-4">
-              <ChessBoard board={card.board} onMove={() => {}} highlightMove={card.highlightMove ?? null} />
+              <ChessBoard
+                board={card.board}
+                onMove={() => {}}
+                highlightMove={card.highlightMove ?? null}
+                highlightMoves={card.highlightMoves}
+              />
               {card.boardCaption ? (
                 <p className="mt-2 text-center text-xs font-semibold text-[#8B5FBF]">{card.boardCaption}</p>
               ) : null}

@@ -65,31 +65,51 @@ export function standardOpeningBoard(): BoardGrid {
 }
 
 /**
- * 帥/將：九宮格內示範（紅方九宮格是 row7~9、col3~5）。
- * 帥站在九宮格正中間，用一個箭頭示範「直線走一格」。
+ * 帥/將：放在九宮格正中央（row8,col4），這樣「上下左右走一格」四個
+ * 方向都在合法範圍內，可以一次畫出帥能走的所有路線。
  */
 export function kingDemoBoard(): BoardGrid {
   return place(emptyBoard(), 8, 4, "k", "r");
 }
 
-/** 仕/士：九宮格內斜走一格 */
+/**
+ * 仕/士：放在九宮格正中央，四個角落都構成合法的斜線目的地，
+ * 一次畫出仕能走的所有路線（4 個方向）。
+ */
 export function advisorDemoBoard(): BoardGrid {
-  return place(emptyBoard(), 9, 3, "a", "r");
+  return place(emptyBoard(), 8, 4, "a", "r");
 }
 
-/** 相/象：走「田」字（兩點對角線），不能過河 */
+/**
+ * 相/象：放在 row7,col4（紅方這一側的「十字交叉點」），四個田字
+ * 方向的落點都還在紅方半場內、也都在棋盤範圍內，一次展示全部 4 條路線。
+ */
 export function elephantDemoBoard(): BoardGrid {
-  return place(emptyBoard(), 9, 2, "e", "r");
+  return place(emptyBoard(), 7, 4, "e", "r");
 }
 
-/** 馬：走「日」字 */
+/**
+ * 馬：放在盤面正中央（row5,col4），8 個日字方向的落點都在棋盤範圍內，
+ * 一次展示馬所有可能的走法。
+ */
 export function horseDemoBoard(): BoardGrid {
-  return place(emptyBoard(), 9, 1, "h", "r");
+  return place(emptyBoard(), 5, 4, "h", "r");
 }
 
-/** 車：直線走任意格數 */
+/**
+ * 車：放在盤面正中央，方便畫出上下左右四個方向「一路到底」的路線，
+ * 展示車可以直線走任意格數（示範用箭頭畫到底線，不是真的只能走那麼遠）。
+ */
 export function chariotDemoBoard(): BoardGrid {
-  return place(emptyBoard(), 9, 0, "r", "r");
+  return place(emptyBoard(), 5, 4, "r", "r");
+}
+
+/**
+ * 炮：不吃子的時候走法跟車一樣（直線任意格數），一樣放中央展示
+ * 四個方向。吃子時的「隔炮架跳吃」規則另外用 cannonDemoBoard 示範。
+ */
+export function cannonMovementDemoBoard(): BoardGrid {
+  return place(emptyBoard(), 5, 4, "c", "r");
 }
 
 /**
@@ -136,5 +156,13 @@ export function cannonCaptureExercise(): BoardGrid {
   place(board, 6, 4, "c", "r"); // 紅炮
   place(board, 4, 4, "p", "b"); // 炮架（這裡刻意放黑子，示範炮架不分敵我）
   place(board, 1, 4, "h", "b"); // 隔著炮架，可以跳過去吃掉的黑馬
+  return board;
+}
+
+/** 馬吃子練習：練習「日」字走法的吃子，順便複習蹩馬腳（這裡刻意不擋馬腳） */
+export function horseCaptureExercise(): BoardGrid {
+  const board = emptyBoard();
+  place(board, 6, 4, "h", "r"); // 紅馬
+  place(board, 4, 5, "p", "b"); // 日字方向（直2橫1）可以直接吃掉的黑卒
   return board;
 }

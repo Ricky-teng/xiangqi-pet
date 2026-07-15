@@ -89,6 +89,13 @@ export interface ChessBoardProps {
    * 在棋子比較密集的局面裡很容易看漏電腦剛剛走的是哪一步。
    */
   lastMove?: { from: string; to: string } | null;
+  /**
+   * 選用：一次畫「多條」箭頭（教學用，展示某個棋子所有能走的路線）。
+   * 跟 highlightMove（單一箭頭，給棋局分析建議用）是不同用途，可以
+   * 只用其中一個。兩個都有給的話，highlightMoves 優先、忽略
+   * highlightMove，避免箭頭重複畫兩次。
+   */
+  highlightMoves?: { from: string; to: string }[];
 }
 
 function parseSquareLabel(square: string): { row: number; col: number } {
@@ -101,7 +108,7 @@ function parseSquareLabel(square: string): { row: number; col: number } {
 // 4. 主體元件
 // ============================================================
 
-export default function ChessBoard({ board, onMove, highlightMove, lastMove }: ChessBoardProps) {
+export default function ChessBoard({ board, onMove, highlightMove, lastMove, highlightMoves }: ChessBoardProps) {
   const [selectedFrom, setSelectedFrom] = useState<{ row: number; col: number } | null>(null);
 
   function handleCellClick(row: number, col: number) {
@@ -353,52 +360,60 @@ export default function ChessBoard({ board, onMove, highlightMove, lastMove }: C
           })
         )}
 
-        {/* 分析建議走法箭頭：用 marker 畫箭頭尖端，從起點畫到終點，
-            終點稍微往回縮一點距離，不要整個箭頭蓋住棋子本身。 */}
-        {highlightMove ? (
-          <g style={{ pointerEvents: "none" }}>
-            <defs>
-              <marker
-                id="analysis-arrow-head"
-                viewBox="0 0 10 10"
-                refX="8"
-                refY="5"
-                markerWidth="6"
-                markerHeight="6"
-                orient="auto-start-reverse"
-              >
-                <path d="M 0 0 L 10 5 L 0 10 z" fill="#8B5FBF" />
-              </marker>
-            </defs>
-            {(() => {
-              const fromSquare = parseSquareLabel(highlightMove.from);
-              const toSquare = parseSquareLabel(highlightMove.to);
-              const fromPoint = pointOf(fromSquare.row, fromSquare.col);
-              const toPoint = pointOf(toSquare.row, toSquare.col);
-              // 終點往回縮短一點距離，讓箭頭尖端停在棋子外緣附近，
-              // 不會完全蓋住目的地的棋子。
-              const dx = toPoint.x - fromPoint.x;
-              const dy = toPoint.y - fromPoint.y;
-              const length = Math.hypot(dx, dy) || 1;
-              const shrink = CELL * 0.42;
-              const trimmedToX = toPoint.x - (dx / length) * shrink;
-              const trimmedToY = toPoint.y - (dy / length) * shrink;
-              return (
-                <line
-                  x1={fromPoint.x}
-                  y1={fromPoint.y}
-                  x2={trimmedToX}
-                  y2={trimmedToY}
-                  stroke="#8B5FBF"
-                  strokeWidth={CELL * 0.12}
-                  strokeLinecap="round"
-                  markerEnd="url(#analysis-arrow-head)"
-                  opacity={0.85}
-                />
-              );
-            })()}
-          </g>
-        ) : null}
+        {/* 分析建議走法箭頭／教學多路線箭頭：用 marker 畫箭頭尖端，從起點畫到終點，
+            終點稍微往回縮一點距離，不要整個箭頭蓋住棋子本身。
+            highlightMoves（陣列）優先於 highlightMove（單一），兩者渲染邏輯相同，
+            只是 highlightMoves 會畫出陣列裡的每一條。 */}
+        {(() => {
+          const movesToRender = highlightMoves ?? (highlightMove ? [highlightMove] : []);
+          if (movesToRender.length === 0) return null;
+
+          return (
+            <g style={{ pointerEvents: "none" }}>
+              <defs>
+                <marker
+                  id="analysis-arrow-head"
+                  viewBox="0 0 10 10"
+                  refX="8"
+                  refY="5"
+                  markerWidth="6"
+                  markerHeight="6"
+                  orient="auto-start-reverse"
+                >
+                  <path d="M 0 0 L 10 5 L 0 10 z" fill="#8B5FBF" />
+                </marker>
+              </defs>
+              {movesToRender.map((move, i) => {
+                const fromSquare = parseSquareLabel(move.from);
+                const toSquare = parseSquareLabel(move.to);
+                const fromPoint = pointOf(fromSquare.row, fromSquare.col);
+                const toPoint = pointOf(toSquare.row, toSquare.col);
+                // 終點往回縮短一點距離，讓箭頭尖端停在棋子外緣附近，
+                // 不會完全蓋住目的地的棋子。
+                const dx = toPoint.x - fromPoint.x;
+                const dy = toPoint.y - fromPoint.y;
+                const length = Math.hypot(dx, dy) || 1;
+                const shrink = CELL * 0.42;
+                const trimmedToX = toPoint.x - (dx / length) * shrink;
+                const trimmedToY = toPoint.y - (dy / length) * shrink;
+                return (
+                  <line
+                    key={`${move.from}-${move.to}-${i}`}
+                    x1={fromPoint.x}
+                    y1={fromPoint.y}
+                    x2={trimmedToX}
+                    y2={trimmedToY}
+                    stroke="#8B5FBF"
+                    strokeWidth={CELL * 0.1}
+                    strokeLinecap="round"
+                    markerEnd="url(#analysis-arrow-head)"
+                    opacity={0.8}
+                  />
+                );
+              })}
+            </g>
+          );
+        })()}
       </svg>
     </div>
   );
