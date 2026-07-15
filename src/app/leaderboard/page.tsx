@@ -3,10 +3,14 @@
  *
  * 學生排行榜
  * ------------------------------------------------------------
- * 提供三種排行依據（解題數／棋藝等級／轉生次數），讓不同強項的
- * 學生都有機會看到自己名次靠前，增加好勝心跟回頭率，不是只比
+ * 提供五種排行依據（解題數／轉生次數／對電腦勝率／對戰勝率／消費排行），
+ * 讓不同強項的學生都有機會看到自己名次靠前，增加好勝心跟回頭率，不是只比
  * 單一指標。目前使用者的那一列會特別標示出來，即使沒有排進
  * 列表可視範圍，也會在底下另外顯示「你的名次」。
+ *
+ * 注意：故意不提供「棋藝等級」排行——這個數字是拿來算對弈/對戰難度跟
+ * 獎勵用的內部數值，不是設計給學生互相比較用的排行指標，所以排行榜
+ * 跟其他學生可見頁面都不顯示這個數字（等級調整還是只有老師後台看得到）。
  *
  * 資料來源：一次性 getDocs 撈 users 集合篩 role === "student"，
  * 跟老師監控後台用的是同一份查詢方式。
@@ -29,9 +33,10 @@ import { useGameStore } from "@/stores/useGameStore";
 import RequireAuth from "@/components/RequireAuth";
 import type { UserDoc } from "@/types/database";
 import { useAppBackground } from "@/lib/useAppBackground";
+import { getVsComputerWinRate, getBattleWinRate } from "@/lib/stats";
 
 type FetchStatus = "loading" | "success" | "error";
-type SortKey = "totalSolved" | "chessLevel" | "rebirthCount" | "vsComputerWinRate" | "battleWinRate" | "totalFoodSpent";
+type SortKey = "totalSolved" | "rebirthCount" | "vsComputerWinRate" | "battleWinRate" | "totalFoodSpent";
 
 interface SortOption {
   key: SortKey;
@@ -42,7 +47,6 @@ interface SortOption {
 
 const SORT_OPTIONS: SortOption[] = [
   { key: "totalSolved",       label: "解題數",     icon: "🧩", unit: "題" },
-  { key: "chessLevel",        label: "棋藝等級",   icon: "♟️", unit: "級" },
   { key: "rebirthCount",      label: "轉生次數",   icon: "✨", unit: "次" },
   { key: "vsComputerWinRate", label: "對電腦勝率", icon: "🤖", unit: "%" },
   { key: "battleWinRate",     label: "對戰勝率",   icon: "⚔️", unit: "%" },
@@ -55,22 +59,9 @@ const RANK_MEDAL: Record<number, string> = {
   3: "🥉",
 };
 
-/** 對電腦勝率：wins / (wins + losses + draws) */
-function getVsComputerWinRate(s: UserDoc): number {
-  const total = (s.stats.vsComputerWins ?? 0) + (s.stats.vsComputerLosses ?? 0) + (s.stats.vsComputerDraws ?? 0);
-  return total > 0 ? Math.round(((s.stats.vsComputerWins ?? 0) / total) * 100) : 0;
-}
-
-/** 殘局對戰勝率：wins / (wins + losses + draws) */
-function getBattleWinRate(s: UserDoc): number {
-  const total = (s.stats.battleWins ?? 0) + (s.stats.battleLosses ?? 0) + (s.stats.battleDraws ?? 0);
-  return total > 0 ? Math.round(((s.stats.battleWins ?? 0) / total) * 100) : 0;
-}
-
 function getSortValue(student: UserDoc, key: SortKey): number {
   switch (key) {
     case "totalSolved":       return student.stats.totalSolved;
-    case "chessLevel":        return student.chessLevel;
     case "rebirthCount":      return student.rebirthCount;
     case "vsComputerWinRate": return getVsComputerWinRate(student);
     case "battleWinRate":     return getBattleWinRate(student);

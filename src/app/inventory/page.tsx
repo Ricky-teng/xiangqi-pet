@@ -58,7 +58,7 @@ function InventoryContent() {
             className="flex items-center gap-1 rounded-full bg-[#1A1A2E]/5 px-3 py-1.5 text-xs font-bold text-[#1A1A2E] transition-transform active:scale-95">
             ← 返回
           </button>
-          <h1 className="text-base font-bold text-[#1A1A2E]">🎒 裝備</h1>
+          <h1 className="text-base font-bold text-[#1A1A2E]">🎒 物品</h1>
           <div className="flex items-center gap-1 rounded-full bg-white/70 px-3 py-1.5 text-xs font-bold text-[#8B5FBF]">
             🟪 {user.foodCount}
           </div>

@@ -191,10 +191,6 @@ function SettingsContent() {
           <h2 className="text-xs font-bold text-[#1A1A2E]/50">統計總覽</h2>
           <div className="mt-2 grid grid-cols-2 gap-2">
             <div className="rounded-2xl bg-[#FDF6E8] px-3 py-2">
-              <p className="text-[10px] font-semibold text-[#1A1A2E]/50">♟️ 棋藝等級</p>
-              <p className="text-base font-extrabold text-[#1A1A2E]">Lv.{user.chessLevel}</p>
-            </div>
-            <div className="rounded-2xl bg-[#FDF6E8] px-3 py-2">
               <p className="text-[10px] font-semibold text-[#1A1A2E]/50">✨ 轉生次數</p>
               <p className="text-base font-extrabold text-[#1A1A2E]">{user.rebirthCount} 次</p>
             </div>

@@ -205,7 +205,7 @@ function ShopContent() {
                       {owned ? (
                         <button type="button" onClick={() => router.push("/inventory")}
                           className="rounded-xl bg-[#E8B84B] px-3 py-1.5 text-xs font-bold text-[#5C3D0A] transition-transform active:scale-95">
-                          前往裝備
+                          前往物品
                         </button>
                       ) : null}
                     </div>

@@ -467,7 +467,7 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
         <nav className="mt-3 grid grid-cols-5 gap-1.5 rounded-2xl bg-white/70 p-2 shadow-sm">
           {[
             { href: "/shop", icon: "🏪", label: "商店" },
-            { href: "/inventory", icon: "🎒", label: "裝備" },
+            { href: "/inventory", icon: "🎒", label: "物品" },
             { href: "/tasks", icon: "📋", label: "任務", badge: hasUnclaimedDailyTask(user, activeDailyTasks) },
             { href: "/leaderboard", icon: "🏆", label: "排行榜" },
             { href: "/catalog", icon: "📖", label: "圖鑑" },
@@ -537,16 +537,13 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
         </section>
 
         {/* ============================================================
-            B'. 成長狀態區：等級牌、三大屬性、飽食度/經驗值進度條、
-                轉生/復活相關區塊。跟上面的小雞展示區分開，金色等級牌
-                改用 mt-0（不再是負邊距），不會疊到任何東西上面。
+            B'. 成長狀態區：三大屬性、飽食度/經驗值進度條、
+                轉生/復活相關區塊。跟上面的小雞展示區分開。
+                （原本這裡有顯示棋藝等級數字的金色等級牌，改成學生不
+                直接看到自己的等級數字，所以拿掉了；等級仍在背景
+                運作，只是不再用這個徽章展示出來。）
            ============================================================ */}
         <section className="mt-4 flex flex-col items-center rounded-3xl bg-white/60 px-4 py-6 shadow-sm">
-          {/* 金色等級牌（仿手遊「總戰力」標籤，本頁的簽名視覺元素） */}
-          <div className="rounded-full border-2 border-[#C9962C] bg-gradient-to-b from-[#F6D87A] to-[#E8B84B] px-5 py-1 text-sm font-extrabold text-[#5C3D0A] shadow-md">
-            學生目前象棋等級：{user.chessLevel} 級
-          </div>
-
           {/* 三大屬性數值條 */}
           <div className="mt-4 grid w-full grid-cols-3 gap-2 text-center">
             <div className="rounded-xl bg-white/80 px-2 py-2">
