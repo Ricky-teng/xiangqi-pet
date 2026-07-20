@@ -138,6 +138,22 @@ export interface UserDoc {
   lastChallengeRoomId?: string | null;
 
   // ============================================================
+  // 好友「配對對弈」挑戰（完整一盤棋，不是殘局對戰）
+  // ------------------------------------------------------------
+  // 跟上面殘局對戰的戰帖是分開的一套欄位——兩種模式可以同時各自有
+  // 一個待處理的戰帖，不會互相卡住。邏輯模式（自己寫自己文件 +
+  // 查詢誰指定了我 + 接受時走 Admin API）完全比照殘局對戰戰帖。
+  // ============================================================
+
+  /** 我正在挑戰的好友 uid（配對對弈版本，同時間只能有一個未回應的挑戰） */
+  outgoingMatchChallengeUid?: string | null;
+  outgoingMatchChallengeSentAt?: number | null;
+  /** 挑戰時選的棋鐘設定（好友對戰可以自訂，公開配對固定用 15 分+5 秒） */
+  outgoingMatchChallengeSettings?: { baseMinutes: number; incrementSeconds: number } | null;
+  /** 我發出的配對對弈挑戰被接受後，伺服器把新建立的 chessMatchRoom id 寫回這裡 */
+  lastMatchChallengeRoomId?: string | null;
+
+  // ============================================================
   // 推播通知相關
   // ============================================================
 
@@ -390,4 +406,78 @@ export interface BattleRoomDoc {
   /** 對戰結束時的贏家 uid，平局為 null；對戰還沒結束時也是 null（靠 status 判斷是否結束） */
   winner: string | null;
   createdAt: number;
+}
+
+/**
+ * 8. 配對對弈佇列 (路徑: chessMatchQueue/{uid})
+ * ------------------------------------------------------------
+ * 「配對對弈」是下一整盤真正的棋（不是殘局解謎），學生進入等待室時
+ * 寫入，配對成功或離開後刪除。跟 matchmakingQueue（殘局作戰用）是
+ * 完全獨立的兩套佇列，因為房間資料結構差很多（棋鐘、完整局面歷史
+ * vs 題目清單、單題計分），混在一起反而更亂。
+ */
+export interface ChessMatchQueueEntry {
+  uid: string;
+  displayName: string;
+  chessLevel: number;
+  joinedAt: number;
+  roomId: string | null;
+}
+
+/** 配對對弈的結束原因 */
+export type ChessMatchEndReason =
+  | "checkmate"      // 將死
+  | "stalemate"      // 困斃（無子可動但沒被將軍，算和棋）
+  | "resign"         // 認輸
+  | "timeout"        // 棋鐘用完
+  | "draw_agreement" // 雙方同意和棋
+  | "draw_rule";     // 引擎判定的其他和棋規則（例如長將/長捉/回合數上限）
+
+export interface ChessMatchPlayerInfo {
+  uid: string;
+  displayName: string;
+  chessLevel: number;
+}
+
+/**
+ * 9. 配對對弈房間 (路徑: chessMatchRooms/{roomId})
+ * ------------------------------------------------------------
+ * 棋鐘採用「費雪制」（Fischer increment）：每人一開始有 baseMs，每走
+ * 完一步、輪到自己走的那段時間扣掉之後，加回 incrementMs。
+ *
+ * 計時方式是純前端算的（沒有後端排程一直在跑），lastMoveAt 記錄「最後
+ * 一次有人動作（開局或走完一步）的時間戳」，誰的回合誰的棋鐘就從這個
+ * 時間點開始倒數；雙方瀏覽器都會各自算，任何一方偵測到「現在輪到走的
+ * 那方時間已經用完」，就由偵測到的那個人的瀏覽器負責寫入
+ * status: "finished"、winner、endReason: "timeout"（不是一定要輪到走
+ * 的那方自己認輸，對手的瀏覽器一樣會偵測到並幫忙結算，避免有人拖網路
+ * 或關頁面卡住不結算）。
+ */
+export interface ChessMatchRoomDoc {
+  roomId: string;
+  status: "playing" | "finished";
+  red: ChessMatchPlayerInfo;
+  black: ChessMatchPlayerInfo;
+  /** 目前局面（這個 App 格式的 FEN，不含輪走方，輪走方看 sideToMove） */
+  fen: string;
+  sideToMove: "w" | "b";
+  /** 走法記號歷史，依序（例如 ["h2e2", "h7e7", ...]） */
+  moveHistory: string[];
+  /** 每一步之後的局面，跟 moveHistory 等長，第一個元素是開局前的起始局面 */
+  fenHistory: string[];
+  /** 雙方棋鐘剩餘毫秒數（是「上次動作當下」的剩餘量，不是即時值，
+   *  即時剩餘要用 lastMoveAt 前端自己算） */
+  clockRedMs: number;
+  clockBlackMs: number;
+  /** 費雪制每步加秒數（毫秒） */
+  incrementMs: number;
+  /** 最後一次動作（開局／走完一步）的時間戳，用來算目前這步經過多久 */
+  lastMoveAt: number;
+  /** 有人提和棋的話，這裡是提議人的 uid；沒有提議中的和棋則是 null */
+  drawOfferBy: string | null;
+  /** 贏家 uid，和局是 null；對局還沒結束時也是 null（靠 status 判斷） */
+  winner: string | null;
+  endReason: ChessMatchEndReason | null;
+  createdAt: number;
+  updatedAt: number;
 }

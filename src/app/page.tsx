@@ -367,6 +367,17 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
     }
   }
 
+  function handleStartMatch() {
+    const result = claimDailyGrant();
+    if (result.granted) {
+      setDailyGrantMessage("🎁 每日救助金 +50 飼料！讓你可以參加今天的對局！");
+      setTimeout(() => setDailyGrantMessage(null), 5000);
+      setTimeout(() => router.push("/match"), 50);
+    } else {
+      router.push("/match");
+    }
+  }
+
   const rebirthPet = useGameStore((s) => s.rebirthPet);
   const resurrectPet = useGameStore((s) => s.resurrectPet);
 
@@ -745,6 +756,44 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
                   className="w-full rounded-2xl bg-gradient-to-b from-[#C0392B] to-[#922B21] px-4 py-3 text-base font-extrabold text-white shadow-md transition-transform active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   ⚔️ 開始配對（消耗 20 飼料）
+                </button>
+              </>
+            );
+          })()}
+        </section>
+
+        {/* ============================================================
+            E2. 配對對弈入口：下一整盤真正的棋，不是殘局解謎
+           ============================================================ */}
+        <section className="mt-4 rounded-3xl bg-white/60 px-4 py-5 shadow-sm">
+          <h2 className="mb-1 text-center text-sm font-bold text-[#1A1A2E]">♟️ 配對對弈</h2>
+          <p className="mb-3 text-center text-xs text-[#1A1A2E]/60">
+            跟其他玩家下一整盤真正的棋！每人 15 分鐘棋鐘、每步加 5 秒，贏的一方 +50 飼料（入場費 20）。
+          </p>
+          {(() => {
+            const todayStr = new Date().toISOString().slice(0, 10);
+            const canGetGrant = user.foodCount < 20 && user.lastDailyGrantDate !== todayStr;
+            const effectiveFoodCount = canGetGrant ? user.foodCount + 50 : user.foodCount;
+            const canMatch = effectiveFoodCount >= 20;
+
+            return (
+              <>
+                {!canMatch ? (
+                  <p className="mb-3 rounded-xl bg-[#C0392B]/10 px-3 py-2 text-center text-xs font-semibold text-[#C0392B]">
+                    飼料不足 20 且今天已領過救助金，無法參賽（目前 {user.foodCount} 飼料）
+                  </p>
+                ) : user.foodCount < 20 ? (
+                  <p className="mb-3 rounded-xl bg-[#5B8C5A]/10 px-3 py-2 text-center text-xs font-semibold text-[#5B8C5A]">
+                    🎁 飼料不足，按下配對會自動領取今日救助金 +50！
+                  </p>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={handleStartMatch}
+                  disabled={!canMatch}
+                  className="w-full rounded-2xl bg-gradient-to-b from-[#8B5FBF] to-[#6B4593] px-4 py-3 text-base font-extrabold text-white shadow-md transition-transform active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  ♟️ 開始配對（消耗 20 飼料）
                 </button>
               </>
             );

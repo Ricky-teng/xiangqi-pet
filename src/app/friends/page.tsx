@@ -84,9 +84,14 @@ function FriendsPageContent() {
 
   const [incomingRequesters, setIncomingRequesters] = useState<UserDoc[]>([]);
   const [incomingChallenger, setIncomingChallenger] = useState<UserDoc | null>(null);
+  const [incomingMatchChallenger, setIncomingMatchChallenger] = useState<UserDoc | null>(null);
   const [friendProfiles, setFriendProfiles] = useState<FriendProfile[]>([]);
   const [outgoingProfiles, setOutgoingProfiles] = useState<UserDoc[]>([]);
   const [isRespondingChallenge, setIsRespondingChallenge] = useState(false);
+  const [isRespondingMatchChallenge, setIsRespondingMatchChallenge] = useState(false);
+  const [matchChallengeTarget, setMatchChallengeTarget] = useState<{ uid: string; name: string } | null>(null);
+  const [matchBaseMinutes, setMatchBaseMinutes] = useState(15);
+  const [matchIncrementSeconds, setMatchIncrementSeconds] = useState(5);
 
   const myUid = user?.uid ?? "";
 
@@ -131,6 +136,16 @@ function FriendsPageContent() {
     const q = query(collection(db, "users"), where("outgoingBattleChallengeUid", "==", myUid));
     const unsubscribe = onSnapshot(q, (snap) => {
       setIncomingChallenger(snap.empty ? null : (snap.docs[0].data() as UserDoc));
+    });
+    return () => unsubscribe();
+  }, [myUid]);
+
+  // ---- 收到的配對對弈挑戰：誰的 outgoingMatchChallengeUid 指定了我 ----
+  useEffect(() => {
+    if (!myUid) return;
+    const q = query(collection(db, "users"), where("outgoingMatchChallengeUid", "==", myUid));
+    const unsubscribe = onSnapshot(q, (snap) => {
+      setIncomingMatchChallenger(snap.empty ? null : (snap.docs[0].data() as UserDoc));
     });
     return () => unsubscribe();
   }, [myUid]);
@@ -339,6 +354,75 @@ function FriendsPageContent() {
     }
   }
 
+  function openMatchChallengeDialog(friendUid: string, friendName: string) {
+    if (!user) return;
+    if (user.outgoingMatchChallengeUid) {
+      showMessage("你已經有一個對局邀請還在等回應了，先等對方回應或稍後再試");
+      return;
+    }
+    setMatchBaseMinutes(15);
+    setMatchIncrementSeconds(5);
+    setMatchChallengeTarget({ uid: friendUid, name: friendName });
+  }
+
+  async function handleSendMatchChallenge() {
+    if (!user || !matchChallengeTarget) return;
+    const now = Date.now();
+    const settings = { baseMinutes: matchBaseMinutes, incrementSeconds: matchIncrementSeconds };
+    setUser({
+      ...user,
+      outgoingMatchChallengeUid: matchChallengeTarget.uid,
+      outgoingMatchChallengeSentAt: now,
+      outgoingMatchChallengeSettings: settings,
+    });
+    await updateDoc(doc(db, "users", user.uid), {
+      outgoingMatchChallengeUid: matchChallengeTarget.uid,
+      outgoingMatchChallengeSentAt: now,
+      outgoingMatchChallengeSettings: settings,
+    });
+    await notify(matchChallengeTarget.uid, "match_challenge");
+    showMessage(`已經向 ${matchChallengeTarget.name} 發出對局邀請，等他回應！`);
+    setMatchChallengeTarget(null);
+  }
+
+  async function handleCancelMatchChallenge() {
+    if (!user) return;
+    setUser({ ...user, outgoingMatchChallengeUid: null, outgoingMatchChallengeSentAt: null, outgoingMatchChallengeSettings: null });
+    await updateDoc(doc(db, "users", user.uid), {
+      outgoingMatchChallengeUid: null,
+      outgoingMatchChallengeSentAt: null,
+      outgoingMatchChallengeSettings: null,
+    });
+  }
+
+  async function handleRespondMatchChallenge(action: "accept" | "decline") {
+    setIsRespondingMatchChallenge(true);
+    try {
+      const headers = await getAuthHeader();
+      const res = await fetch("/api/match/challenge-respond", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...headers },
+        body: JSON.stringify({ action }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showMessage(data.error ?? "操作失敗");
+        setIsRespondingMatchChallenge(false);
+        return;
+      }
+      if (action === "accept" && data.roomId) {
+        router.push(`/match?room=${data.roomId}`);
+        return;
+      }
+      showMessage("已婉拒對局邀請");
+    } catch (error) {
+      console.error("[friends] 回應對局挑戰失敗：", error);
+      showMessage("操作失敗，請稍後再試");
+    } finally {
+      setIsRespondingMatchChallenge(false);
+    }
+  }
+
   async function handleRemoveFriend(friendUid: string) {
     if (!user) return;
     setUser({ ...user, friends: friendUids.filter((uid) => uid !== friendUid) });
@@ -396,6 +480,47 @@ function FriendsPageContent() {
           <section className="mt-4 rounded-3xl bg-white/70 p-4 text-center shadow-sm">
             <p className="text-xs font-semibold text-[#1A1A2E]/60">⚔️ 對戰邀請已送出，等待對方回應中…</p>
             <button type="button" onClick={handleCancelChallenge} className="mt-2 text-xs font-bold text-[#C0392B] underline">
+              取消邀請
+            </button>
+          </section>
+        ) : null}
+
+        {/* ---- 收到的配對對弈挑戰 ---- */}
+        {incomingMatchChallenger ? (
+          <section className="mt-4 rounded-3xl bg-[#6B4593] p-4 text-white shadow-sm">
+            <p className="text-sm font-extrabold">♟️ {incomingMatchChallenger.displayName} 邀請你下一整盤棋！</p>
+            <p className="mt-1 text-xs text-white/80">
+              {incomingMatchChallenger.outgoingMatchChallengeSettings
+                ? `棋鐘：每人 ${incomingMatchChallenger.outgoingMatchChallengeSettings.baseMinutes} 分鐘，每步加 ${incomingMatchChallenger.outgoingMatchChallengeSettings.incrementSeconds} 秒`
+                : "棋鐘：每人 15 分鐘，每步加 5 秒"}
+              ・接受的話雙方都會扣 20 飼料
+            </p>
+            <div className="mt-3 flex gap-2">
+              <button
+                type="button"
+                onClick={() => handleRespondMatchChallenge("decline")}
+                disabled={isRespondingMatchChallenge}
+                className="flex-1 rounded-xl bg-white/15 py-2 text-xs font-bold disabled:opacity-50"
+              >
+                婉拒
+              </button>
+              <button
+                type="button"
+                onClick={() => handleRespondMatchChallenge("accept")}
+                disabled={isRespondingMatchChallenge}
+                className="flex-[2] rounded-xl bg-white py-2 text-xs font-extrabold text-[#6B4593] disabled:opacity-50"
+              >
+                {isRespondingMatchChallenge ? "處理中…" : "接受對局！"}
+              </button>
+            </div>
+          </section>
+        ) : null}
+
+        {/* ---- 我發出、還在等回應的配對對弈挑戰 ---- */}
+        {user.outgoingMatchChallengeUid ? (
+          <section className="mt-4 rounded-3xl bg-white/70 p-4 text-center shadow-sm">
+            <p className="text-xs font-semibold text-[#1A1A2E]/60">♟️ 對局邀請已送出，等待對方回應中…</p>
+            <button type="button" onClick={handleCancelMatchChallenge} className="mt-2 text-xs font-bold text-[#C0392B] underline">
               取消邀請
             </button>
           </section>
@@ -532,13 +657,23 @@ function FriendsPageContent() {
                         {getBattleWinRate({ stats: friend.stats } as UserDoc)}%
                       </p>
                     </div>
+                  </div>
+                  <div className="mt-2 flex gap-2">
                     <button
                       type="button"
                       onClick={() => handleChallenge(friend.uid, friend.displayName)}
                       disabled={!!user.outgoingBattleChallengeUid}
-                      className="rounded-xl bg-[#C0392B] px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40"
+                      className="flex-1 rounded-xl bg-[#C0392B] px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40"
                     >
-                      ⚔️ 挑戰
+                      ⚔️ 殘局挑戰
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => openMatchChallengeDialog(friend.uid, friend.displayName)}
+                      disabled={!!user.outgoingMatchChallengeUid}
+                      className="flex-1 rounded-xl bg-[#6B4593] px-3 py-1.5 text-xs font-bold text-white disabled:opacity-40"
+                    >
+                      ♟️ 對局挑戰
                     </button>
                   </div>
                   <button
@@ -553,6 +688,73 @@ function FriendsPageContent() {
             </div>
           )}
         </section>
+
+        {/* ---- 配對對弈挑戰：棋鐘設定小視窗 ---- */}
+        {matchChallengeTarget ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-6">
+            <div className="w-full max-w-sm rounded-3xl bg-white p-5 shadow-xl">
+              <p className="text-center text-sm font-extrabold text-[#1A1A2E]">
+                ♟️ 邀請 {matchChallengeTarget.name} 下一整盤棋
+              </p>
+              <p className="mt-1 text-center text-xs text-[#1A1A2E]/50">自訂棋鐘（費雪制：每步加秒數）</p>
+
+              <div className="mt-4">
+                <p className="text-xs font-bold text-[#1A1A2E]/60">每人總時間</p>
+                <div className="mt-1 flex gap-2">
+                  {[5, 10, 15, 30].map((minutes) => (
+                    <button
+                      key={minutes}
+                      type="button"
+                      onClick={() => setMatchBaseMinutes(minutes)}
+                      className={[
+                        "flex-1 rounded-xl py-2 text-xs font-bold transition-transform active:scale-95",
+                        matchBaseMinutes === minutes ? "bg-[#6B4593] text-white" : "bg-[#1A1A2E]/5 text-[#1A1A2E]/60",
+                      ].join(" ")}
+                    >
+                      {minutes} 分
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-3">
+                <p className="text-xs font-bold text-[#1A1A2E]/60">每步加秒</p>
+                <div className="mt-1 flex gap-2">
+                  {[0, 3, 5, 10].map((seconds) => (
+                    <button
+                      key={seconds}
+                      type="button"
+                      onClick={() => setMatchIncrementSeconds(seconds)}
+                      className={[
+                        "flex-1 rounded-xl py-2 text-xs font-bold transition-transform active:scale-95",
+                        matchIncrementSeconds === seconds ? "bg-[#6B4593] text-white" : "bg-[#1A1A2E]/5 text-[#1A1A2E]/60",
+                      ].join(" ")}
+                    >
+                      +{seconds} 秒
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-5 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setMatchChallengeTarget(null)}
+                  className="flex-1 rounded-2xl bg-[#1A1A2E]/10 py-3 text-sm font-bold text-[#1A1A2E]/60"
+                >
+                  取消
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSendMatchChallenge}
+                  className="flex-[2] rounded-2xl bg-[#6B4593] py-3 text-sm font-bold text-white transition-transform active:scale-95"
+                >
+                  發出邀請（雙方入場費 20 飼料）
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
       </div>
     </main>
   );

@@ -16,7 +16,13 @@ import { verifyRequestAuth, AuthError } from "@/lib/server/verifyAuth";
 import { sendPushToUser } from "@/lib/server/push";
 import { getAdminDb } from "@/lib/server/firebaseAdmin";
 
-type NotifyType = "friend_request" | "friend_accept" | "battle_challenge" | "battle_challenge_declined";
+type NotifyType =
+  | "friend_request"
+  | "friend_accept"
+  | "battle_challenge"
+  | "battle_challenge_declined"
+  | "match_challenge"
+  | "match_challenge_declined";
 
 const TEMPLATES: Record<NotifyType, (fromName: string) => { title: string; body: string; url: string }> = {
   friend_request: (fromName) => ({
@@ -31,12 +37,22 @@ const TEMPLATES: Record<NotifyType, (fromName: string) => { title: string; body:
   }),
   battle_challenge: (fromName) => ({
     title: "⚔️ 有人向你下戰帖",
-    body: `${fromName} 邀請你對戰，快去看看吧`,
+    body: `${fromName} 邀請你殘局對戰，快去看看吧`,
     url: "/friends",
   }),
   battle_challenge_declined: (fromName) => ({
     title: "對戰邀請被婉拒了",
     body: `${fromName} 現在沒空對戰，飼料已經退還給你了`,
+    url: "/friends",
+  }),
+  match_challenge: (fromName) => ({
+    title: "♟️ 有人向你發出對局邀請",
+    body: `${fromName} 邀請你下一整盤棋，快去看看吧`,
+    url: "/friends",
+  }),
+  match_challenge_declined: (fromName) => ({
+    title: "對局邀請被婉拒了",
+    body: `${fromName} 現在沒空下棋，飼料已經退還給你了`,
     url: "/friends",
   }),
 };
