@@ -85,6 +85,7 @@ function FriendsPageContent() {
   const [incomingRequesters, setIncomingRequesters] = useState<UserDoc[]>([]);
   const [incomingChallenger, setIncomingChallenger] = useState<UserDoc | null>(null);
   const [friendProfiles, setFriendProfiles] = useState<FriendProfile[]>([]);
+  const [outgoingProfiles, setOutgoingProfiles] = useState<UserDoc[]>([]);
   const [isRespondingChallenge, setIsRespondingChallenge] = useState(false);
 
   const myUid = user?.uid ?? "";
@@ -133,6 +134,29 @@ function FriendsPageContent() {
     });
     return () => unsubscribe();
   }, [myUid]);
+
+  // ---- 已送出、還在等回應的好友邀請（給「取消」功能用，不用重新搜尋一次） ----
+  useEffect(() => {
+    const uids = user?.outgoingFriendRequestUids ?? [];
+    if (uids.length === 0) {
+      setOutgoingProfiles([]);
+      return;
+    }
+    let cancelled = false;
+    (async () => {
+      const profiles = await Promise.all(uids.map((uid) => getDoc(doc(db, "users", uid))));
+      if (cancelled) return;
+      setOutgoingProfiles(
+        profiles
+          .filter((snap) => snap.exists())
+          .map((snap) => snap.data() as UserDoc)
+      );
+    })();
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.outgoingFriendRequestUids]);
 
   // ---- 好友列表的詳細資料（解題數/勝率/寵物階段） ----
   useEffect(() => {
@@ -209,6 +233,14 @@ function FriendsPageContent() {
     await updateDoc(doc(db, "users", user.uid), { outgoingFriendRequestUids: arrayUnion(target.uid) });
     await notify(target.uid, "friend_request");
     showMessage(`已送出好友邀請給 ${target.displayName}`);
+  }
+
+  async function handleCancelRequest(targetUid: string) {
+    if (!user) return;
+    const newOutgoing = outgoingUids.filter((uid) => uid !== targetUid);
+    setUser({ ...user, outgoingFriendRequestUids: newOutgoing });
+    await updateDoc(doc(db, "users", user.uid), { outgoingFriendRequestUids: arrayRemove(targetUid) });
+    showMessage("已取消邀請");
   }
 
   async function handleAcceptRequest(fromUser: UserDoc) {
@@ -397,6 +429,28 @@ function FriendsPageContent() {
           </section>
         ) : null}
 
+        {/* ---- 已送出、還在等回應的好友邀請 ---- */}
+        {outgoingProfiles.length > 0 ? (
+          <section className="mt-4">
+            <p className="mb-2 text-xs font-bold text-[#1A1A2E]/60">📤 已送出的邀請</p>
+            <div className="flex flex-col gap-2">
+              {outgoingProfiles.map((target) => (
+                <div key={target.uid} className="flex items-center gap-3 rounded-2xl bg-white/70 px-4 py-3 shadow-sm">
+                  <p className="flex-1 text-sm font-bold text-[#1A1A2E]">{target.displayName}</p>
+                  <span className="text-xs font-semibold text-[#1A1A2E]/40">等待回應中</span>
+                  <button
+                    type="button"
+                    onClick={() => handleCancelRequest(target.uid)}
+                    className="rounded-xl bg-[#1A1A2E]/10 px-3 py-1.5 text-xs font-bold text-[#C0392B]"
+                  >
+                    取消
+                  </button>
+                </div>
+              ))}
+            </div>
+          </section>
+        ) : null}
+
         {/* ---- 搜尋加好友 ---- */}
         <section className="mt-4">
           <p className="mb-2 text-xs font-bold text-[#1A1A2E]/60">🔍 搜尋同學</p>
@@ -430,7 +484,16 @@ function FriendsPageContent() {
                     {isFriend ? (
                       <span className="text-xs font-semibold text-[#1A1A2E]/40">已經是好友</span>
                     ) : isPending ? (
-                      <span className="text-xs font-semibold text-[#1A1A2E]/40">邀請已送出</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-[#1A1A2E]/40">邀請已送出</span>
+                        <button
+                          type="button"
+                          onClick={() => handleCancelRequest(result.uid)}
+                          className="text-xs font-bold text-[#C0392B] underline"
+                        >
+                          取消
+                        </button>
+                      </div>
                     ) : (
                       <button
                         type="button"
