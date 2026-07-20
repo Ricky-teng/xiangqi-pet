@@ -19,6 +19,7 @@ import RequireAuth from "@/components/RequireAuth";
 import { signOutUser } from "@/hooks/useAuth";
 import { useAppBackground } from "@/lib/useAppBackground";
 import { getVsComputerWinRate, getBattleWinRate, getPuzzlePassRate } from "@/lib/stats";
+import { registerPushNotifications } from "@/lib/notifications/registerPush";
 
 const ROLE_LABELS: Record<string, string> = {
   student: "學生",
@@ -46,6 +47,21 @@ function SettingsContent() {
   const [isSigningOut, setIsSigningOut] = useState(false);
 
   const [isResettingTutorial, setIsResettingTutorial] = useState(false);
+  const [isRegisteringPush, setIsRegisteringPush] = useState(false);
+  const [pushMessage, setPushMessage] = useState<string | null>(null);
+
+  async function handleEnablePush() {
+    if (!user) return;
+    setIsRegisteringPush(true);
+    setPushMessage(null);
+    const result = await registerPushNotifications(user.uid);
+    if (result.status === "success") {
+      setPushMessage("✅ 推播通知已開啟！");
+    } else {
+      setPushMessage(result.message);
+    }
+    setIsRegisteringPush(false);
+  }
 
   if (!user) return null;
 
@@ -241,6 +257,17 @@ function SettingsContent() {
             </div>
           </div>
         </section>
+
+        {/* ---- 開啟推播通知 ---- */}
+        <button
+          type="button"
+          onClick={handleEnablePush}
+          disabled={isRegisteringPush}
+          className="mt-3 w-full rounded-2xl bg-[#5B8C5A] py-3 text-sm font-bold text-white shadow-sm transition-transform active:scale-95 disabled:opacity-50"
+        >
+          {isRegisteringPush ? "開啟中…" : "🔔 開啟推播通知"}
+        </button>
+        {pushMessage ? <p className="mt-2 text-center text-xs text-[#1A1A2E]/60">{pushMessage}</p> : null}
 
         {/* ---- 重新觀看新手教學 ---- */}
         <button

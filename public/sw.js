@@ -15,6 +15,13 @@
  * 為什麼不在 install 事件送訊息：install 完成時新 SW 還沒接管，
  * 分頁還在聽舊 SW，postMessage 送過去沒有人接收。要等 activate
  * 完成（也就是 clients.claim() 完成）才能確定這些分頁都在聽新 SW。
+ *
+ * ⚠️ 這個檔案同時也是 FCM 推播用的 Service Worker（見檔案最下面），
+ * 兩個功能刻意合併在同一個檔案裡、共用同一個 scope（"/"）——
+ * 一個網站在同一個 scope 下只能有一個 Service Worker 生效，如果另外
+ * 建一個 firebase-messaging-sw.js 各自 register()，後註冊的會直接
+ * 蓋掉先註冊的，兩邊都會壞掉，所以推播邏輯改成 importScripts 合併
+ * 進這裡，而不是獨立檔案。
  */
 
 const SHELL_CACHE_NAME = "xiangqi-pet-shell-v2";
@@ -60,5 +67,59 @@ self.addEventListener("fetch", (event) => {
         .match(event.request)
         .then((cached) => cached ?? caches.match("/"))
     )
+  );
+});
+
+// ============================================================
+// FCM 背景推播
+// ------------------------------------------------------------
+// ⚠️ 下面這組設定值要「手動」貼上你的真實 Firebase 專案設定，
+// 跟 Vercel 環境變數裡的 NEXT_PUBLIC_FIREBASE_* 是同一組值（Firebase
+// Console → 專案設定 → 一般 → 你的應用程式 可以找到）。這個檔案是
+// 靜態檔案，Next.js 建置時不會把 process.env 注入進來，所以要手動填。
+// 這些本來就是設計給瀏覽器端公開的值，不是機密金鑰，可以放心寫在
+// 這個公開檔案裡。部署後如果推播完全沒作用，第一件事就是檢查這裡
+// 有沒有忘記填。
+// ============================================================
+
+importScripts("https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js");
+importScripts("https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js");
+
+firebase.initializeApp({
+  apiKey: "請貼上你的 NEXT_PUBLIC_FIREBASE_API_KEY",
+  authDomain: "請貼上你的 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN",
+  projectId: "請貼上你的 NEXT_PUBLIC_FIREBASE_PROJECT_ID",
+  storageBucket: "請貼上你的 NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET",
+  messagingSenderId: "請貼上你的 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID",
+  appId: "請貼上你的 NEXT_PUBLIC_FIREBASE_APP_ID",
+});
+
+const messaging = firebase.messaging();
+
+messaging.onBackgroundMessage((payload) => {
+  const title = payload.notification?.title ?? "象棋寵物";
+  const body = payload.notification?.body ?? "";
+  const url = payload.fcmOptions?.link ?? payload.data?.url ?? "/";
+
+  self.registration.showNotification(title, {
+    body,
+    icon: "/icons/icon-192.png",
+    data: { url },
+  });
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const url = event.notification.data?.url ?? "/";
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((windowClients) => {
+      for (const client of windowClients) {
+        if (client.url.includes(self.location.origin) && "focus" in client) {
+          client.navigate(url);
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) return clients.openWindow(url);
+    })
   );
 });

@@ -26,11 +26,13 @@
 import type { ReactNode } from "react";
 import { useAuthBootstrap } from "@/hooks/useAuth";
 import { usePetTimeDecayTicker } from "@/hooks/usePetTimeDecayTicker";
+import { useChallengeRoomRedirect } from "@/hooks/useChallengeRoomRedirect";
 import PetAlertBanner from "@/components/PetAlertBanner";
 
 export default function AuthProvider({ children }: { children: ReactNode }) {
   useAuthBootstrap();
   usePetTimeDecayTicker();
+  useChallengeRoomRedirect();
   return (
     <>
       {children}

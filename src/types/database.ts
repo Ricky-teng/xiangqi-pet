@@ -92,6 +92,61 @@ export interface UserDoc {
    */
   lastDoubleVoucherPurchaseDate?: string | null;
 
+  // ============================================================
+  // 好友系統
+  // ------------------------------------------------------------
+  // 設計上刻意不開新的 Firestore collection，全部欄位都放在使用者
+  // 自己的文件上——因為 users 集合的規則是「誰都能讀、只能寫自己」，
+  // 「送出邀請」只需要自己寫自己的 outgoingFriendRequestUids（自己
+  // 要跟誰交朋友，自己說了算），「收到邀請」則是反過來查詢
+  // 「誰的 outgoingFriendRequestUids 裡有我」（array-contains 查詢，
+  // 靠讀取權限就能做到，不需要誰來寫我的文件）。
+  // 真正會動到「雙方」文件的操作只有「接受邀請」（要同時讓兩邊的
+  // friends 陣列都加上對方），這個沒辦法用一般的 client SDK 做到
+  // （沒有權限寫別人的文件），所以走 /api/friends/accept 這支用
+  // Firebase Admin SDK 的伺服器 API。
+  // ============================================================
+
+  /** 好友清單（uid 陣列，雙向：我加了誰、誰接受了我，兩邊都會有對方） */
+  friends?: string[];
+
+  /** 我主動送出、還在等對方回應的好友邀請對象（uid 陣列） */
+  outgoingFriendRequestUids?: string[];
+
+  /**
+   * 我已經讀過/拒絕過、不想再看到的邀請來源（uid 陣列）。
+   * 「拒絕」不會通知對方、也不會清掉對方的 outgoingFriendRequestUids
+   * （這是刻意的簡化，避免拒絕動作也要跨帳號寫入），只是在我自己
+   * 這邊的收件匣把它濾掉。
+   */
+  dismissedFriendRequestUids?: string[];
+
+  // ============================================================
+  // 好友對戰挑戰（同樣是「自己寫自己的文件」+「查詢誰指定了我」
+  // 的模式；只有「接受挑戰」需要雙方同時扣飼料+建立房間，走
+  // /api/battle/challenge-respond 這支伺服器 API）
+  // ============================================================
+
+  /** 我正在挑戰的好友 uid（同時間只能有一個未回應的挑戰） */
+  outgoingBattleChallengeUid?: string | null;
+  outgoingBattleChallengeSentAt?: number | null;
+
+  /**
+   * 我發出的挑戰被接受後，伺服器會把新建立的 battleRoom id 寫回這裡，
+   * 我的前端監聽到這個欄位變化就知道要跳轉進對戰房間。
+   */
+  lastChallengeRoomId?: string | null;
+
+  // ============================================================
+  // 推播通知相關
+  // ============================================================
+
+  /** 上次發送「小雞餓了/生病了」提醒的時間戳，避免排程一直重複轟炸 */
+  lastPetReminderSentAt?: number | null;
+
+  /** 上次發送「每日任務未領」提醒的時間戳 */
+  lastTaskReminderSentAt?: number | null;
+
   /** 已購買的背景 ID 陣列 */
   unlockedBackgrounds?: string[];
 

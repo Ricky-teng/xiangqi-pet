@@ -27,8 +27,8 @@
 
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   collection,
   deleteDoc,
@@ -74,6 +74,11 @@ function generateRoomId(): string {
 
 function BattlePageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  // 從好友對戰挑戰接受後直接導過來的情境：網址帶 ?room=xxx，代表房間
+  // 已經在伺服器端建好、雙方飼料也已經扣了（見 /api/battle/challenge-respond），
+  // 這裡要跳過配對排隊流程，直接連進這個房間。
+  const directRoomId = searchParams.get("room");
   const user = useGameStore((s) => s.user);
 
   const bgStyle = useAppBackground();
@@ -81,12 +86,12 @@ function BattlePageContent() {
   const setUser = useGameStore((s) => s.setUser);
   const { engine } = useRulesEngine();
 
-  const [phase, setPhase] = useState<PagePhase>("queuing");
+  const [phase, setPhase] = useState<PagePhase>(directRoomId ? "matched" : "queuing");
   const [statusMessage, setStatusMessage] = useState("尋找對手中…");
   const [waitSeconds, setWaitSeconds] = useState(0);
 
   // 配對 / 房間
-  const [roomId, setRoomId] = useState<string | null>(null);
+  const [roomId, setRoomId] = useState<string | null>(directRoomId);
   const [room, setRoom] = useState<BattleRoomDoc | null>(null);
   const [opponentUid, setOpponentUid] = useState<string | null>(null);
 
@@ -141,7 +146,7 @@ function BattlePageContent() {
   }, [user, setUser]);
 
   // 配對成功後設為 true，取消時用來判斷要不要退款
-  const hasMatchedRef = useRef(false);
+  const hasMatchedRef = useRef(directRoomId ? true : false);
 
   // 等待計時器：每秒 +1，讓學生知道系統還在運作
   useEffect(() => {
@@ -151,8 +156,11 @@ function BattlePageContent() {
   }, [phase]);
 
   // ---- 扣費進場 ----
+  // 「好友挑戰直接加入房間」模式（directRoomId 有值）飼料已經在
+  // /api/battle/challenge-respond 扣過了，這裡整個跳過，不重複扣款、
+  // 也不用寫配對佇列（房間已經建好了）。
   useEffect(() => {
-    if (!user) return;
+    if (!user || directRoomId) return;
     if (user.foodCount < BATTLE_ENTRY_COST) {
       router.replace("/");
       return;
@@ -180,7 +188,7 @@ function BattlePageContent() {
 
   // ---- 監聽自己的 queue entry，等 roomId 出現（配對成功） ----
   useEffect(() => {
-    if (!myUid) return;
+    if (!myUid || directRoomId) return;
     const unsubscribe = onSnapshot(doc(db, "matchmakingQueue", myUid), (snap) => {
       if (!snap.exists()) return;
       const entry = snap.data() as MatchmakingQueueEntry;
@@ -193,7 +201,7 @@ function BattlePageContent() {
 
   // ---- 配對輪詢：每 3 秒掃 queue，找最佳對手 ----
   useEffect(() => {
-    if (phase !== "queuing" || !user) return;
+    if (phase !== "queuing" || !user || directRoomId) return;
 
     const interval = setInterval(async () => {
       try {
@@ -617,7 +625,9 @@ function BattlePageContent() {
       <main className="flex min-h-screen flex-col items-center justify-center px-4" style={bgStyle}>
         <section className="w-full max-w-sm rounded-3xl bg-white/70 px-6 py-8 text-center shadow-xl">
           <p className="text-4xl">⚔️</p>
-          <p className="mt-3 text-lg font-extrabold text-[#1A1A2E]">尋找對手中</p>
+          <p className="mt-3 text-lg font-extrabold text-[#1A1A2E]">
+            {directRoomId ? "準備房間中" : "尋找對手中"}
+          </p>
 
           {/* 跳動的點點，視覺確認系統還在運作 */}
           <div className="mt-2 flex justify-center gap-1.5">
@@ -649,19 +659,23 @@ function BattlePageContent() {
           ) : null}
 
           {/* 等超過 15 秒才顯示提示，避免剛進去就嚇到 */}
-          {waitSeconds >= 15 ? (
+          {!directRoomId && waitSeconds >= 15 ? (
             <p className="mt-2 text-xs text-[#1A1A2E]/40">
               等待時間較長時，系統會嘗試配對任意等級的對手
             </p>
           ) : null}
 
-          <button
-            type="button"
-            onClick={async () => { refundIfNotMatched(); await leaveAndCleanup(); router.push("/"); }}
-            className="mt-6 w-full rounded-2xl bg-white px-4 py-2.5 text-sm font-bold text-[#1A1A2E]/70 ring-1 ring-inset ring-[#A9764C]/30 transition-transform active:scale-95"
-          >
-            取消並返回大廳（退回 {BATTLE_ENTRY_COST} 飼料）
-          </button>
+          {/* 好友挑戰直接加入房間：房間已經建好、飼料也扣過了，沒有「取消退款」
+              這個概念（跟配對中隨時能反悔不一樣），所以不顯示這個按鈕。 */}
+          {!directRoomId ? (
+            <button
+              type="button"
+              onClick={async () => { refundIfNotMatched(); await leaveAndCleanup(); router.push("/"); }}
+              className="mt-6 w-full rounded-2xl bg-white px-4 py-2.5 text-sm font-bold text-[#1A1A2E]/70 ring-1 ring-inset ring-[#A9764C]/30 transition-transform active:scale-95"
+            >
+              取消並返回大廳（退回 {BATTLE_ENTRY_COST} 飼料）
+            </button>
+          ) : null}
         </section>
       </main>
     );
@@ -767,7 +781,9 @@ function _boardToFen(board: ReturnType<typeof parseFen>, sideToMove: "w" | "b"):
 export default function BattlePage() {
   return (
     <RequireAuth requiredRole="student">
-      <BattlePageContent />
+      <Suspense fallback={null}>
+        <BattlePageContent />
+      </Suspense>
     </RequireAuth>
   );
 }
