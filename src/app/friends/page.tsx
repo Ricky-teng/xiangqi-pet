@@ -94,6 +94,21 @@ function FriendsPageContent() {
     setTimeout(() => setMessage(null), 3000);
   }
 
+  // ---- 即時監聽自己的文件 ----
+  // 好友/邀請的狀態變化（自己送出邀請被接受/拒絕、被移除好友等）
+  // 光靠登入時讀一次的 user store 會是舊資料，這裡額外訂閱一份即時
+  // 更新，確保這個頁面看到的 outgoingFriendRequestUids / friends
+  // 隨時是最新的（同時也會順便更新回全站共用的 user store）。
+  useEffect(() => {
+    if (!myUid) return;
+    const unsubscribe = onSnapshot(doc(db, "users", myUid), (snap) => {
+      if (!snap.exists()) return;
+      setUser(snap.data() as UserDoc);
+    });
+    return () => unsubscribe();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [myUid]);
+
   // ---- 收到的好友邀請：誰的 outgoingFriendRequestUids 裡有我 ----
   useEffect(() => {
     if (!myUid) return;
@@ -218,11 +233,25 @@ function FriendsPageContent() {
     }
   }
 
-  async function handleDismissRequest(fromUser: UserDoc) {
+  async function handleDeclineRequest(fromUser: UserDoc) {
     if (!user) return;
+    // 先在自己這邊樂觀隱藏（不用等 API 回應），體感比較快
     const dismissed = [...(user.dismissedFriendRequestUids ?? []), fromUser.uid];
     setUser({ ...user, dismissedFriendRequestUids: dismissed });
     await updateDoc(doc(db, "users", user.uid), { dismissedFriendRequestUids: arrayUnion(fromUser.uid) });
+
+    // 同時清掉對方的「已送出邀請」狀態，讓他之後可以重新邀請我，
+    // 不然會卡在一個他猜不到发生什麼事、也沒辦法重新邀請的死狀態。
+    try {
+      const headers = await getAuthHeader();
+      await fetch("/api/friends/decline", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", ...headers },
+        body: JSON.stringify({ fromUid: fromUser.uid }),
+      });
+    } catch (error) {
+      console.error("[friends] 拒絕邀請時清除對方狀態失敗：", error);
+    }
   }
 
   async function handleChallenge(friendUid: string, friendName: string) {
@@ -350,10 +379,10 @@ function FriendsPageContent() {
                   <p className="flex-1 text-sm font-bold text-[#1A1A2E]">{requester.displayName}</p>
                   <button
                     type="button"
-                    onClick={() => handleDismissRequest(requester)}
+                    onClick={() => handleDeclineRequest(requester)}
                     className="rounded-xl bg-[#1A1A2E]/10 px-3 py-1.5 text-xs font-bold text-[#1A1A2E]/60"
                   >
-                    忽略
+                    拒絕
                   </button>
                   <button
                     type="button"

@@ -2,15 +2,20 @@
 /**
  * 瀏覽器端推播註冊流程：
  *   1. 檢查瀏覽器支不支援（Service Worker + Notification API + FCM）
- *   2. 跟使用者要通知權限（一定要使用者主動點按鈕觸發，不能自動彈出，
- *      不然大多數瀏覽器會直接擋掉、以後也不會再問）
- *   3. 註冊 public/firebase-messaging-sw.js 這個 service worker
+ *   2. 跟使用者要通知權限
+ *   3. 註冊 public/sw.js 這個 service worker（FCM 邏輯已經合併進去）
  *   4. 跟 FCM 要一個這台裝置專屬的 token
  *   5. 把 token 存進自己的 users/{uid}.fcmTokens 陣列（自己寫自己的
  *      文件，一般 client SDK 就能做，不需要伺服器 API）
  *
- * 呼叫時機：設定頁的「開啟推播通知」按鈕（見 src/app/settings/page.tsx），
- * 刻意不在登入當下自動觸發，尊重使用者自己決定要不要開。
+ * 呼叫時機：
+ *   - 自動：見 useAutoRegisterPush()，學生登入後、瀏覽器權限狀態還是
+ *     「default」（從來沒問過）時自動觸發一次。瀏覽器的 Notification
+ *     權限本來就是「問一次，之後同意/拒絕都記住」，所以自動觸發不會
+ *     每次登入都跳提示——已經同意就直接靜默拿 token，已經拒絕就不會
+ *     再自動跳（瀏覽器本身就不給再跳，要使用者自己去瀏覽器設定改）。
+ *   - 手動：設定頁的「開啟推播通知」按鈕，給使用者之前拒絕、後來想
+ *     再試一次的補救管道。
  */
 
 import { doc, updateDoc, arrayUnion } from "firebase/firestore";

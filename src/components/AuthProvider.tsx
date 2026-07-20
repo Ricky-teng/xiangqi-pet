@@ -27,12 +27,18 @@ import type { ReactNode } from "react";
 import { useAuthBootstrap } from "@/hooks/useAuth";
 import { usePetTimeDecayTicker } from "@/hooks/usePetTimeDecayTicker";
 import { useChallengeRoomRedirect } from "@/hooks/useChallengeRoomRedirect";
+import { useAutoRegisterPush } from "@/hooks/useAutoRegisterPush";
+import { useGameStore } from "@/stores/useGameStore";
 import PetAlertBanner from "@/components/PetAlertBanner";
 
 export default function AuthProvider({ children }: { children: ReactNode }) {
   useAuthBootstrap();
   usePetTimeDecayTicker();
   useChallengeRoomRedirect();
+
+  const uid = useGameStore((s) => s.user?.uid);
+  const role = useGameStore((s) => s.user?.role);
+  useAutoRegisterPush(uid, role);
   return (
     <>
       {children}
