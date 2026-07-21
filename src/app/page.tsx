@@ -39,7 +39,8 @@ import RequireAuth from "@/components/RequireAuth";
 import TutorialOverlay from "@/components/tutorial/TutorialOverlay";
 import { STAGE_XP_THRESHOLDS } from "@/lib/pet/petGrowth";
 import { SICKNESS_ESCALATION_HOURS } from "@/lib/pet/petDecay";
-import { getPetImagePath } from "@/lib/pet/petImagePath";
+import { getPetImagePath, getPetDisplaySrc } from "@/lib/pet/petImagePath";
+import { getNextCatalogEntry, getNextJobChangeCost, isMaxJobLevel } from "@/lib/pet/catalog";
 import { hasUnclaimedDailyTask, getTodayDateString } from "@/lib/tasks/dailyTasks";
 import { CheckinModal } from "@/components/CheckinModal";
 import type { DailyTaskDoc, UserDoc, VsComputerGameDoc } from "@/types/database";
@@ -265,19 +266,33 @@ function formatTimestamp(ms: number): string {
 function LivingPetDisplay({
   stage,
   healthStatus,
+  currentAppearanceId,
 }: {
   stage: string;
   healthStatus: string;
+  currentAppearanceId: string | null;
 }) {
   const isAlive = healthStatus !== "dead";
   const [isJumping, setIsJumping] = useState(false);
   const [dialogueText, setDialogueText] = useState<string | null>(null);
+
+  // 生病/瀕死/死亡狀態一律用原本的階段圖，只有健康狀態正常、而且
+  // 已經轉職過，才顯示職業外觀圖（見 @/lib/pet/petImagePath.ts）。
+  // 職業圖沿用圖鑑的圖檔，萬一哪天圖檔壞掉/被移除，載入失敗會自動
+  // 退回原本的階段圖，不會讓小雞整隻消失不見。
+  const [jobImageFailed, setJobImageFailed] = useState(false);
+  const { src: resolvedSrc, isJobImage } = getPetDisplaySrc(stage, healthStatus, currentAppearanceId);
+  const petImageSrc = isJobImage && jobImageFailed ? getPetImagePath(stage, healthStatus) : resolvedSrc;
 
   function triggerJump() {
     if (!isAlive) return;
     setIsJumping(true);
     setTimeout(() => setIsJumping(false), 400);
   }
+
+  useEffect(() => {
+    setJobImageFailed(false);
+  }, [currentAppearanceId]);
 
   useEffect(() => {
     if (!isAlive) return;
@@ -306,9 +321,12 @@ function LivingPetDisplay({
       ) : null}
 
       <img
-        src={getPetImagePath(stage, healthStatus)}
+        src={petImageSrc}
         alt={`小雞，目前狀態：${HEALTH_STATUS_LABEL[healthStatus] ?? healthStatus}`}
         onClick={triggerJump}
+        onError={() => {
+          if (isJobImage && !jobImageFailed) setJobImageFailed(true);
+        }}
         className={[
           "h-48 w-48 cursor-pointer object-contain transition-transform",
           isJumping ? "-translate-y-6 scale-110" : "translate-y-0 scale-100",
@@ -378,6 +396,7 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
     }
   }
 
+  const changeJob = useGameStore((s) => s.changeJob);
   const rebirthPet = useGameStore((s) => s.rebirthPet);
   const resurrectPet = useGameStore((s) => s.resurrectPet);
 
@@ -398,6 +417,17 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
       isCancelled = true;
     };
   }, []);
+
+  // ---- 轉職（圖鑑收藏系統）相關狀態 ----
+  const [jobChangeMessage, setJobChangeMessage] = useState<string | null>(null);
+  const [isChangingJob, setIsChangingJob] = useState(false);
+
+  function handleChangeJob() {
+    setIsChangingJob(true);
+    const result = changeJob();
+    setJobChangeMessage(result.message);
+    setIsChangingJob(false);
+  }
 
   // ---- 轉生（圖鑑收藏系統）相關狀態 ----
   const [rebirthMessage, setRebirthMessage] = useState<string | null>(null);
@@ -431,6 +461,8 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
   }
 
   // ---- 計算飽食度、XP 進度條所需數值 ----
+  const nextJobEntry = getNextCatalogEntry(pet.currentAppearanceId);
+  const nextJobCost = getNextJobChangeCost(pet.currentAppearanceId);
   const fullnessPercent = Math.max(0, Math.min(100, pet.fullness));
   // 畫面顯示用：只取到小數點後兩位。fullnessPercent 本身維持完整精度
   // （拿去算進度條寬度用），因為 petDecay.ts 是用「每小時 -2%」連續計算，
@@ -530,6 +562,7 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
           <LivingPetDisplay
             stage={pet.stage}
             healthStatus={pet.healthStatus}
+            currentAppearanceId={pet.currentAppearanceId}
           />
 
           {/* 生病加重倒數提示 */}
@@ -627,22 +660,46 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
             </div>
           </div>
 
-          {/* 轉生入口：只有大師雞（完全長大）才會出現 */}
+          {/* 轉職/轉生入口：只有大師雞（完全長大）才會出現。
+              還沒轉到鳳凰雞之前顯示「轉職」（花飼料，不影響成長階段、
+              不用重新養）；轉到鳳凰雞之後顯示「轉生」（免費，真正把
+              小雞重置回蛋，職業歸零，圖鑑蒐集紀錄不會消失）。 */}
           {pet.stage === "master" ? (
-            <div className="mt-4 w-full rounded-2xl bg-gradient-to-b from-[#F6D87A] to-[#E8B84B] px-4 py-3 text-center shadow-md">
-              <p className="text-sm font-bold text-[#5C3D0A]">🎉 小雞已經完全長大成熟了！</p>
-              <p className="mt-0.5 text-xs text-[#5C3D0A]/70">
-                轉生可以解鎖新的圖鑑款式，小雞會重新從蛋開始長大。
-              </p>
-              <button
-                type="button"
-                onClick={handleRebirth}
-                disabled={isRebirthing}
-                className="mt-2 w-full rounded-xl bg-[#5C3D0A] px-4 py-2 text-sm font-bold text-[#FDF6E8] shadow-sm transition-transform active:scale-95 disabled:opacity-60"
-              >
-                {isRebirthing ? "轉生中…" : "✨ 轉生"}
-              </button>
-            </div>
+            isMaxJobLevel(pet.currentAppearanceId) ? (
+              <div className="mt-4 w-full rounded-2xl bg-gradient-to-b from-[#F6D87A] to-[#E8B84B] px-4 py-3 text-center shadow-md">
+                <p className="text-sm font-bold text-[#5C3D0A]">🦚 小雞已經轉職成鳳凰雞了！</p>
+                <p className="mt-0.5 text-xs text-[#5C3D0A]/70">
+                  轉生會讓小雞重新從蛋開始成長，準備下一輪轉職旅程（圖鑑蒐集紀錄不會消失）。
+                </p>
+                <button
+                  type="button"
+                  onClick={handleRebirth}
+                  disabled={isRebirthing}
+                  className="mt-2 w-full rounded-xl bg-[#5C3D0A] px-4 py-2 text-sm font-bold text-[#FDF6E8] shadow-sm transition-transform active:scale-95 disabled:opacity-60"
+                >
+                  {isRebirthing ? "轉生中…" : "✨ 轉生"}
+                </button>
+              </div>
+            ) : (
+              <div className="mt-4 w-full rounded-2xl bg-gradient-to-b from-[#F6D87A] to-[#E8B84B] px-4 py-3 text-center shadow-md">
+                <p className="text-sm font-bold text-[#5C3D0A]">🎉 小雞已經完全長大成熟了！</p>
+                <p className="mt-0.5 text-xs text-[#5C3D0A]/70">
+                  {nextJobEntry
+                    ? `花費 ${nextJobCost} 飼料轉職成${nextJobEntry.name}，成長階段不會變、也不用重新養。`
+                    : ""}
+                </p>
+                <button
+                  type="button"
+                  onClick={handleChangeJob}
+                  disabled={isChangingJob || nextJobCost === null || user.foodCount < nextJobCost}
+                  className="mt-2 w-full rounded-xl bg-[#5C3D0A] px-4 py-2 text-sm font-bold text-[#FDF6E8] shadow-sm transition-transform active:scale-95 disabled:opacity-60"
+                >
+                  {isChangingJob
+                    ? "轉職中…"
+                    : `⚔️ 轉職成${nextJobEntry?.name ?? ""}（${nextJobCost ?? 0} 飼料）`}
+                </button>
+              </div>
+            )
           ) : null}
 
           {/* 復活入口：小雞死亡時出現。跟轉生是兩個不同機制（見 store 裡
@@ -663,6 +720,15 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
                 {isResurrecting ? "復活中…" : "💔 復活（30 飼料）"}
               </button>
             </div>
+          ) : null}
+
+          {/* 轉職結果訊息：跟轉生訊息同樣理由放在 master 判斷區塊「外面」，
+              轉職成功後 currentAppearanceId 會立刻改變，畫面文案也會
+              跟著換下一個職業，訊息放外面才不會被新的 banner 內容蓋掉。 */}
+          {jobChangeMessage ? (
+            <p className="mt-3 w-full rounded-xl bg-white/80 px-3 py-2 text-center text-xs font-medium text-[#5C3D0A]">
+              {jobChangeMessage}
+            </p>
           ) : null}
 
           {/* 轉生結果訊息：刻意放在 master 判斷區塊「外面」，

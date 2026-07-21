@@ -4,7 +4,7 @@ import { doc, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { UserDoc, PetDoc, DailyTaskDoc } from "@/types/database";
 import { resolveStageForXp } from "@/lib/pet/petGrowth";
-import { getCatalogEntryForRebirthCount } from "@/lib/pet/catalog";
+import { CATALOG_ENTRIES, getNextCatalogEntry, getNextJobChangeCost, isMaxJobLevel } from "@/lib/pet/catalog";
 import { getTodayDateString, getTodaysCompletedTaskIds } from "@/lib/tasks/dailyTasks";
 import {
   calculateWinRewardFood,
@@ -48,9 +48,18 @@ interface GameStoreState {
   triggerSickness: (puzzleId: string, wrongCount: number) => void;
 
   /**
-   * 轉生：小雞必須在 master（大師雞）階段才能呼叫。
-   * 重置小雞回到蛋的狀態，rebirthCount + 1，並依新的轉生次數
-   * 解鎖對應的圖鑑款式（見 @/lib/pet/catalog.ts）。
+   * 轉職：小雞必須在 master（大師雞）階段才能呼叫。花飼料（費用依目前
+   * 職業等級遞增，見 @/lib/pet/catalog.ts 的 JOB_CHANGE_FOOD_COSTS），
+   * 把 pet.currentAppearanceId 換成圖鑑序列裡的下一款，同時立刻解鎖
+   * 該款圖鑑。不影響成長階段（小雞還是大師雞），不用重新養。
+   * 如果已經是最後一款（鳳凰雞），呼叫這個會失敗，請改呼叫 rebirthPet。
+   */
+  changeJob: () => { success: boolean; message: string };
+
+  /**
+   * 轉生：小雞必須在 master（大師雞）階段，且已經轉職到最後一款
+   * （鳳凰雞）才能呼叫。免費。重置小雞回到蛋的狀態（含職業歸零），
+   * rebirthCount + 1。圖鑑蒐集紀錄（unlockedCatalogIds）不受影響。
    */
   rebirthPet: () => { success: boolean; message: string };
 
@@ -58,7 +67,8 @@ interface GameStoreState {
    * 復活：小雞必須在 dead（死亡）狀態才能呼叫，跟「轉生」是兩個不同的
    * 機制——轉生是「養到大師雞、主動選擇重來」的成就型獎勵（會解鎖圖鑑）；
    * 復活是「沒照顧好、小雞死掉了」的補救措施，純粹讓小雞重新從蛋開始，
-   * 不會解鎖圖鑑款式、不會增加 rebirthCount。需要花費飼料。
+   * 不會解鎖圖鑑款式、不會增加 rebirthCount。職業（currentAppearanceId）
+   * 會歸零重新累積，但已解鎖的圖鑑蒐集紀錄不會消失。需要花費飼料。
    */
   resurrectPet: () => { success: boolean; message: string };
 
@@ -290,28 +300,82 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     });
   },
 
-  // 4. 轉生（圖鑑收藏系統）
-  // user.rebirthCount / unlockedCatalogIds、pet.currentAppearanceId
-  // 這三個欄位本來就存在於型別定義裡，這裡是第一次真正寫入它們。
+  // 4. 轉職（圖鑑收藏系統，2026-07 改版）
+  // user.unlockedCatalogIds、pet.currentAppearanceId 本來只在「轉生」
+  // 時才會動，現在改成轉職就會即時解鎖圖鑑、換上對應外觀，不用重置
+  // 成長階段、不用重新養。
+  changeJob: () => {
+    const { user, pet } = get();
+    if (!user || !pet) return { success: false, message: "找不到資料" };
+    if (pet.stage !== "master") {
+      return { success: false, message: "小雞還沒長大成熟（大師雞），無法轉職。" };
+    }
+
+    const nextEntry = getNextCatalogEntry(pet.currentAppearanceId);
+    const cost = getNextJobChangeCost(pet.currentAppearanceId);
+    if (!nextEntry || cost === null) {
+      return { success: false, message: "已經轉職到鳳凰雞了，沒有下一個職業可以轉了，直接轉生吧！" };
+    }
+    if (user.foodCount < cost) {
+      return { success: false, message: `轉職成${nextEntry.name}需要 ${cost} 飼料，飼料不夠喔！` };
+    }
+
+    const now = Date.now();
+    const newUnlockedCatalogIds = Array.from(new Set([...user.unlockedCatalogIds, nextEntry.id]));
+
+    const updatedUser: UserDoc = {
+      ...user,
+      foodCount: user.foodCount - cost,
+      totalFoodSpent: (user.totalFoodSpent ?? 0) + cost,
+      unlockedCatalogIds: newUnlockedCatalogIds,
+      updatedAt: now,
+    };
+
+    const updatedPet: PetDoc = {
+      ...pet,
+      currentAppearanceId: nextEntry.id,
+      updatedAt: now,
+    };
+
+    set({ user: updatedUser, pet: updatedPet });
+
+    Promise.all([
+      updateDoc(doc(db, "users", user.uid), {
+        foodCount: updatedUser.foodCount,
+        totalFoodSpent: updatedUser.totalFoodSpent,
+        unlockedCatalogIds: updatedUser.unlockedCatalogIds,
+        updatedAt: now,
+      }),
+      updateDoc(doc(db, "pets", user.uid), {
+        currentAppearanceId: updatedPet.currentAppearanceId,
+        updatedAt: now,
+      }),
+    ]).catch((error) => {
+      console.error("[useGameStore] changeJob 同步寫回 Firestore 失敗：", error);
+    });
+
+    return { success: true, message: `轉職成功！小雞變成了${nextEntry.name}！` };
+  },
+
+  // 4.5 轉生：只有轉職到最後一款（鳳凰雞）之後才能呼叫，免費，
+  // 真正把小雞整隻重置回蛋（含職業歸零），rebirthCount + 1。
   rebirthPet: () => {
     const { user, pet } = get();
     if (!user || !pet) return { success: false, message: "找不到資料" };
     if (pet.stage !== "master") {
       return { success: false, message: "小雞還沒長大成熟（大師雞），無法轉生。" };
     }
+    if (!isMaxJobLevel(pet.currentAppearanceId)) {
+      const finalEntry = CATALOG_ENTRIES[CATALOG_ENTRIES.length - 1];
+      return { success: false, message: `要先轉職到「${finalEntry.name}」才能轉生喔，繼續加油！` };
+    }
 
-    const newRebirthCount = user.rebirthCount + 1;
-    const unlockedEntry = getCatalogEntryForRebirthCount(newRebirthCount);
     const now = Date.now();
-
-    const newUnlockedCatalogIds = unlockedEntry
-      ? Array.from(new Set([...user.unlockedCatalogIds, unlockedEntry.id]))
-      : user.unlockedCatalogIds;
+    const newRebirthCount = user.rebirthCount + 1;
 
     const updatedUser: UserDoc = {
       ...user,
       rebirthCount: newRebirthCount,
-      unlockedCatalogIds: newUnlockedCatalogIds,
       updatedAt: now,
     };
 
@@ -327,7 +391,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       severeSickStartTime: null,
       lastFedTime: now,
       notifiedFlags: { lowFullness: false, slightlySick: false, severelySick: false, dead: false },
-      currentAppearanceId: unlockedEntry ? unlockedEntry.id : pet.currentAppearanceId,
+      currentAppearanceId: null,
       updatedAt: now,
     };
 
@@ -336,7 +400,6 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     Promise.all([
       updateDoc(doc(db, "users", user.uid), {
         rebirthCount: updatedUser.rebirthCount,
-        unlockedCatalogIds: updatedUser.unlockedCatalogIds,
         updatedAt: now,
       }),
       updateDoc(doc(db, "pets", user.uid), {
@@ -350,19 +413,14 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         severeSickStartTime: null,
         lastFedTime: now,
         notifiedFlags: updatedPet.notifiedFlags,
-        currentAppearanceId: updatedPet.currentAppearanceId,
+        currentAppearanceId: null,
         updatedAt: now,
       }),
     ]).catch((error) => {
       console.error("[useGameStore] rebirthPet 同步寫回 Firestore 失敗：", error);
     });
 
-    return {
-      success: true,
-      message: unlockedEntry
-        ? `轉生成功！解鎖了新圖鑑款式：${unlockedEntry.name}！`
-        : "轉生成功！你已經蒐集完所有圖鑑款式了，太強了！",
-    };
+    return { success: true, message: "轉生成功！小雞重新回到蛋，準備從小兵雞開始新一輪的旅程！" };
   },
 
   // 5. 復活（跟轉生不同：理由見 GameStoreState 介面裡 resurrectPet 的註解）
@@ -393,6 +451,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
     // 復活後重新從蛋開始（跟死亡前養到哪個階段無關），不增加
     // rebirthCount、不解鎖圖鑑款式——這是補救措施，不是成就獎勵。
+    // currentAppearanceId（職業）也一併歸零重新累積，但 unlockedCatalogIds
+    // （圖鑑蒐集紀錄）完全不動，蒐集進度不會因為死掉而消失。
     const updatedPet: PetDoc = {
       ...pet,
       stage: "egg",
@@ -405,6 +465,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       severeSickStartTime: null,
       lastFedTime: now,
       notifiedFlags: { lowFullness: false, slightlySick: false, severelySick: false, dead: false },
+      currentAppearanceId: null,
       updatedAt: now,
     };
 
@@ -427,6 +488,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         severeSickStartTime: null,
         lastFedTime: now,
         notifiedFlags: updatedPet.notifiedFlags,
+        currentAppearanceId: null,
         updatedAt: now,
       }),
     ]).catch((error) => {

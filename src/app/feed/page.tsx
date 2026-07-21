@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useGameStore } from "@/stores/useGameStore";
 import RequireAuth from "@/components/RequireAuth";
-import { getPetImagePath } from "@/lib/pet/petImagePath";
+import { getPetImagePath, getPetDisplaySrc } from "@/lib/pet/petImagePath";
 import { useAppBackground } from "@/lib/useAppBackground";
 
 const FOOD_PER_FEED = 10;
@@ -23,6 +23,7 @@ function FeedPageContent() {
   const [isOverBowl, setIsOverBowl] = useState(false);
   const [bowlBounce, setBowlBounce] = useState(false);
   const [petJump, setPetJump] = useState(false);
+  const [jobImageFailed, setJobImageFailed] = useState(false);
 
   const bowlRef = useRef<HTMLDivElement>(null);
   const isDraggingRef = useRef(false);
@@ -82,6 +83,12 @@ function FeedPageContent() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canFeed, user?.foodCount]);
 
+  // 職業（currentAppearanceId）變化時，重置圖片載入失敗狀態，
+  // 這樣下一個職業的圖若能正常載入，不會被上一個職業的失敗記錄卡住。
+  useEffect(() => {
+    setJobImageFailed(false);
+  }, [pet?.currentAppearanceId]);
+
   function handlePointerDown(e: React.PointerEvent) {
     if (!canFeed) return;
     e.preventDefault();
@@ -100,6 +107,8 @@ function FeedPageContent() {
   }
 
   const fullnessPercent = Math.min(100, Math.max(0, pet.fullness));
+  const { src: resolvedPetSrc, isJobImage } = getPetDisplaySrc(pet.stage, pet.healthStatus, pet.currentAppearanceId);
+  const petImageSrc = isJobImage && jobImageFailed ? getPetImagePath(pet.stage, pet.healthStatus) : resolvedPetSrc;
 
   return (
     <main className="flex h-screen flex-col" style={{ ...bgStyle, touchAction: "none" }}>
@@ -146,8 +155,11 @@ function FeedPageContent() {
         ].join(" ")}
       >
         <img
-          src={getPetImagePath(pet.stage, pet.healthStatus)}
+          src={petImageSrc}
           alt="小雞"
+          onError={() => {
+            if (isJobImage && !jobImageFailed) setJobImageFailed(true);
+          }}
           className={[
 "h-44 w-44 object-contain transition-transform duration-200",
             petJump ? "-translate-y-6 scale-110" : "translate-y-0 scale-100",

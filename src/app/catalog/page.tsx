@@ -52,7 +52,7 @@ function CatalogContent() {
 
         <p className="mt-3 text-center text-xs font-semibold text-[#1A1A2E]/60">
           已收集 {unlockedSet.size} / {CATALOG_ENTRIES.length} 款
-          {unlockedSet.size === 0 ? "　（小雞長大成熟後可以轉生解鎖第一款！）" : ""}
+          {unlockedSet.size === 0 ? "　（小雞長大成熟後可以轉職解鎖第一款！）" : ""}
         </p>
 
         <div className="mt-4 grid grid-cols-2 gap-3">
@@ -85,7 +85,7 @@ function CatalogCard({ entry, isUnlocked }: { entry: CatalogEntry; isUnlocked: b
       <div>
         <p className="text-xs font-bold text-[#1A1A2E]">{isUnlocked ? entry.name : "？？？"}</p>
         <p className="mt-0.5 text-[10px] text-[#1A1A2E]/50">
-          {isUnlocked ? `第 ${entry.unlockAtRebirthCount} 次轉生解鎖` : `轉生 ${entry.unlockAtRebirthCount} 次解鎖`}
+          {isUnlocked ? `第 ${entry.unlockAtJobLevel} 次轉職解鎖` : `轉職 ${entry.unlockAtJobLevel} 次解鎖`}
         </p>
       </div>
     </div>

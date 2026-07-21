@@ -50,7 +50,7 @@ export interface UserDoc {
   // 圖鑑系統：已解鎖的特殊小雞外觀 ID 陣列
   unlockedCatalogIds: string[];
   
-  // 總轉生次數
+  // 總轉生次數（真正「回到蛋重新養」的次數，轉職不計入；見 lib/pet/catalog.ts）
   rebirthCount: number;
   
   // 行動裝置推播用的 FCM Token 陣列（可能登入多台裝置）
@@ -253,7 +253,7 @@ export interface PetDoc {
     dead: boolean;         // 确认死亡通知
   };
   
-  currentAppearanceId: string | null; // 當前穿戴的小雞特殊外觀 ID (轉生解鎖獲得)
+  currentAppearanceId: string | null; // 目前的職業 ID（轉職依序解鎖，見 lib/pet/catalog.ts；null 表示還沒轉職過；死亡重新養會歸零，但不影響圖鑑蒐集紀錄）
 
   /**
    * 飽食護盾到期時間戳（ms）。使用「飽食護盾」道具後設定為 now + 3 天。

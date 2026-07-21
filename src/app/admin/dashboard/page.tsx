@@ -363,7 +363,7 @@ function DashboardContent() {
                                   "flex flex-col items-center gap-1 rounded-xl px-1 py-2 text-center",
                                   isUnlocked ? "bg-[#FDF6E8]" : "bg-[#1A1A2E]/5",
                                 ].join(" ")}
-                                title={isUnlocked ? entry.name : `轉生 ${entry.unlockAtRebirthCount} 次解鎖`}
+                                title={isUnlocked ? entry.name : `轉職 ${entry.unlockAtJobLevel} 次解鎖`}
                               >
                                 <span className={["text-xl", isUnlocked ? "" : "opacity-30"].join(" ")}>
                                   {isUnlocked ? entry.fallbackEmoji : "🔒"}
