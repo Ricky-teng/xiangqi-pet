@@ -40,21 +40,22 @@ export function JobChangeAnnouncementModal({ open, onClose }: JobChangeAnnouncem
           <div className="flex items-start gap-2.5 rounded-2xl bg-white/70 px-3 py-2.5">
             <span className="text-lg leading-none">1️⃣</span>
             <p className="text-xs leading-relaxed text-[#1A1A2E]">
-              小雞養到<span className="font-bold">大師雞</span>之後，按鈕會變成
-              <span className="font-bold text-[#5C3D0A]">「轉職」</span>：花飼料就能直接變成下一個職業，
-              不用重新養、成長階段也不會變。
+              小雞養到<span className="font-bold">大師雞</span>之後，繼續餵食會累積經驗值，
+              累積到一定程度，畫面上的按鈕就會變成
+              <span className="font-bold text-[#5C3D0A]">「轉職」</span>，按下去就能變成下一個職業。
             </p>
           </div>
           <div className="flex items-start gap-2.5 rounded-2xl bg-white/70 px-3 py-2.5">
             <span className="text-lg leading-none">2️⃣</span>
             <p className="text-xs leading-relaxed text-[#1A1A2E]">
-              越後面要花的飼料越多，每轉職一次就會立刻解鎖對應的圖鑑款式。
+              
+              越後面要累積的經驗值越多，每轉職一次就會立刻解鎖對應的圖鑑款式。
             </p>
           </div>
           <div className="flex items-start gap-2.5 rounded-2xl bg-white/70 px-3 py-2.5">
             <span className="text-lg leading-none">3️⃣</span>
             <p className="text-xs leading-relaxed text-[#1A1A2E]">
-              轉職到<span className="font-bold">最後一個階段</span>之後，按鈕才會變回
+              轉職到<span className="font-bold">最後一階段</span>之後，按鈕才會變回
               <span className="font-bold text-[#5C3D0A]">「轉生」</span>：免費，小雞才會真正重置回蛋，
               準備開始下一輪職業旅程。
             </p>

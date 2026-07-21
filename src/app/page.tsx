@@ -41,7 +41,7 @@ import { JobChangeAnnouncementModal } from "@/components/JobChangeAnnouncementMo
 import { STAGE_XP_THRESHOLDS } from "@/lib/pet/petGrowth";
 import { SICKNESS_ESCALATION_HOURS } from "@/lib/pet/petDecay";
 import { getPetImagePath, getPetDisplaySrc } from "@/lib/pet/petImagePath";
-import { getNextCatalogEntry, getNextJobChangeCost, isMaxJobLevel } from "@/lib/pet/catalog";
+import { getNextCatalogEntry, getXpNeededForNextJob, getMasterJobProgressPercent, isMaxJobLevel } from "@/lib/pet/catalog";
 import { hasUnclaimedDailyTask, getTodayDateString } from "@/lib/tasks/dailyTasks";
 import { CheckinModal } from "@/components/CheckinModal";
 import type { DailyTaskDoc, UserDoc, VsComputerGameDoc } from "@/types/database";
@@ -482,7 +482,7 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
 
   // ---- 計算飽食度、XP 進度條所需數值 ----
   const nextJobEntry = getNextCatalogEntry(pet.currentAppearanceId);
-  const nextJobCost = getNextJobChangeCost(pet.currentAppearanceId);
+  const xpNeededForNextJob = getXpNeededForNextJob(pet.currentAppearanceId, pet.xp);
   const fullnessPercent = Math.max(0, Math.min(100, pet.fullness));
   // 畫面顯示用：只取到小數點後兩位。fullnessPercent 本身維持完整精度
   // （拿去算進度條寬度用），因為 petDecay.ts 是用「每小時 -2%」連續計算，
@@ -493,7 +493,11 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
   const threshold = STAGE_XP_THRESHOLDS[pet.stage] ?? { from: 0, to: 100 };
   const stageRange = threshold.to - threshold.from;
   const xpIntoStage = Math.max(0, pet.xp - threshold.from);
-  const xpPercent = stageRange > 0 ? Math.min(100, (xpIntoStage / stageRange) * 100) : 0;
+  // 大師雞階段的成長區間（700~730）一旦被超過就永遠 100%，沒有意義，
+  // 改用「這一階職業的轉職進度」取代，讓 XP 條在轉職期間持續有進度。
+  const xpPercent = pet.stage === "master"
+    ? getMasterJobProgressPercent(pet.currentAppearanceId, pet.xp)
+    : (stageRange > 0 ? Math.min(100, (xpIntoStage / stageRange) * 100) : 0);
 
   // 修正：user.stats.winRate 這個欄位從來沒有任何地方真正寫入過
   // （usePuzzleSolver.ts 的 grantSolveReward 只 increment totalSolved/
@@ -664,11 +668,14 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
             </div>
           </div>
 
-          {/* XP 進度條（依目前階段顯示階段內進度，門檻來自共用的 petGrowth.ts） */}
+          {/* XP 進度條：egg/chick/teen 階段顯示成長進度；master 階段
+              改顯示轉職進度（見上面 xpPercent 的計算） */}
           <div className="mt-3 w-full">
             <div className="mb-1 flex justify-between text-xs font-medium text-[#1A1A2E]/70">
               <span>
-                {STAGE_LABEL[pet.stage] ?? pet.stage}成長經驗值（{pet.xp} XP）
+                {pet.stage === "master" && nextJobEntry
+                  ? `轉職進度：距離${nextJobEntry.name}（${pet.xp} XP）`
+                  : `${STAGE_LABEL[pet.stage] ?? pet.stage}成長經驗值（${pet.xp} XP）`}
               </span>
               <span className="tabular-nums">{Math.round(xpPercent)}%</span>
             </div>
@@ -681,9 +688,12 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
           </div>
 
           {/* 轉職/轉生入口：只有大師雞（完全長大）才會出現。
-              還沒轉到鳳凰雞之前顯示「轉職」（花飼料，不影響成長階段、
-              不用重新養）；轉到鳳凰雞之後顯示「轉生」（免費，真正把
-              小雞重置回蛋，職業歸零，圖鑑蒐集紀錄不會消失）。 */}
+              還沒轉到鳳凰雞之前顯示「轉職」——不是按一下扣一大筆飼料，
+              是靠持續餵食累積 xp（大師雞之後 xp 不會停在 730，會一直
+              往上加），累計 xp 跨過門檻按鈕才會真的能按（見
+              @/lib/pet/catalog.ts 的 getXpNeededForNextJob）；轉到
+              鳳凰雞之後顯示「轉生」（免費，真正把小雞重置回蛋，
+              職業歸零，圖鑑蒐集紀錄不會消失）。 */}
           {pet.stage === "master" ? (
             isMaxJobLevel(pet.currentAppearanceId) ? (
               <div className="mt-4 w-full rounded-2xl bg-gradient-to-b from-[#F6D87A] to-[#E8B84B] px-4 py-3 text-center shadow-md">
@@ -705,18 +715,18 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
                 <p className="text-sm font-bold text-[#5C3D0A]">🎉 小雞已經完全長大成熟了！</p>
                 <p className="mt-0.5 text-xs text-[#5C3D0A]/70">
                   {nextJobEntry
-                    ? `花費 ${nextJobCost} 飼料轉職成${nextJobEntry.name}，成長階段不會變、也不用重新養。`
+                    ? xpNeededForNextJob !== null && xpNeededForNextJob > 0
+                      ? `繼續餵食累積經驗值，還差 ${xpNeededForNextJob} 點就能轉職成${nextJobEntry.name}！`
+                      : `經驗值已經足夠了，可以轉職成${nextJobEntry.name}了！`
                     : ""}
                 </p>
                 <button
                   type="button"
                   onClick={handleChangeJob}
-                  disabled={isChangingJob || nextJobCost === null || user.foodCount < nextJobCost}
+                  disabled={isChangingJob || xpNeededForNextJob === null || xpNeededForNextJob > 0}
                   className="mt-2 w-full rounded-xl bg-[#5C3D0A] px-4 py-2 text-sm font-bold text-[#FDF6E8] shadow-sm transition-transform active:scale-95 disabled:opacity-60"
                 >
-                  {isChangingJob
-                    ? "轉職中…"
-                    : `⚔️ 轉職成${nextJobEntry?.name ?? ""}（${nextJobCost ?? 0} 飼料）`}
+                  {isChangingJob ? "轉職中…" : `⚔️ 轉職成${nextJobEntry?.name ?? ""}`}
                 </button>
               </div>
             )

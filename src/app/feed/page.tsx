@@ -5,7 +5,16 @@ import { useRouter } from "next/navigation";
 import { useGameStore } from "@/stores/useGameStore";
 import RequireAuth from "@/components/RequireAuth";
 import { getPetImagePath, getPetDisplaySrc } from "@/lib/pet/petImagePath";
+import { STAGE_XP_THRESHOLDS } from "@/lib/pet/petGrowth";
+import { getNextCatalogEntry, getMasterJobProgressPercent } from "@/lib/pet/catalog";
 import { useAppBackground } from "@/lib/useAppBackground";
+
+const STAGE_LABEL: Record<string, string> = {
+  egg: "蛋",
+  chick: "雛雞",
+  teen: "青年雞",
+  master: "大師雞",
+};
 
 const FOOD_PER_FEED = 10;
 const MAX_FOOD_SHOWN = 5;
@@ -110,6 +119,21 @@ function FeedPageContent() {
   const { src: resolvedPetSrc, isJobImage } = getPetDisplaySrc(pet.stage, pet.healthStatus, pet.currentAppearanceId);
   const petImageSrc = isJobImage && jobImageFailed ? getPetImagePath(pet.stage, pet.healthStatus) : resolvedPetSrc;
 
+  // XP 進度：跟首頁同一套邏輯——egg/chick/teen 顯示成長階段內進度，
+  // master 階段改顯示轉職進度（見 @/lib/pet/catalog.ts 的
+  // getMasterJobProgressPercent，master 的固定 700~730 區間一旦被
+  // 超過就永遠 100%，沒有意義）。
+  const xpThreshold = STAGE_XP_THRESHOLDS[pet.stage] ?? { from: 0, to: 100 };
+  const xpStageRange = xpThreshold.to - xpThreshold.from;
+  const xpIntoStage = Math.max(0, pet.xp - xpThreshold.from);
+  const xpPercent = pet.stage === "master"
+    ? getMasterJobProgressPercent(pet.currentAppearanceId, pet.xp)
+    : (xpStageRange > 0 ? Math.min(100, (xpIntoStage / xpStageRange) * 100) : 0);
+  const nextJobEntry = pet.stage === "master" ? getNextCatalogEntry(pet.currentAppearanceId) : null;
+  const xpLabel = nextJobEntry
+    ? `轉職進度：距離${nextJobEntry.name}（${pet.xp} XP）`
+    : `${STAGE_LABEL[pet.stage] ?? pet.stage}成長經驗值（${pet.xp} XP）`;
+
   return (
     <main className="flex h-screen flex-col" style={{ ...bgStyle, touchAction: "none" }}>
       {/* 頂部列 */}
@@ -144,6 +168,21 @@ function FeedPageContent() {
             已吃飽！不需要再餵了 🎉
           </p>
         ) : null}
+      </div>
+
+      {/* XP 進度：egg/chick/teen 顯示成長階段內進度；master 階段
+          改顯示轉職進度（見 xpPercent/xpLabel 的計算） */}
+      <div className="mx-auto mt-3 w-full max-w-sm shrink-0 px-6">
+        <div className="mb-1 flex justify-between text-xs font-medium text-[#1A1A2E]/60">
+          <span>{xpLabel}</span>
+          <span className="tabular-nums">{Math.round(xpPercent)}%</span>
+        </div>
+        <div className="h-3 w-full overflow-hidden rounded-full bg-[#E5DFCB]">
+          <div
+            className="h-full rounded-full bg-[#E8B84B] transition-all duration-500"
+            style={{ width: `${xpPercent}%` }}
+          />
+        </div>
       </div>
 
       {/* 小雞 + 碗 區域（放置目標）：flex-1 填滿中間空間，位置固定不跳動 */}

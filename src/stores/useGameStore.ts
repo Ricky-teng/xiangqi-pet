@@ -4,7 +4,7 @@ import { doc, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { UserDoc, PetDoc, DailyTaskDoc } from "@/types/database";
 import { resolveStageForXp } from "@/lib/pet/petGrowth";
-import { CATALOG_ENTRIES, getNextCatalogEntry, getNextJobChangeCost, isMaxJobLevel } from "@/lib/pet/catalog";
+import { CATALOG_ENTRIES, getNextCatalogEntry, getXpNeededForNextJob, isMaxJobLevel } from "@/lib/pet/catalog";
 import { getTodayDateString, getTodaysCompletedTaskIds } from "@/lib/tasks/dailyTasks";
 import {
   calculateWinRewardFood,
@@ -48,10 +48,12 @@ interface GameStoreState {
   triggerSickness: (puzzleId: string, wrongCount: number) => void;
 
   /**
-   * 轉職：小雞必須在 master（大師雞）階段才能呼叫。花飼料（費用依目前
-   * 職業等級遞增，見 @/lib/pet/catalog.ts 的 JOB_CHANGE_FOOD_COSTS），
-   * 把 pet.currentAppearanceId 換成圖鑑序列裡的下一款，同時立刻解鎖
-   * 該款圖鑑。不影響成長階段（小雞還是大師雞），不用重新養。
+   * 轉職：小雞必須在 master（大師雞）階段才能呼叫。不是「按一下扣一
+   * 大筆飼料」，是要靠持續餵食（跟原本養成同一個動作）累積 xp，
+   * 累計 xp 跨過門檻（費用依目前職業等級遞增，見 @/lib/pet/catalog.ts
+   * 的 JOB_XP_COSTS）才能真的轉職成功。按下去把 pet.currentAppearanceId
+   * 換成圖鑑序列裡的下一款，同時立刻解鎖該款圖鑑；成長階段/xp 不會
+   * 重置，職業進度是疊在同一條累計 xp 上面連續往上算。
    * 如果已經是最後一款（鳳凰雞），呼叫這個會失敗，請改呼叫 rebirthPet。
    */
   changeJob: () => { success: boolean; message: string };
@@ -300,10 +302,14 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     });
   },
 
-  // 4. 轉職（圖鑑收藏系統，2026-07 改版）
-  // user.unlockedCatalogIds、pet.currentAppearanceId 本來只在「轉生」
-  // 時才會動，現在改成轉職就會即時解鎖圖鑑、換上對應外觀，不用重置
-  // 成長階段、不用重新養。
+  // 4. 轉職（圖鑑收藏系統，2026-07-21 三版：改成餵食累積 XP）
+  // 費用不是「按一下扣一大筆飼料」，是跟原本養成一樣，靠 feedPet
+  // 持續累積 xp（大師雞之後 xp 不會停在 730，會一直往上加，見
+  // feedPet 跟 petGrowth.ts 的說明），累計 xp 跨過門檻
+  // （見 @/lib/pet/catalog.ts 的 getXpNeededForNextJob）才能真的按下去
+  // 轉職——按下去本身不用再扣飼料，因為費用已經在餵食過程中一次次的
+  // 10 飼料付掉了。成長階段/xp 完全不重置，職業進度就是疊在同一條
+  // 累計 xp 上面連續往上算。
   changeJob: () => {
     const { user, pet } = get();
     if (!user || !pet) return { success: false, message: "找不到資料" };
@@ -312,12 +318,15 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     }
 
     const nextEntry = getNextCatalogEntry(pet.currentAppearanceId);
-    const cost = getNextJobChangeCost(pet.currentAppearanceId);
-    if (!nextEntry || cost === null) {
+    if (!nextEntry) {
       return { success: false, message: "已經轉職到鳳凰雞了，沒有下一個職業可以轉了，直接轉生吧！" };
     }
-    if (user.foodCount < cost) {
-      return { success: false, message: `轉職成${nextEntry.name}需要 ${cost} 飼料，飼料不夠喔！` };
+    const xpNeeded = getXpNeededForNextJob(pet.currentAppearanceId, pet.xp);
+    if (xpNeeded === null) {
+      return { success: false, message: "已經轉職到鳳凰雞了，沒有下一個職業可以轉了，直接轉生吧！" };
+    }
+    if (xpNeeded > 0) {
+      return { success: false, message: `還要再累積 ${xpNeeded} 點經驗值才能轉職成${nextEntry.name}，回去餵食小雞吧！` };
     }
 
     const now = Date.now();
@@ -325,12 +334,12 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
     const updatedUser: UserDoc = {
       ...user,
-      foodCount: user.foodCount - cost,
-      totalFoodSpent: (user.totalFoodSpent ?? 0) + cost,
       unlockedCatalogIds: newUnlockedCatalogIds,
       updatedAt: now,
     };
 
+    // 只換職業外觀，成長階段/xp 完全不動——職業進度就是疊在同一條
+    // 累計 xp 上面連續往上算，重置的話下一階的門檻就再也算不出來了。
     const updatedPet: PetDoc = {
       ...pet,
       currentAppearanceId: nextEntry.id,
@@ -341,8 +350,6 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
     Promise.all([
       updateDoc(doc(db, "users", user.uid), {
-        foodCount: updatedUser.foodCount,
-        totalFoodSpent: updatedUser.totalFoodSpent,
         unlockedCatalogIds: updatedUser.unlockedCatalogIds,
         updatedAt: now,
       }),
