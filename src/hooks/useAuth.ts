@@ -83,6 +83,9 @@ function createDefaultUserDoc(
     // 只有學生會觸發新手教學（教怎麼下象棋），老師後台是完全不同的介面，
     // 不需要這個。
     hasSeenTutorial: role === "student" ? false : true,
+    // 新帳號沒用過舊的「轉生」機制，長到大師雞看到「轉職」本來就是
+    // 遊戲原本的樣子，不需要看改版公告——直接設成 true。
+    hasSeenJobChangeAnnouncement: true,
     lastDailyGrantDate: null,
     createdAt: now,
     updatedAt: now,

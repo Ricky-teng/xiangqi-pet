@@ -37,6 +37,7 @@ import { useGameStore } from "@/stores/useGameStore";
 import { signOutUser } from "@/hooks/useAuth";
 import RequireAuth from "@/components/RequireAuth";
 import TutorialOverlay from "@/components/tutorial/TutorialOverlay";
+import { JobChangeAnnouncementModal } from "@/components/JobChangeAnnouncementModal";
 import { STAGE_XP_THRESHOLDS } from "@/lib/pet/petGrowth";
 import { SICKNESS_ESCALATION_HOURS } from "@/lib/pet/petDecay";
 import { getPetImagePath, getPetDisplaySrc } from "@/lib/pet/petImagePath";
@@ -371,6 +372,25 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showTutorial]);
+
+  // 轉職系統改版公告：排在教學、簽到彈框都關閉之後才顯示，避免多個
+  // 全螢幕彈窗疊在一起。只有舊帳號（hasSeenJobChangeAnnouncement
+  // 不是 true）才會看到，看完按「知道了」才寫回 Firestore。
+  const [showJobChangeAnnouncement, setShowJobChangeAnnouncement] = useState(false);
+  useEffect(() => {
+    if (showTutorial || showCheckinModal) return;
+    if (user.hasSeenJobChangeAnnouncement !== true) {
+      setShowJobChangeAnnouncement(true);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showTutorial, showCheckinModal]);
+
+  function finishJobChangeAnnouncement() {
+    setShowJobChangeAnnouncement(false);
+    const now = Date.now();
+    setUser({ ...user, hasSeenJobChangeAnnouncement: true, updatedAt: now });
+    updateDoc(doc(db, "users", user.uid), { hasSeenJobChangeAnnouncement: true, updatedAt: now }).catch(console.error);
+  }
 
   function handleStartBattle() {
     // 按下配對時才檢查救助金——飼料不足 50 且今天還沒領過，先補再進
@@ -877,6 +897,12 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
         open={showCheckinModal}
         onClose={() => setShowCheckinModal(false)}
         checkinTasks={activeDailyTasks.filter((t) => t.taskType === "checkin")}
+      />
+
+      {/* 轉職系統改版公告：只有舊帳號會看到一次 */}
+      <JobChangeAnnouncementModal
+        open={showJobChangeAnnouncement}
+        onClose={finishJobChangeAnnouncement}
       />
     </main>
     </>

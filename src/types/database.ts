@@ -86,6 +86,15 @@ export interface UserDoc {
   hasSeenTutorial?: boolean;
 
   /**
+   * 是否已經看過「轉生改轉職」的一次性公告彈窗（見
+   * @/components/JobChangeAnnouncementModal.tsx）。
+   * 判斷式故意跟 hasSeenTutorial 相反：新帳號在 createDefaultUserDoc
+   * 會明確設成 true（沒用過舊轉生機制，不需要看），已存在的舊帳號
+   * 沒有這個欄位（undefined）就會顯示一次，看完才寫回 true。
+   */
+  hasSeenJobChangeAnnouncement?: boolean;
+
+  /**
    * 上次「購買」雙倍飼料券的日期（本地 YYYY-MM-DD，見 getTodayDateString）。
    * 用來限制每天只能買一次，跟 lastDailyGrantDate 是同一套日期比對邏輯。
    * 注意：這是「購買」限制，不是「使用」限制——買了可以先囤著，隔天才用也可以。
