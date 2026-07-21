@@ -113,6 +113,13 @@ function BattlePageContent() {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const timerIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const questionStartTimeRef = useRef<number>(0);
+  // 結算（發飼料/扣飼料、更新戰績）只能做一次——onSnapshot 只要房間文件
+  // 有任何變動且 status 仍是 finished 就會再觸發一次 callback（例如重新
+  // 連線、認輸跟自然分出勝負的寫入前後腳發生），沒有這個 guard 的話
+  // applyBattleResult 會被重複呼叫，飼料跟戰績會被疊加計算。
+  // 做法比照 /match/page.tsx 的 hasSettledRef：把結算邏輯拆進獨立的
+  // useEffect，用 ref 擋住第二次以後的執行。
+  const hasBattleSettledRef = useRef(false);
 
   const myUid = user?.uid ?? "";
 
@@ -291,7 +298,6 @@ function BattlePageContent() {
       if (data.status === "finished") {
         setPhase("finished");
         clearTimers();
-        applyBattleResult(data, myUid);
         return;
       }
 
@@ -354,6 +360,18 @@ function BattlePageContent() {
     return () => unsubscribe();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId, myUid]);
+
+  // ---- 結算：對戰結束後扣/發飼料、更新戰績，只做一次 ----
+  // 拆成獨立的 useEffect + hasBattleSettledRef guard，跟上面的
+  // onSnapshot callback 分開，這樣不管 room 文件後續因為什麼原因
+  // （重新連線、認輸跟自然分出勝負前後腳寫入…）又觸發了幾次更新，
+  // 只要 status 仍是 finished，結算都只會真的執行一次。
+  useEffect(() => {
+    if (!room || room.status !== "finished" || !user || !myUid || hasBattleSettledRef.current) return;
+    hasBattleSettledRef.current = true;
+    applyBattleResult(room, myUid);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [room, user, myUid]);
 
   // ---- 載入題目清單 ----
   useEffect(() => {
