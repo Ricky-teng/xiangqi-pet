@@ -50,6 +50,35 @@ function SettingsContent() {
   const [isRegisteringPush, setIsRegisteringPush] = useState(false);
   const [pushMessage, setPushMessage] = useState<string | null>(null);
 
+  const [copiedEmail, setCopiedEmail] = useState(false);
+  const FEEDBACK_EMAIL = "tengchihchi@gmail.com";
+
+  async function handleCopyFeedbackEmail() {
+    // mailto: 連結在很多情況下沒反應（電腦沒設定預設信箱 App、PWA
+    // 獨立模式下常常直接被吃掉），改成「點一下複製信箱」比較可靠，
+    // 不管使用者用什麼裝置、有沒有裝信箱 App 都能用。
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(FEEDBACK_EMAIL);
+      } else {
+        // 舊瀏覽器/不支援 Clipboard API 時的備援寫法
+        const textarea = document.createElement("textarea");
+        textarea.value = FEEDBACK_EMAIL;
+        textarea.style.position = "fixed";
+        textarea.style.opacity = "0";
+        document.body.appendChild(textarea);
+        textarea.focus();
+        textarea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textarea);
+      }
+      setCopiedEmail(true);
+      setTimeout(() => setCopiedEmail(false), 2500);
+    } catch (error) {
+      console.error("[settings] 複製信箱失敗：", error);
+    }
+  }
+
   async function handleEnablePush() {
     if (!user) return;
     setIsRegisteringPush(true);
@@ -258,16 +287,33 @@ function SettingsContent() {
           </div>
         </section>
 
-        {/* ---- 意見反映 ---- */}
-        <a
-          href="mailto:tengchihchi@gmail.com?subject=%E8%B1%A1%E6%A3%8B%E5%AF%B5%E7%89%A9%E6%84%8F%E8%A6%8B%E5%8F%8D%E6%98%A0"
-          className="mt-3 flex w-full items-center justify-between rounded-2xl bg-white/70 px-4 py-3 shadow-sm transition-transform active:scale-95"
-        >
-          <span className="flex items-center gap-2 text-sm font-bold text-[#1A1A2E]">
-            ✉️ 意見反映
-          </span>
-          <span className="text-xs font-semibold text-[#1A1A2E]/50">tengchihchi@gmail.com</span>
-        </a>
+        {/* ---- 意見反映 ----
+            主要動作是「複製信箱」（用 Clipboard API，不管有沒有裝信箱
+            App 都能用）；mailto 連結留著當作次要選項，裝置有設定好
+            預設信箱 App 的話點了會直接開新信。 */}
+        <div className="mt-3 w-full rounded-2xl bg-white/70 px-4 py-3 shadow-sm">
+          <button
+            type="button"
+            onClick={handleCopyFeedbackEmail}
+            className="flex w-full items-center justify-between transition-transform active:scale-95"
+          >
+            <span className="flex items-center gap-2 text-sm font-bold text-[#1A1A2E]">
+              ✉️ 意見反映
+            </span>
+            <span className="text-xs font-semibold text-[#8B5FBF]">
+              {copiedEmail ? "已複製！✓" : "點一下複製信箱"}
+            </span>
+          </button>
+          <div className="mt-1.5 flex items-center justify-between">
+            <span className="text-xs text-[#1A1A2E]/50">{FEEDBACK_EMAIL}</span>
+            <a
+              href={`mailto:${FEEDBACK_EMAIL}?subject=%E8%B1%A1%E6%A3%8B%E5%AF%B5%E7%89%A9%E6%84%8F%E8%A6%8B%E5%8F%8D%E6%98%A0`}
+              className="text-[10px] font-semibold text-[#1A1A2E]/40 underline underline-offset-2"
+            >
+              或嘗試直接開啟信箱
+            </a>
+          </div>
+        </div>
 
         {/* ---- 開啟推播通知 ---- */}
         <button
