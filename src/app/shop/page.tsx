@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useGameStore } from "@/stores/useGameStore";
 import RequireAuth from "@/components/RequireAuth";
-import { SHOP_ITEMS, BACKGROUND_GACHA_COST, BACKGROUND_GACHA_WIN_RATE, getBackgroundGachaPool, RARITY_LABELS, RARITY_COLORS, RARITY_ORDER, type ShopItem } from "@/lib/shopItems";
+import { SHOP_ITEMS, BACKGROUND_GACHA_COST, BACKGROUND_GACHA_TEN_COST, BACKGROUND_GACHA_WIN_RATE, getBackgroundGachaPool, RARITY_LABELS, RARITY_COLORS, RARITY_ORDER, type ShopItem } from "@/lib/shopItems";
 import GachaEgg, { type GachaPhase, type GachaResultData } from "@/components/shop/GachaEgg";
 import { getTodayDateString } from "@/lib/tasks/dailyTasks";
 
@@ -98,7 +98,7 @@ function ShopContent() {
   const items = SHOP_ITEMS.filter((i) => i.category === activeTab);
   const gachaPool = getBackgroundGachaPool();
   const canAffordGacha = user.foodCount >= BACKGROUND_GACHA_COST;
-  const canAffordGachaTen = user.foodCount >= BACKGROUND_GACHA_COST * 10;
+  const canAffordGachaTen = user.foodCount >= BACKGROUND_GACHA_TEN_COST;
 
   return (
     <main
@@ -188,7 +188,7 @@ function ShopContent() {
                 className={["mt-2 w-full rounded-xl py-2.5 text-sm font-bold transition-transform active:scale-95",
                   canAffordGachaTen && !isDrawing && !isDrawingTen ? "bg-[#E8B84B] text-[#5C3D0A]" : "cursor-not-allowed bg-[#1A1A2E]/10 text-[#1A1A2E]/30",
                 ].join(" ")}>
-                {isDrawingTen ? "十連抽中…" : canAffordGachaTen ? `十連抽 🟪 ${BACKGROUND_GACHA_COST * 10}` : "飼料不足（十連抽）"}
+                {isDrawingTen ? "十連抽中…" : canAffordGachaTen ? `十連抽 🟪 ${BACKGROUND_GACHA_TEN_COST}` : "飼料不足（十連抽）"}
               </button>
             </div>
 
@@ -265,12 +265,16 @@ function ShopContent() {
                   <div
                     key={index}
                     className={[
-                      "flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-center shadow-sm",
-                      !item ? "bg-[#1A1A2E]/5" : r.isDuplicate ? "bg-[#1A1A2E]/10" : "bg-[#E8B84B]/25",
+                      "flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-center",
+                      !item
+                        ? "bg-[#1A1A2E]/5 shadow-sm"
+                        : r.isDuplicate
+                          ? "bg-[#1A1A2E]/10 shadow-sm"
+                          : "border-2 border-[#E8B84B] bg-[#F6D87A] shadow-md ring-2 ring-[#E8B84B]/40",
                     ].join(" ")}
                   >
                     <span className="text-3xl">{item ? item.icon : "💨"}</span>
-                    <span className="text-xs font-bold leading-tight text-[#1A1A2E]">
+                    <span className={["text-xs font-bold leading-tight", !item || r.isDuplicate ? "text-[#1A1A2E]" : "text-[#5C3D0A]"].join(" ")}>
                       {item ? item.name : "銘謝惠顧"}
                     </span>
                     {item ? (

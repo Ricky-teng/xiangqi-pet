@@ -13,7 +13,7 @@ import {
   DRAW_REWARD_FOOD,
   type ComputerLevel,
 } from "@/lib/engine/computerPlayer";
-import { BACKGROUND_GACHA_COST, drawBackgroundGachaResult } from "@/lib/shopItems";
+import { BACKGROUND_GACHA_COST, BACKGROUND_GACHA_TEN_COST, drawBackgroundGachaResult } from "@/lib/shopItems";
 import { findNewlyEarnedBadges, type BadgeDefinition } from "@/lib/badges/badges";
 
 // 定義我們遊戲總機裡面有哪些資料與開關
@@ -875,17 +875,20 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
   // 十連抽：邏輯完全比照單抽（見上面 drawBackgroundGacha 的註解），
   // 只是迴圈跑 10 次、最後合併成一次 set + 一次 Firestore 寫入，
-  // 不會產生 10 次網路請求。
+  // 不會產生 10 次網路請求。總價是優惠價 BACKGROUND_GACHA_TEN_COST
+  // （比單抽 x10 便宜），平均分攤到每一抽（90/10 = 9），這樣「抽到
+  // 重複退還」的邏輯才能維持跟單抽一樣的比例，不會因為十連抽有優惠
+  // 就讓重複退還的金額對不上。
   drawBackgroundGachaTen: () => {
     const { user } = get();
     if (!user) return { success: false, message: "找不到資料", results: [] };
 
-    const totalCost = BACKGROUND_GACHA_COST * 10;
-    if (user.foodCount < totalCost) {
-      return { success: false, message: `飼料不足，十連抽需要 ${totalCost} 飼料`, results: [] };
+    if (user.foodCount < BACKGROUND_GACHA_TEN_COST) {
+      return { success: false, message: `飼料不足，十連抽需要 ${BACKGROUND_GACHA_TEN_COST} 飼料`, results: [] };
     }
 
     const now = Date.now();
+    const perDrawCost = BACKGROUND_GACHA_TEN_COST / 10;
     let foodCount = user.foodCount;
     let totalFoodSpent = user.totalFoodSpent ?? 0;
     let unlockedBackgrounds = [...(user.unlockedBackgrounds ?? [])];
@@ -894,8 +897,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
     for (let i = 0; i < 10; i++) {
       // 飼料無論有沒有中獎都會先扣（銘謝惠顧不退還，只有「抽中但已擁有」才退還）
-      foodCount -= BACKGROUND_GACHA_COST;
-      totalFoodSpent += BACKGROUND_GACHA_COST;
+      foodCount -= perDrawCost;
+      totalFoodSpent += perDrawCost;
 
       const drawn = drawBackgroundGachaResult();
       if (!drawn) {
@@ -906,8 +909,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       const alreadyOwned = unlockedBackgrounds.includes(drawn.id);
       if (alreadyOwned) {
         // 中獎但重複：這一抽全額退還，等於沒扣錢
-        foodCount += BACKGROUND_GACHA_COST;
-        totalFoodSpent -= BACKGROUND_GACHA_COST;
+        foodCount += perDrawCost;
+        totalFoodSpent -= perDrawCost;
         results.push({ itemId: drawn.id, isDuplicate: true });
       } else {
         unlockedBackgrounds = [...unlockedBackgrounds, drawn.id];

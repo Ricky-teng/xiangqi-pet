@@ -73,7 +73,7 @@ export default function GachaEgg({ phase, result }: { phase: GachaPhase; result:
               <p className="mt-1 text-xs font-bold text-[#1A1A2E]/60">銘謝惠顧</p>
             </div>
           ) : result.item ? (
-            <div className="gacha-result-card">
+            <div className={["gacha-result-card", result.isDuplicate ? "" : "gacha-result-card--new"].join(" ")}>
               {result.item.backgroundSrc ? (
                 <img src={result.item.backgroundSrc} alt={result.item.name} className="h-24 w-24 rounded-2xl object-cover object-top" />
               ) : (
@@ -314,6 +314,14 @@ export default function GachaEgg({ phase, result }: { phase: GachaPhase; result:
           display: flex;
           flex-direction: column;
           align-items: center;
+        }
+
+        .gacha-result-card--new {
+          padding: 10px 14px;
+          border-radius: 16px;
+          background: #f6d87a;
+          border: 2px solid #e8b84b;
+          box-shadow: 0 0 0 3px rgba(232, 184, 75, 0.3);
         }
 
         .gacha-confetti {

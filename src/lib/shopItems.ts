@@ -237,6 +237,9 @@ export function isBackgroundUnlocked(userId: string, itemId: string, unlockedIds
 /** 抽一次背景要花多少飼料 */
 export const BACKGROUND_GACHA_COST = 10;
 
+/** 十連抽優惠總價（比單抽 x10 便宜一點，是抽獎機常見的「整批優惠」） */
+export const BACKGROUND_GACHA_TEN_COST = 90;
+
 /** 抽中「任一款背景」的機率（其餘機率是銘謝惠顧，飼料照扣但沒有背景） */
 export const BACKGROUND_GACHA_WIN_RATE = 0.25;
 
