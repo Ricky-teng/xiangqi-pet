@@ -258,6 +258,17 @@ function SettingsContent() {
           </div>
         </section>
 
+        {/* ---- 意見反映 ---- */}
+        <a
+          href="mailto:tengchihchi@gmail.com?subject=%E8%B1%A1%E6%A3%8B%E5%AF%B5%E7%89%A9%E6%84%8F%E8%A6%8B%E5%8F%8D%E6%98%A0"
+          className="mt-3 flex w-full items-center justify-between rounded-2xl bg-white/70 px-4 py-3 shadow-sm transition-transform active:scale-95"
+        >
+          <span className="flex items-center gap-2 text-sm font-bold text-[#1A1A2E]">
+            ✉️ 意見反映
+          </span>
+          <span className="text-xs font-semibold text-[#1A1A2E]/50">tengchihchi@gmail.com</span>
+        </a>
+
         {/* ---- 開啟推播通知 ---- */}
         <button
           type="button"
