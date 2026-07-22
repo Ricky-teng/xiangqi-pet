@@ -4,6 +4,7 @@ import { doc, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { UserDoc, PetDoc, DailyTaskDoc } from "@/types/database";
 import { resolveStageForXp } from "@/lib/pet/petGrowth";
+import { LOW_FULLNESS_THRESHOLD as SICKNESS_CURE_MIN_FULLNESS } from "@/lib/pet/petDecay";
 import { CATALOG_ENTRIES, getNextCatalogEntry, getXpNeededForNextJob, isMaxJobLevel } from "@/lib/pet/catalog";
 import { getTodayDateString, getTodaysCompletedTaskIds } from "@/lib/tasks/dailyTasks";
 import {
@@ -874,10 +875,28 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       const { pet } = get();
       if (!pet) return { success: false, message: "找不到寵物資料" };
       if (pet.healthStatus !== "slightly_sick") return { success: false, message: "小雞目前沒有生小病" };
-      const healedPet = { ...pet, healthStatus: "normal" as const, sickStartTime: null, updatedAt: now };
+      // 生病是「飽食度歸零」觸發的（見 petDecay.ts），治病如果沒有一併
+      // 補一點飽食度，治好的下一秒（下次重新計算時）又會因為飽食度還是
+      // 0 而立刻復發。補到剛好脫離「快餓死」門檻（20）之上，不算真的
+      // 餵飽，但至少不會治好瞬間又生病。
+      const restoredFullness = Math.max(pet.fullness, SICKNESS_CURE_MIN_FULLNESS);
+      const healedPet = {
+        ...pet,
+        healthStatus: "normal" as const,
+        sickStartTime: null,
+        fullness: restoredFullness,
+        notifiedFlags: { ...pet.notifiedFlags, lowFullness: false },
+        updatedAt: now,
+      };
       const newInventory = { ...(user.inventory ?? {}), slight_sick_potion: count - 1 };
       set({ pet: healedPet, user: { ...user, inventory: newInventory, updatedAt: now } });
-      updateDoc(doc(db, "pets", user.uid), { healthStatus: "normal", sickStartTime: null, updatedAt: now }).catch(console.error);
+      updateDoc(doc(db, "pets", user.uid), {
+        healthStatus: "normal",
+        sickStartTime: null,
+        fullness: restoredFullness,
+        notifiedFlags: healedPet.notifiedFlags,
+        updatedAt: now,
+      }).catch(console.error);
       setDoc(doc(db, "users", user.uid), { inventory: newInventory, updatedAt: now }, { merge: true }).catch(console.error);
       return { success: true, message: "💊 小雞的小病治好了！" };
     }
@@ -886,10 +905,28 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       const { pet } = get();
       if (!pet) return { success: false, message: "找不到寵物資料" };
       if (pet.healthStatus !== "severely_sick") return { success: false, message: "小雞目前沒有生大病" };
-      const healedPet = { ...pet, healthStatus: "normal" as const, sickStartTime: null, severeSickStartTime: null, updatedAt: now };
+      // 理由同小病藥水：不補飽食度的話，治好的瞬間又會因為飽食度是 0
+      // 立刻復發生病。
+      const restoredFullness = Math.max(pet.fullness, SICKNESS_CURE_MIN_FULLNESS);
+      const healedPet = {
+        ...pet,
+        healthStatus: "normal" as const,
+        sickStartTime: null,
+        severeSickStartTime: null,
+        fullness: restoredFullness,
+        notifiedFlags: { ...pet.notifiedFlags, lowFullness: false },
+        updatedAt: now,
+      };
       const newInventory = { ...(user.inventory ?? {}), severe_sick_potion: count - 1 };
       set({ pet: healedPet, user: { ...user, inventory: newInventory, updatedAt: now } });
-      updateDoc(doc(db, "pets", user.uid), { healthStatus: "normal", sickStartTime: null, severeSickStartTime: null, updatedAt: now }).catch(console.error);
+      updateDoc(doc(db, "pets", user.uid), {
+        healthStatus: "normal",
+        sickStartTime: null,
+        severeSickStartTime: null,
+        fullness: restoredFullness,
+        notifiedFlags: healedPet.notifiedFlags,
+        updatedAt: now,
+      }).catch(console.error);
       setDoc(doc(db, "users", user.uid), { inventory: newInventory, updatedAt: now }, { merge: true }).catch(console.error);
       return { success: true, message: "🧪 小雞的大病治好了！" };
     }
@@ -899,12 +936,19 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       if (!pet) return { success: false, message: "找不到寵物資料" };
       if (pet.healthStatus !== "dead") return { success: false, message: "小雞還沒有死，不需要使用復活藥水" };
 
-      // 保留死前所有狀態，只把 healthStatus 改回 normal，清除計時器
+      // 保留死前所有狀態，只把 healthStatus 改回 normal，清除計時器。
+      // 死亡幾乎都是飽食度長期歸零累積出來的（見 petDecay.ts），如果
+      // 飽食度原封不動保留在 0，復活的下一秒又會立刻因為飽食度歸零
+      // 重新生病，等於白花 700 飼料——理由跟小病/大病藥水一樣，補到
+      // 安全線之上，其餘狀態（等級、XP）才是真的「保留死前所有狀態」。
+      const restoredFullness = Math.max(pet.fullness, SICKNESS_CURE_MIN_FULLNESS);
       const revivedPet = {
         ...pet,
         healthStatus: "normal" as const,
         sickStartTime: null,
         severeSickStartTime: null,
+        fullness: restoredFullness,
+        notifiedFlags: { ...pet.notifiedFlags, lowFullness: false },
         updatedAt: now,
       };
       const newInventory = { ...(user.inventory ?? {}), revival_potion: count - 1 };
@@ -916,6 +960,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         healthStatus: "normal",
         sickStartTime: null,
         severeSickStartTime: null,
+        fullness: restoredFullness,
+        notifiedFlags: revivedPet.notifiedFlags,
         updatedAt: now,
       }).catch(console.error);
       setDoc(doc(db, "users", user.uid), { inventory: newInventory, updatedAt: now }, { merge: true }).catch(console.error);

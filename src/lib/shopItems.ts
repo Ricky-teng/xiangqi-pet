@@ -83,7 +83,7 @@ export const SHOP_ITEMS: ShopItem[] = [
     id: "revival_potion",
     category: "consumable",
     name: "復活藥水",
-    description: "小雞死亡後使用，保留死前所有狀態（等級、飽食度、XP）原地復活，不重置回蛋。",
+    description: "小雞死亡後使用，保留死前等級與 XP 原地復活，不重置回蛋；飽食度太低的話會補到安全線，不會復活瞬間又生病。",
     icon: "⚗️",
     price: 700,
   },

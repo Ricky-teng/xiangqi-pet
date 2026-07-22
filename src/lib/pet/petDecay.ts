@@ -38,8 +38,10 @@ const HOUR_MS = 60 * 60 * 1000;
 /** 飽食度每小時下降的百分比 */
 export const FULLNESS_DECAY_PERCENT_PER_HOUR = 2;
 
-/** 飽食度低於這個值時，發出「快餓死了」警告 */
-const LOW_FULLNESS_THRESHOLD = 20;
+/** 飽食度低於這個值時，發出「快餓死了」警告；同時也是生病藥水治療時
+ * 「補到多少飽食度才不會治好瞬間又因為飽食度歸零復發」的安全線
+ * （見 useGameStore.ts 的 useItem，slight_sick_potion / severe_sick_potion）。 */
+export const LOW_FULLNESS_THRESHOLD = 20;
 
 /**
  * 生小病經過這麼多小時未醫治會加重變生大病；生大病經過這麼多小時
