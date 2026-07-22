@@ -101,7 +101,21 @@ export interface ChessBoardProps {
    * 了」——例如蹩馬腳、塞象眼。純視覺標記，不影響棋盤其他行為）。
    */
   blockedPoints?: { row: number; col: number }[];
+  /**
+   * 選用：在棋盤上某個交叉點疊一個小圓形標記，畫在棋子右上角（給
+   * 回放頁「每步好壞標記」用——跟天天象棋一樣把標記畫在棋子旁邊，
+   * 不是放在棋盤外的文字說明）。畫在棋子渲染「之後」，不會完全蓋住
+   * 棋子本身。跟 ChessBoard 其他 props 一樣故意不耦合任何頁面的型別，
+   * tag 直接用字面值（跟 database.ts 的 MoveQualityTag 對應但不 import）。
+   */
+  moveQualityMarker?: { square: string; tag: "good" | "normal" | "mistake" } | null;
 }
+
+const MOVE_QUALITY_MARKER_STYLE: Record<"good" | "normal" | "mistake", { fill: string; symbol: string }> = {
+  good: { fill: "#5B8C5A", symbol: "✓" },
+  normal: { fill: "#8B8B7A", symbol: "－" },
+  mistake: { fill: "#C0392B", symbol: "✗" },
+};
 
 function parseSquareLabel(square: string): { row: number; col: number } {
   const col = square.charCodeAt(0) - "a".charCodeAt(0);
@@ -113,7 +127,7 @@ function parseSquareLabel(square: string): { row: number; col: number } {
 // 4. 主體元件
 // ============================================================
 
-export default function ChessBoard({ board, onMove, highlightMove, lastMove, highlightMoves, blockedPoints }: ChessBoardProps) {
+export default function ChessBoard({ board, onMove, highlightMove, lastMove, highlightMoves, blockedPoints, moveQualityMarker }: ChessBoardProps) {
   const [selectedFrom, setSelectedFrom] = useState<{ row: number; col: number } | null>(null);
 
   function handleCellClick(row: number, col: number) {
@@ -432,6 +446,44 @@ export default function ChessBoard({ board, onMove, highlightMove, lastMove, hig
             );
           })
         )}
+
+        {/* 每步好壞標記：疊在「剛走這步」的終點格子右上角，畫在棋子
+            渲染「之後」所以不會被棋子蓋住。跟 lastMove 的淡色方塊
+            是分開的兩層視覺（方塊標整格，這個標記只在右上角疊一個
+            小圓點），可以同時存在不衝突。 */}
+        {moveQualityMarker
+          ? (() => {
+              const square = parseSquareLabel(moveQualityMarker.square);
+              const { x, y } = pointOf(square.row, square.col);
+              const style = MOVE_QUALITY_MARKER_STYLE[moveQualityMarker.tag];
+              const markerX = x + CELL * 0.32;
+              const markerY = y - CELL * 0.32;
+              return (
+                <g style={{ pointerEvents: "none" }}>
+                  <circle
+                    cx={markerX}
+                    cy={markerY}
+                    r={CELL * 0.22}
+                    fill={style.fill}
+                    stroke="#FDF6E8"
+                    strokeWidth={1.5}
+                  />
+                  <text
+                    x={markerX}
+                    y={markerY}
+                    fontSize={CELL * 0.24}
+                    fill="#FDF6E8"
+                    fontWeight="bold"
+                    textAnchor="middle"
+                    dominantBaseline="central"
+                    style={{ userSelect: "none" }}
+                  >
+                    {style.symbol}
+                  </text>
+                </g>
+              );
+            })()
+          : null}
 
         {/* 教學用「此點被擋住」大叉標記（蹩馬腳／塞象眼示範）：刻意放在
             棋子渲染「之後」，這樣大叉會疊在擋路的那顆棋子上面，清楚看得

@@ -41,11 +41,13 @@ const OUTCOME_LABEL: Record<"win" | "lose" | "draw", string> = {
   draw: "🤝 和棋",
 };
 
-/** 每步好壞標記的顯示文字/樣式（3級簡化版，見 @/lib/engine/moveQuality.ts） */
-const MOVE_QUALITY_LABEL: Record<MoveQualityTag, { label: string; className: string }> = {
-  good: { label: "✅ 好手", className: "bg-[#5B8C5A]/15 text-[#5B8C5A]" },
-  normal: { label: "➖ 普通", className: "bg-[#1A1A2E]/10 text-[#1A1A2E]/50" },
-  mistake: { label: "⚠️ 失誤", className: "bg-[#C0392B]/15 text-[#C0392B]" },
+/** 每步好壞標記圖例的顯示文字/圓點顏色（3級簡化版，見
+ * @/lib/engine/moveQuality.ts；顏色跟 ChessBoard.tsx 疊加在棋盤上的
+ * 標記顏色故意保持一致，好手=綠、普通=灰、失誤=紅）。 */
+const MOVE_QUALITY_LABEL: Record<MoveQualityTag, { label: string; dotClassName: string }> = {
+  good: { label: "好手", dotClassName: "bg-[#5B8C5A]" },
+  normal: { label: "普通", dotClassName: "bg-[#8B8B7A]" },
+  mistake: { label: "失誤", dotClassName: "bg-[#C0392B]" },
 };
 
 function sideToMoveAtStep(step: number): "w" | "b" {
@@ -221,6 +223,13 @@ function ReviewContent({ gameId }: { gameId: string }) {
     ? { from: displayLastMove.slice(0, 2), to: displayLastMove.slice(2, 4) }
     : null;
 
+  // 疊在棋盤上的好壞標記：只有回放模式（不是推演）、而且真的有這一步
+  // 的標記資料才顯示。推演模式是學生自己試的假設路線，沒有標記可言。
+  const currentMoveQualityMarker =
+    !isExploring && step > 0 && game.moveQualityTags?.[step - 1] && lastMoveHighlight
+      ? { square: lastMoveHighlight.to, tag: game.moveQualityTags[step - 1] }
+      : null;
+
   return (
     <main className="min-h-screen pb-10" style={bgStyle}>
       <div className="mx-auto max-w-md px-4 pt-4">
@@ -249,6 +258,22 @@ function ReviewContent({ gameId }: { gameId: string }) {
           <section className="mt-2 rounded-2xl bg-[#8B5FBF]/10 px-4 py-2 text-center text-xs text-[#8B5FBF]">
             🔍 每步好壞標記正在背景計算中，過一會兒重新整理頁面看看！
           </section>
+        ) : null}
+
+        {/* 好壞標記圖例：疊在棋盤上的小圓點只有顏色+符號，第一次看
+            不一定知道代表什麼，放個對照表在上面說明一次。只要這局
+            有標記資料（不是舊對局、不是計算失敗）就顯示。 */}
+        {game.moveQualityTags && game.moveQualityTags.length > 0 ? (
+          <div className="mt-2 flex items-center justify-center gap-3 text-[11px] text-[#1A1A2E]/60">
+            {(Object.keys(MOVE_QUALITY_LABEL) as MoveQualityTag[]).map((tag) => (
+              <span key={tag} className="flex items-center gap-1">
+                <span
+                  className={["inline-block h-3 w-3 rounded-full", MOVE_QUALITY_LABEL[tag].dotClassName].join(" ")}
+                />
+                {MOVE_QUALITY_LABEL[tag].label}
+              </span>
+            ))}
+          </div>
         ) : null}
 
         {/* 目前局面評分：跟下面棋盤本體分開、放在比較上面、視覺上更
@@ -307,6 +332,7 @@ function ReviewContent({ gameId }: { gameId: string }) {
                 analysis ? { from: analysis.move.slice(0, 2), to: analysis.move.slice(2, 4) } : null
               }
               lastMove={lastMoveHighlight}
+              moveQualityMarker={currentMoveQualityMarker}
             />
           </div>
 
@@ -315,26 +341,12 @@ function ReviewContent({ gameId }: { gameId: string }) {
               {exploreMoveError ? <span className="text-[#C0392B]">{exploreMoveError}</span> : null}
             </div>
           ) : (
-            <div className="mt-3 flex flex-col items-center gap-1">
-              <p className="text-center text-xs text-[#1A1A2E]/60">
-                第 {step} / {totalSteps} 步
-                {step > 0
-                  ? `（${toChineseNotation(parseFen(game.fenHistory[step - 1]), game.moveHistory[step - 1])}）`
-                  : "（開局）"}
-              </p>
-              {/* 這一步的好壞標記：step > 0 才有「剛走的那一步」，
-                  tags[step - 1] 對應 moveHistory[step - 1]。 */}
-              {step > 0 && game.moveQualityTags?.[step - 1] ? (
-                <span
-                  className={[
-                    "rounded-full px-2.5 py-0.5 text-[11px] font-bold",
-                    MOVE_QUALITY_LABEL[game.moveQualityTags[step - 1]].className,
-                  ].join(" ")}
-                >
-                  {MOVE_QUALITY_LABEL[game.moveQualityTags[step - 1]].label}
-                </span>
-              ) : null}
-            </div>
+            <p className="mt-3 text-center text-xs text-[#1A1A2E]/60">
+              第 {step} / {totalSteps} 步
+              {step > 0
+                ? `（${toChineseNotation(parseFen(game.fenHistory[step - 1]), game.moveHistory[step - 1])}）`
+                : "（開局）"}
+            </p>
           )}
 
           {!isExploring ? (
