@@ -14,12 +14,15 @@ function ShopContent() {
   const user = useGameStore((s) => s.user);
   const buyShopItem = useGameStore((s) => s.buyShopItem);
   const drawBackgroundGacha = useGameStore((s) => s.drawBackgroundGacha);
+  const drawBackgroundGachaTen = useGameStore((s) => s.drawBackgroundGachaTen);
   const [message, setMessage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"consumable" | "background">("consumable");
   const [isDrawing, setIsDrawing] = useState(false);
   const [gachaPhase, setGachaPhase] = useState<GachaPhase>("idle");
   const [gachaResult, setGachaResult] = useState<GachaResultData | null>(null);
   const [drawSeq, setDrawSeq] = useState(0);
+  const [isDrawingTen, setIsDrawingTen] = useState(false);
+  const [tenDrawResults, setTenDrawResults] = useState<{ itemId: string | null; isDuplicate: boolean }[] | null>(null);
 
   if (!user) return null;
 
@@ -34,6 +37,7 @@ function ShopContent() {
   }
 
   function handleDraw() {
+    setTenDrawResults(null);
     setIsDrawing(true);
     setGachaResult(null);
     setDrawSeq((n) => n + 1);
@@ -68,9 +72,32 @@ function ShopContent() {
     }, 900);
   }
 
+  function handleDrawTen() {
+    // 十連抽不用單抽那套「搖晃→裂開」動畫（跑 10 次太慢），改成一次
+    // 抽完直接用結果格子呈現，比較符合十連抽「快速看到一整批結果」的
+    // 期待。清掉單抽的結果，避免兩種呈現方式同時疊在畫面上。
+    setGachaResult(null);
+    setGachaPhase("idle");
+    setIsDrawingTen(true);
+    setTenDrawResults(null);
+
+    setTimeout(() => {
+      const result = drawBackgroundGachaTen();
+      if (!result.success) {
+        showMessage(result.message);
+        setIsDrawingTen(false);
+        return;
+      }
+      setTenDrawResults(result.results);
+      showMessage(result.message);
+      setIsDrawingTen(false);
+    }, 600);
+  }
+
   const items = SHOP_ITEMS.filter((i) => i.category === activeTab);
   const gachaPool = getBackgroundGachaPool();
   const canAffordGacha = user.foodCount >= BACKGROUND_GACHA_COST;
+  const canAffordGachaTen = user.foodCount >= BACKGROUND_GACHA_COST * 10;
 
   return (
     <main
@@ -109,36 +136,30 @@ function ShopContent() {
         </div>
 
         {activeTab === "consumable" ? (
-          <div className="mt-4 flex flex-col gap-3">
+          <div className="mt-4 flex flex-col gap-2">
             {items.map((item) => {
               const count = user.inventory?.[item.id as keyof typeof user.inventory] ?? 0;
               const boughtToday = item.id === "double_reward_voucher" && user.lastDoubleVoucherPurchaseDate === getTodayDateString();
               const canAfford = user.foodCount >= item.price && !boughtToday;
 
               return (
-                <div key={item.id} className="overflow-hidden rounded-3xl bg-white/70 shadow-sm">
-                  <div className="flex items-start gap-3 px-4 py-4">
-                    <span className="text-3xl">{item.icon}</span>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-[#1A1A2E] text-sm">
-                        {item.name}
-                        {count > 0 ? (
-                          <span className="ml-2 rounded-full bg-[#8B5FBF]/20 px-2 py-0.5 text-[10px] font-extrabold text-[#8B5FBF]">×{count}</span>
-                        ) : null}
-                      </p>
-                      <p className="mt-0.5 text-xs text-[#1A1A2E]/60 leading-relaxed">{item.description}</p>
-                      <p className="mt-1 text-xs font-bold text-[#E8B84B]">🟪 {item.price} 飼料</p>
-                    </div>
+                <div key={item.id} className="flex items-center gap-2.5 rounded-2xl bg-white/70 px-3 py-2.5 shadow-sm">
+                  <span className="shrink-0 text-2xl">{item.icon}</span>
+                  <div className="min-w-0 flex-1">
+                    <p className="flex items-center gap-1.5 text-sm font-bold text-[#1A1A2E]">
+                      <span className="truncate">{item.name}</span>
+                      {count > 0 ? (
+                        <span className="shrink-0 rounded-full bg-[#8B5FBF]/20 px-1.5 py-0.5 text-[9px] font-extrabold text-[#8B5FBF]">×{count}</span>
+                      ) : null}
+                    </p>
+                    <p className="mt-0.5 truncate text-[11px] text-[#1A1A2E]/50">{item.description}</p>
                   </div>
-
-                  <div className="border-t border-[#1A1A2E]/5 px-4 py-3">
-                    <button type="button" onClick={() => handleBuy(item)} disabled={!canAfford}
-                      className={["w-full rounded-xl py-2 text-xs font-bold transition-transform active:scale-95",
-                        canAfford ? "bg-[#8B5FBF] text-white" : "cursor-not-allowed bg-[#1A1A2E]/10 text-[#1A1A2E]/30",
-                      ].join(" ")}>
-                      {boughtToday ? "今天已買過，明天再來" : canAfford ? `購買 🟪 ${item.price}` : "飼料不足"}
-                    </button>
-                  </div>
+                  <button type="button" onClick={() => handleBuy(item)} disabled={!canAfford}
+                    className={["shrink-0 rounded-xl px-3 py-2 text-[11px] font-bold leading-tight transition-transform active:scale-95",
+                      canAfford ? "bg-[#8B5FBF] text-white" : "cursor-not-allowed bg-[#1A1A2E]/10 text-[#1A1A2E]/30",
+                    ].join(" ")}>
+                    {boughtToday ? "已買過" : canAfford ? `🟪${item.price}` : "不足"}
+                  </button>
                 </div>
               );
             })}
@@ -155,12 +176,43 @@ function ShopContent() {
 
               <GachaEgg key={drawSeq} phase={gachaPhase} result={gachaResult} />
 
-              <button type="button" onClick={handleDraw} disabled={!canAffordGacha || isDrawing}
+              <button type="button" onClick={handleDraw} disabled={!canAffordGacha || isDrawing || isDrawingTen}
                 className={["mt-2 w-full rounded-xl py-2.5 text-sm font-bold transition-transform active:scale-95",
-                  canAffordGacha && !isDrawing ? "bg-[#8B5FBF] text-white" : "cursor-not-allowed bg-[#1A1A2E]/10 text-[#1A1A2E]/30",
+                  canAffordGacha && !isDrawing && !isDrawingTen ? "bg-[#8B5FBF] text-white" : "cursor-not-allowed bg-[#1A1A2E]/10 text-[#1A1A2E]/30",
                 ].join(" ")}>
                 {isDrawing ? "抽獎中…" : canAffordGacha ? `抽一次 🟪 ${BACKGROUND_GACHA_COST}` : "飼料不足"}
               </button>
+
+              <button type="button" onClick={handleDrawTen} disabled={!canAffordGachaTen || isDrawing || isDrawingTen}
+                className={["mt-2 w-full rounded-xl py-2.5 text-sm font-bold transition-transform active:scale-95",
+                  canAffordGachaTen && !isDrawing && !isDrawingTen ? "bg-[#E8B84B] text-[#5C3D0A]" : "cursor-not-allowed bg-[#1A1A2E]/10 text-[#1A1A2E]/30",
+                ].join(" ")}>
+                {isDrawingTen ? "十連抽中…" : canAffordGachaTen ? `十連抽 🟪 ${BACKGROUND_GACHA_COST * 10}` : "飼料不足（十連抽）"}
+              </button>
+
+              {/* 十連抽結果：不用單抽那套開蛋動畫，直接用 5x2 格子攤開
+                  10 個結果，每格顯示是不是新款/重複/銘謝惠顧。 */}
+              {tenDrawResults ? (
+                <div className="mt-3 grid grid-cols-5 gap-1.5">
+                  {tenDrawResults.map((r, index) => {
+                    const item = r.itemId ? gachaPool.find((i) => i.id === r.itemId) ?? null : null;
+                    return (
+                      <div
+                        key={index}
+                        className={[
+                          "flex flex-col items-center gap-0.5 rounded-xl px-1 py-2 text-center",
+                          !item ? "bg-[#1A1A2E]/5" : r.isDuplicate ? "bg-[#1A1A2E]/10" : "bg-[#E8B84B]/25",
+                        ].join(" ")}
+                      >
+                        <span className="text-lg">{item ? item.icon : "💨"}</span>
+                        <span className="text-[9px] font-bold leading-tight text-[#1A1A2E]/70">
+                          {!item ? "銘謝惠顧" : r.isDuplicate ? "重複退還" : "🎉新款"}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : null}
             </div>
 
             {/* 抽獎池一覽（依稀有度由低到高排序） */}

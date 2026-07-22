@@ -125,6 +125,17 @@ interface GameStoreState {
    */
   drawBackgroundGacha: () => { success: boolean; message: string; itemId?: string; isDuplicate?: boolean };
 
+  /**
+   * 十連抽：一次抽 10 次，邏輯跟單抽完全一樣（各自獨立判定機率、
+   * 各自可能重複退還），只是合併成一次 Firestore 寫入（不是連續呼叫
+   * 10 次 drawBackgroundGacha，那樣會產生 10 次網路請求，沒必要）。
+   */
+  drawBackgroundGachaTen: () => {
+    success: boolean;
+    message: string;
+    results: { itemId: string | null; isDuplicate: boolean }[];
+  };
+
   /** 使用消耗道具（雙倍券/復活藥水/飽食護盾） */
   useItem: (itemId: string) => { success: boolean; message: string };
 
@@ -860,6 +871,72 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       itemId: drawn.id,
       isDuplicate: false,
     };
+  },
+
+  // 十連抽：邏輯完全比照單抽（見上面 drawBackgroundGacha 的註解），
+  // 只是迴圈跑 10 次、最後合併成一次 set + 一次 Firestore 寫入，
+  // 不會產生 10 次網路請求。
+  drawBackgroundGachaTen: () => {
+    const { user } = get();
+    if (!user) return { success: false, message: "找不到資料", results: [] };
+
+    const totalCost = BACKGROUND_GACHA_COST * 10;
+    if (user.foodCount < totalCost) {
+      return { success: false, message: `飼料不足，十連抽需要 ${totalCost} 飼料`, results: [] };
+    }
+
+    const now = Date.now();
+    let foodCount = user.foodCount;
+    let totalFoodSpent = user.totalFoodSpent ?? 0;
+    let unlockedBackgrounds = [...(user.unlockedBackgrounds ?? [])];
+    const results: { itemId: string | null; isDuplicate: boolean }[] = [];
+    let newCount = 0;
+
+    for (let i = 0; i < 10; i++) {
+      // 飼料無論有沒有中獎都會先扣（銘謝惠顧不退還，只有「抽中但已擁有」才退還）
+      foodCount -= BACKGROUND_GACHA_COST;
+      totalFoodSpent += BACKGROUND_GACHA_COST;
+
+      const drawn = drawBackgroundGachaResult();
+      if (!drawn) {
+        results.push({ itemId: null, isDuplicate: false });
+        continue;
+      }
+
+      const alreadyOwned = unlockedBackgrounds.includes(drawn.id);
+      if (alreadyOwned) {
+        // 中獎但重複：這一抽全額退還，等於沒扣錢
+        foodCount += BACKGROUND_GACHA_COST;
+        totalFoodSpent -= BACKGROUND_GACHA_COST;
+        results.push({ itemId: drawn.id, isDuplicate: true });
+      } else {
+        unlockedBackgrounds = [...unlockedBackgrounds, drawn.id];
+        newCount += 1;
+        results.push({ itemId: drawn.id, isDuplicate: false });
+      }
+    }
+
+    const updatedUser: UserDoc = {
+      ...user,
+      foodCount,
+      totalFoodSpent,
+      unlockedBackgrounds,
+      updatedAt: now,
+    };
+    set({ user: updatedUser });
+    updateDoc(doc(db, "users", user.uid), {
+      foodCount,
+      totalFoodSpent,
+      unlockedBackgrounds,
+      updatedAt: now,
+    }).catch(console.error);
+
+    const message =
+      newCount > 0
+        ? `🎉 十連抽完成！獲得 ${newCount} 款新背景！`
+        : "😢 十連抽完成，這次都沒抽到新背景，再試試手氣吧！";
+
+    return { success: true, message, results };
   },
 
   useItem: (itemId) => {
