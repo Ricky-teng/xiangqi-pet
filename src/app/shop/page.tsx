@@ -88,8 +88,9 @@ function ShopContent() {
         setIsDrawingTen(false);
         return;
       }
+      // 結果直接用彈窗呈現（見下面 tenDrawResults 的 JSX），不用再
+      // 額外跳一個小提示，避免同樣的資訊重複出現兩次。
       setTenDrawResults(result.results);
-      showMessage(result.message);
       setIsDrawingTen(false);
     }, 600);
   }
@@ -189,30 +190,6 @@ function ShopContent() {
                 ].join(" ")}>
                 {isDrawingTen ? "十連抽中…" : canAffordGachaTen ? `十連抽 🟪 ${BACKGROUND_GACHA_COST * 10}` : "飼料不足（十連抽）"}
               </button>
-
-              {/* 十連抽結果：不用單抽那套開蛋動畫，直接用 5x2 格子攤開
-                  10 個結果，每格顯示是不是新款/重複/銘謝惠顧。 */}
-              {tenDrawResults ? (
-                <div className="mt-3 grid grid-cols-5 gap-1.5">
-                  {tenDrawResults.map((r, index) => {
-                    const item = r.itemId ? gachaPool.find((i) => i.id === r.itemId) ?? null : null;
-                    return (
-                      <div
-                        key={index}
-                        className={[
-                          "flex flex-col items-center gap-0.5 rounded-xl px-1 py-2 text-center",
-                          !item ? "bg-[#1A1A2E]/5" : r.isDuplicate ? "bg-[#1A1A2E]/10" : "bg-[#E8B84B]/25",
-                        ].join(" ")}
-                      >
-                        <span className="text-lg">{item ? item.icon : "💨"}</span>
-                        <span className="text-[9px] font-bold leading-tight text-[#1A1A2E]/70">
-                          {!item ? "銘謝惠顧" : r.isDuplicate ? "重複退還" : "🎉新款"}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : null}
             </div>
 
             {/* 抽獎池一覽（依稀有度由低到高排序） */}
@@ -268,6 +245,59 @@ function ShopContent() {
           </div>
         )}
       </div>
+
+      {/* 十連抽結果彈窗：一次跳出來看整批戰果，比塞在頁面裡的小格子
+          清楚很多。點「知道了」或背景才會關閉，不會自動消失，
+          避免學生還沒看清楚就被收掉。 */}
+      {tenDrawResults ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-sm rounded-3xl bg-[#FDF6E8] px-5 py-6 shadow-2xl">
+            <p className="text-center text-lg font-extrabold text-[#1A1A2E]">🎉 十連抽結果</p>
+            <p className="mt-1 text-center text-xs text-[#1A1A2E]/50">
+              獲得 {tenDrawResults.filter((r) => r.itemId && !r.isDuplicate).length} 款新背景
+            </p>
+
+            <div className="mt-4 grid grid-cols-2 gap-2.5">
+              {tenDrawResults.map((r, index) => {
+                const item = r.itemId ? gachaPool.find((i) => i.id === r.itemId) ?? null : null;
+                const rarity = item?.rarity ?? "common";
+                return (
+                  <div
+                    key={index}
+                    className={[
+                      "flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-center shadow-sm",
+                      !item ? "bg-[#1A1A2E]/5" : r.isDuplicate ? "bg-[#1A1A2E]/10" : "bg-[#E8B84B]/25",
+                    ].join(" ")}
+                  >
+                    <span className="text-3xl">{item ? item.icon : "💨"}</span>
+                    <span className="text-xs font-bold leading-tight text-[#1A1A2E]">
+                      {item ? item.name : "銘謝惠顧"}
+                    </span>
+                    {item ? (
+                      <span
+                        className="rounded-full px-2 py-0.5 text-[9px] font-extrabold text-white"
+                        style={{ backgroundColor: RARITY_COLORS[rarity] }}
+                      >
+                        {r.isDuplicate ? "重複退還" : `🎉新款・${RARITY_LABELS[rarity]}`}
+                      </span>
+                    ) : (
+                      <span className="text-[9px] font-semibold text-[#1A1A2E]/40">沒中獎</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setTenDrawResults(null)}
+              className="mt-5 w-full rounded-2xl bg-[#5C3D0A] px-4 py-3 text-sm font-bold text-[#FDF6E8] shadow-sm transition-transform active:scale-95"
+            >
+              知道了！
+            </button>
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }
