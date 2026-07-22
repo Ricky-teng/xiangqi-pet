@@ -87,6 +87,9 @@ function createDefaultUserDoc(
     // 新帳號沒用過舊的「轉生」機制，長到大師雞看到「轉職」本來就是
     // 遊戲原本的樣子，不需要看改版公告——直接設成 true。
     hasSeenJobChangeAnnouncement: true,
+    // 新帳號沒被「轉生機制改版」那次全員歸零影響過，不需要看到補償
+    // 彈窗——直接設成 true（已領取狀態），彈窗永遠不會跳出來。
+    hasClaimedResetCompensation: true,
     lastDailyGrantDate: null,
     createdAt: now,
     updatedAt: now,

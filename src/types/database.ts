@@ -106,6 +106,16 @@ export interface UserDoc {
   hasSeenJobChangeAnnouncement?: boolean;
 
   /**
+   * 是否已經領過「轉生機制改版補償」的飼料（一次性，見
+   * @/stores/useGameStore.ts 的 claimResetCompensation）。
+   * 判斷式故意跟 hasSeenJobChangeAnnouncement 同一套邏輯：新帳號在
+   * createDefaultUserDoc 會明確設成 true（沒被那次改版影響過，不需要
+   * 補償），已存在的舊帳號沒有這個欄位（undefined）就會顯示補償彈窗，
+   * 領完才寫回 true。
+   */
+  hasClaimedResetCompensation?: boolean;
+
+  /**
    * 上次「購買」雙倍飼料券的日期（本地 YYYY-MM-DD，見 getTodayDateString）。
    * 用來限制每天只能買一次，跟 lastDailyGrantDate 是同一套日期比對邏輯。
    * 注意：這是「購買」限制，不是「使用」限制——買了可以先囤著，隔天才用也可以。

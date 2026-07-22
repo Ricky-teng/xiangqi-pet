@@ -38,6 +38,7 @@ import { signOutUser } from "@/hooks/useAuth";
 import RequireAuth from "@/components/RequireAuth";
 import TutorialOverlay from "@/components/tutorial/TutorialOverlay";
 import { JobChangeAnnouncementModal } from "@/components/JobChangeAnnouncementModal";
+import { ResetCompensationModal } from "@/components/ResetCompensationModal";
 import { STAGE_XP_THRESHOLDS } from "@/lib/pet/petGrowth";
 import { SICKNESS_ESCALATION_HOURS } from "@/lib/pet/petDecay";
 import { getPetImagePath, getPetDisplaySrc } from "@/lib/pet/petImagePath";
@@ -420,6 +421,26 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
     const now = Date.now();
     setUser({ ...user, hasSeenJobChangeAnnouncement: true, updatedAt: now });
     updateDoc(doc(db, "users", user.uid), { hasSeenJobChangeAnnouncement: true, updatedAt: now }).catch(console.error);
+  }
+
+  // 轉生機制改版補償：排在教學、簽到、轉職公告都關閉之後才顯示，
+  // 避免多個全螢幕彈窗疊在一起。只有舊帳號
+  // （hasClaimedResetCompensation 不是 true）才會看到，按「領取」
+  // 才會真的發飼料、寫回 Firestore（見 useGameStore.ts 的
+  // claimResetCompensation）。
+  const claimResetCompensation = useGameStore((s) => s.claimResetCompensation);
+  const [showResetCompensation, setShowResetCompensation] = useState(false);
+  useEffect(() => {
+    if (showTutorial || showCheckinModal || showJobChangeAnnouncement) return;
+    if (user.hasClaimedResetCompensation !== true) {
+      setShowResetCompensation(true);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showTutorial, showCheckinModal, showJobChangeAnnouncement]);
+
+  function handleClaimResetCompensation() {
+    claimResetCompensation();
+    setShowResetCompensation(false);
   }
 
   function handleStartBattle() {
@@ -886,6 +907,16 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
       <JobChangeAnnouncementModal
         open={showJobChangeAnnouncement}
         onClose={finishJobChangeAnnouncement}
+      />
+
+      {/* 轉生機制改版補償：只有舊帳號會看到一次，金額依累計解題數算好傳進去 */}
+      <ResetCompensationModal
+        open={showResetCompensation}
+        amount={(() => {
+          const totalSolved = user.stats?.totalSolved ?? 0;
+          return totalSolved > 1000 ? 5000 : totalSolved * 10;
+        })()}
+        onClaim={handleClaimResetCompensation}
       />
     </main>
     </>

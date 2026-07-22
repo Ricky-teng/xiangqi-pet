@@ -104,6 +104,14 @@ interface GameStoreState {
    */
   checkAndAwardBadges: () => BadgeDefinition[];
 
+  /**
+   * 領取「轉生機制改版補償」飼料，只能領一次（見
+   * hasClaimedResetCompensation）。金額算法：累計解題數(stats.totalSolved)
+   * × 10，超過 1000 題的人直接給 5000（封頂，同時也不用讓玩家反推出
+   * 「解題數 x10」這個換算規則）。
+   */
+  claimResetCompensation: () => { success: boolean; message: string; amount: number };
+
   /** 取得今天對弈電腦的局數（跨天自動歸零） */
   getDailyVsComputerCount: () => number;
 
@@ -683,6 +691,39 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     });
 
     return newlyEarned;
+  },
+
+  // 6.55b 領取「轉生機制改版補償」飼料（一次性）
+  claimResetCompensation: () => {
+    const { user } = get();
+    if (!user) return { success: false, message: "找不到資料", amount: 0 };
+    if (user.hasClaimedResetCompensation === true) {
+      return { success: false, message: "已經領過補償飼料了", amount: 0 };
+    }
+
+    const totalSolved = user.stats?.totalSolved ?? 0;
+    // 超過 1000 題直接給封頂的 5000，不用讓玩家反推出「解題數 x10」
+    // 這個換算規則（見介面宣告的說明）。
+    const amount = totalSolved > 1000 ? 5000 : totalSolved * 10;
+
+    const now = Date.now();
+    const updatedUser: UserDoc = {
+      ...user,
+      foodCount: user.foodCount + amount,
+      hasClaimedResetCompensation: true,
+      updatedAt: now,
+    };
+
+    set({ user: updatedUser });
+    updateDoc(doc(db, "users", user.uid), {
+      foodCount: updatedUser.foodCount,
+      hasClaimedResetCompensation: true,
+      updatedAt: now,
+    }).catch((error) => {
+      console.error("[useGameStore] claimResetCompensation 同步寫回 Firestore 失敗：", error);
+    });
+
+    return { success: true, message: `補償飼料已到帳！獲得 ${amount} 飼料！`, amount };
   },
 
   // 6.6 取得今天對弈電腦局數
