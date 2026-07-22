@@ -37,7 +37,7 @@ import {
   DRAW_REWARD_FOOD,
   type ComputerLevel,
 } from "@/lib/engine/computerPlayer";
-import { recordVsComputerGame } from "@/lib/engine/gameRecording";
+import { recordVsComputerGame, computeAndSaveMoveQualityInBackground } from "@/lib/engine/gameRecording";
 import type { UserDoc } from "@/types/database";
 import { useAppBackground } from "@/lib/useAppBackground";
 
@@ -134,6 +134,12 @@ function VsComputerContent() {
       foodDelta: rewardResult.foodDelta,
       moveHistory: finalMoveHistory,
       fenHistory: finalFenHistory,
+    }).then(({ gameId }) => {
+      // 對局紀錄寫入成功後，在背景分析整局每步好壞（不 await，不擋
+      // 畫面），算完會直接寫回這份文件，回放頁進去就看得到標記。
+      if (engine) {
+        computeAndSaveMoveQualityInBackground(engine, user.uid, gameId, finalFenHistory);
+      }
     }).catch((error) => {
       console.error("[play] 對局紀錄寫入失敗（不影響飼料獎懲，只是老師後台看不到這一局）：", error);
     });

@@ -78,6 +78,7 @@ function createDefaultUserDoc(
       winRate: 0,
     },
     unlockedCatalogIds: [],
+    earnedBadgeIds: [],
     rebirthCount: 0,
     fcmTokens: [],
     // 只有學生會觸發新手教學（教怎麼下象棋），老師後台是完全不同的介面，

@@ -49,6 +49,14 @@ export interface UserDoc {
   
   // 圖鑑系統：已解鎖的特殊小雞外觀 ID 陣列
   unlockedCatalogIds: string[];
+
+  /**
+   * 成就勳章系統：已獲得的勳章 ID 陣列。勳章定義（哪些行為可以拿到
+   * 哪個勳章）集中在 @/lib/badges/badges.ts，這裡只存「拿到了哪些」，
+   * 不存判斷邏輯——邏輯以後要調整/新增勳章都只改那個檔案就好，
+   * 不用動資料庫欄位。
+   */
+  earnedBadgeIds: string[];
   
   // 總轉生次數（真正「回到蛋重新養」的次數，轉職不計入；見 lib/pet/catalog.ts）
   rebirthCount: number;
@@ -358,9 +366,33 @@ export interface VsComputerGameDoc {
   outcome: "win" | "lose" | "draw";
   foodDelta: number; // 這局實際獲得/扣除的飼料數量
   moveHistory: string[]; // 走法記號列表，依序
-  fenHistory: string[]; // 每一步之後的局面 FEN，跟 moveHistory 等長，依序對應
+  // 每一步「之前」的局面 FEN，第 0 個是開局起始局面，長度是
+  // moveHistory.length + 1（最後一個是終局局面）。跟 moveHistory 的
+  // 對應關係：fenHistory[i] 走 moveHistory[i] 這步之後會變成
+  // fenHistory[i+1]。（這裡曾經寫錯成「跟 moveHistory 等長」，已修正）
+  fenHistory: string[];
   playedAt: number;
+
+  /**
+   * 每步好壞標記（3級：good/normal/mistake），對局結束後在背景自動
+   * 計算，跟 moveHistory 一一對應（tags[i] 是 moveHistory[i] 這步的
+   * 評價）。算好就直接存這裡，回放頁不用每次都重新跑引擎。
+   * 見 @/lib/engine/moveQuality.ts。
+   */
+  moveQualityTags?: MoveQualityTag[];
+  /**
+   * 好壞標記的計算狀態：
+   * - 沒有這個欄位：舊資料（這個功能上線之前的對局），不會補算
+   * - "computing"：對局剛結束，背景計算正在進行中
+   * - "done"：算完了，看 moveQualityTags
+   * - "failed"：算過但失敗了（例如引擎逾時），不會自動重試
+   */
+  moveQualityStatus?: "computing" | "done" | "failed";
 }
+
+/** 單步好壞評價：好手／普通／失誤（3級簡化版，接近天天象棋但更精簡，
+ * 避免學生被太多級距搞混）。見 @/lib/engine/moveQuality.ts。 */
+export type MoveQualityTag = "good" | "normal" | "mistake";
 
 /**
  * 6. 作戰配對隊列 (路徑: matchmakingQueue/{uid})

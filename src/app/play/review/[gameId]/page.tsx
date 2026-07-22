@@ -32,13 +32,20 @@ import { useRulesEngine } from "@/hooks/useRulesEngine";
 import { usePositionAnalysis, toRedPerspectiveScore, toRedPerspectiveMateIn, getScoreDisplay, SCORE_DISPLAY_STYLES } from "@/hooks/usePositionAnalysis";
 import { parseFen } from "@/lib/xiangqi/fen";
 import { toChineseNotation } from "@/lib/xiangqi/chineseNotation";
-import type { VsComputerGameDoc } from "@/types/database";
+import type { VsComputerGameDoc, MoveQualityTag } from "@/types/database";
 import { useAppBackground } from "@/lib/useAppBackground";
 
 const OUTCOME_LABEL: Record<"win" | "lose" | "draw", string> = {
   win: "🏆 獲勝",
   lose: "😢 落敗",
   draw: "🤝 和棋",
+};
+
+/** 每步好壞標記的顯示文字/樣式（3級簡化版，見 @/lib/engine/moveQuality.ts） */
+const MOVE_QUALITY_LABEL: Record<MoveQualityTag, { label: string; className: string }> = {
+  good: { label: "✅ 好手", className: "bg-[#5B8C5A]/15 text-[#5B8C5A]" },
+  normal: { label: "➖ 普通", className: "bg-[#1A1A2E]/10 text-[#1A1A2E]/50" },
+  mistake: { label: "⚠️ 失誤", className: "bg-[#C0392B]/15 text-[#C0392B]" },
 };
 
 function sideToMoveAtStep(step: number): "w" | "b" {
@@ -235,6 +242,15 @@ function ReviewContent({ gameId }: { gameId: string }) {
           {game.moveHistory.length} 手
         </section>
 
+        {/* 每步好壞標記的背景計算狀態：對局結束當下就在背景自動開始算
+            （見 play/page.tsx），學生如果很快就點進回放頁，可能還沒算
+            完，這裡給個提示，不要讓學生以為標記永遠不會出現。 */}
+        {game.moveQualityStatus === "computing" ? (
+          <section className="mt-2 rounded-2xl bg-[#8B5FBF]/10 px-4 py-2 text-center text-xs text-[#8B5FBF]">
+            🔍 每步好壞標記正在背景計算中，過一會兒重新整理頁面看看！
+          </section>
+        ) : null}
+
         {/* 目前局面評分：跟下面棋盤本體分開、放在比較上面、視覺上更
             醒目的位置，按過一次「分析」之後，只要有分析結果就會顯示，
             不需要往下找才看得到分數。開了自動分析之後，切換局面時會
@@ -299,12 +315,26 @@ function ReviewContent({ gameId }: { gameId: string }) {
               {exploreMoveError ? <span className="text-[#C0392B]">{exploreMoveError}</span> : null}
             </div>
           ) : (
-            <p className="mt-3 text-center text-xs text-[#1A1A2E]/60">
-              第 {step} / {totalSteps} 步
-              {step > 0
-                ? `（${toChineseNotation(parseFen(game.fenHistory[step - 1]), game.moveHistory[step - 1])}）`
-                : "（開局）"}
-            </p>
+            <div className="mt-3 flex flex-col items-center gap-1">
+              <p className="text-center text-xs text-[#1A1A2E]/60">
+                第 {step} / {totalSteps} 步
+                {step > 0
+                  ? `（${toChineseNotation(parseFen(game.fenHistory[step - 1]), game.moveHistory[step - 1])}）`
+                  : "（開局）"}
+              </p>
+              {/* 這一步的好壞標記：step > 0 才有「剛走的那一步」，
+                  tags[step - 1] 對應 moveHistory[step - 1]。 */}
+              {step > 0 && game.moveQualityTags?.[step - 1] ? (
+                <span
+                  className={[
+                    "rounded-full px-2.5 py-0.5 text-[11px] font-bold",
+                    MOVE_QUALITY_LABEL[game.moveQualityTags[step - 1]].className,
+                  ].join(" ")}
+                >
+                  {MOVE_QUALITY_LABEL[game.moveQualityTags[step - 1]].label}
+                </span>
+              ) : null}
+            </div>
           )}
 
           {!isExploring ? (

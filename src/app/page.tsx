@@ -564,6 +564,7 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
             { href: "/tasks", icon: "📋", label: "任務", badge: hasUnclaimedDailyTask(user, activeDailyTasks) },
             { href: "/leaderboard", icon: "🏆", label: "排行榜" },
             { href: "/catalog", icon: "📖", label: "圖鑑" },
+            { href: "/badges", icon: "🎖️", label: "勳章" },
             { href: "/friends", icon: "👥", label: "好友" },
           ].map(({ href, icon, label, badge }) => (
             <button

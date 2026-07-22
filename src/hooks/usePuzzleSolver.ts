@@ -149,6 +149,7 @@ export function usePuzzleSolver(puzzle: PuzzleDoc): UsePuzzleSolverResult {
   const setUser = useGameStore((s) => s.setUser);
   const setPet = useGameStore((s) => s.setPet);
   const triggerSickness = useGameStore((s) => s.triggerSickness);
+  const checkAndAwardBadges = useGameStore((s) => s.checkAndAwardBadges);
 
   // ---- 多組正解線：合併主線 + 替代線 ----
   // puzzle.alternativeLines 每一條是 { moves: string[] }（不是直接的
@@ -327,6 +328,9 @@ export function usePuzzleSolver(puzzle: PuzzleDoc): UsePuzzleSolverResult {
           currentWrongPuzzleId: null,
         });
       }
+
+      // 可能剛好達成「小小棋士」這類跟累計解題數有關的勳章條件
+      checkAndAwardBadges();
 
       setRewardOutcome({ status: "granted", earnedFood });
     } catch (error) {

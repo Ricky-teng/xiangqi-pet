@@ -380,3 +380,34 @@ export async function analyzePosition(
   }
   return { move: fromPikafishMove(bestmoveToken), scoreCp: 0, depth: 0, mateIn: null };
 }
+
+// 給「整局每步好壞標記」批次分析用的搜尋設定：一整局可能有 40~60+ 個
+// 局面要分析，如果每個都用 analyzePosition 的等級10設定（8.5秒／個），
+// 一整局要跑 6~9 分鐘，不可行。這裡犧牲一點準確度換速度（跟等級4的
+// 對弈強度差不多），單一局面落在 1 秒左右（含子程序啟動開銷），
+// 整局在合理時間內（通常幾十秒）跑完，足夠拿來分「好手/普通/失誤」
+// 這種粗略等級，不需要到分析單一局面那麼精準。
+const FAST_BATCH_ANALYSIS_CONFIG = { depth: 6, movetimeMs: 500 };
+
+/**
+ * 給整局批次分析用的快速版分析，回傳格式跟 analyzePosition 一樣，
+ * 只是搜尋設定快很多、犧牲一些準確度。見 @/lib/engine/moveQuality.ts
+ * 怎麼把這個組合成「每步好壞標記」。
+ */
+export async function analyzePositionFast(
+  appFen: string,
+  sideToMove: "w" | "b"
+): Promise<SearchResult> {
+  const { candidatesByRank, bestmoveToken } = await runPikafishSearch(
+    appFen,
+    sideToMove,
+    FAST_BATCH_ANALYSIS_CONFIG,
+    1
+  );
+
+  const top = candidatesByRank.get(1);
+  if (top) {
+    return { move: fromPikafishMove(top.move), scoreCp: top.scoreCp, depth: top.depth, mateIn: top.mateIn };
+  }
+  return { move: fromPikafishMove(bestmoveToken), scoreCp: 0, depth: 0, mateIn: null };
+}

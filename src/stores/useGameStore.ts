@@ -13,6 +13,7 @@ import {
   type ComputerLevel,
 } from "@/lib/engine/computerPlayer";
 import { BACKGROUND_GACHA_COST, drawBackgroundGachaResult } from "@/lib/shopItems";
+import { findNewlyEarnedBadges, type BadgeDefinition } from "@/lib/badges/badges";
 
 // 定義我們遊戲總機裡面有哪些資料與開關
 interface GameStoreState {
@@ -84,6 +85,15 @@ interface GameStoreState {
 
   /** 簽到：今天沒簽過才能簽，push 日期到 checkinHistory，並同時標記所有簽到類型的任務完成並發飼料 */
   checkin: (checkinTaskIds?: string[], checkinTaskRewards?: number[]) => { success: boolean; message: string; alreadyDone: boolean };
+
+  /**
+   * 成就勳章：檢查目前的 user 資料，把新符合條件的勳章加進
+   * earnedBadgeIds、寫回 Firestore，回傳「這次新拿到的勳章」清單
+   * （給呼叫端顯示慶祝提示用；沒有新拿到就回傳空陣列）。
+   * 勳章定義在 @/lib/badges/badges.ts，這裡只負責「檢查+發放+存檔」
+   * 這個機制本身。掛在哪些動作完成後呼叫，見該檔案開頭的說明。
+   */
+  checkAndAwardBadges: () => BadgeDefinition[];
 
   /** 取得今天對弈電腦的局數（跨天自動歸零） */
   getDailyVsComputerCount: () => number;
@@ -608,7 +618,36 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const msg = totalRewardFood > 0
       ? `簽到成功！獲得 ${totalRewardFood} 飼料！`
       : "簽到成功！";
+    // 簽到可能剛好達成「初來乍到」「七日不輟」這類勳章條件，簽到動作
+    // 本身結算完（set 完 user）之後才檢查，這樣 checkAndAwardBadges
+    // 讀到的 user.checkinHistory 才是最新的。
+    get().checkAndAwardBadges();
     return { success: true, message: msg, alreadyDone: false };
+  },
+
+  // 6.55 成就勳章：檢查 + 發放 + 存檔（見 @/lib/badges/badges.ts 的說明）
+  checkAndAwardBadges: () => {
+    const { user } = get();
+    if (!user) return [];
+
+    const newlyEarned = findNewlyEarnedBadges(user);
+    if (newlyEarned.length === 0) return [];
+
+    const now = Date.now();
+    const newEarnedBadgeIds = Array.from(
+      new Set([...(user.earnedBadgeIds ?? []), ...newlyEarned.map((b) => b.id)])
+    );
+    const updatedUser: UserDoc = { ...user, earnedBadgeIds: newEarnedBadgeIds, updatedAt: now };
+
+    set({ user: updatedUser });
+    updateDoc(doc(db, "users", user.uid), {
+      earnedBadgeIds: newEarnedBadgeIds,
+      updatedAt: now,
+    }).catch((error) => {
+      console.error("[useGameStore] checkAndAwardBadges 同步寫回 Firestore 失敗：", error);
+    });
+
+    return newlyEarned;
   },
 
   // 6.6 取得今天對弈電腦局數
@@ -672,6 +711,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         : outcome === "draw"
           ? `和棋，獲得 ${DRAW_REWARD_FOOD} 飼料安慰獎。`
           : `這局輸了，扣 ${LOSE_PENALTY_FOOD} 飼料，再接再厲！`;
+
+    // 可能剛好達成「初戰告捷」這類跟對弈電腦戰績有關的勳章條件
+    get().checkAndAwardBadges();
 
     return { success: true, message, foodDelta };
   },
