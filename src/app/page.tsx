@@ -556,8 +556,11 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
 
         {/* ============================================================
             A2. 主導覽 Tab Bar
+            7 個項目用 4 欄排版（4+3 兩排），比 3 欄（3+3+1，最後一排
+            擠出一個空蕩蕩的獨立項目）緊湊，整體高度也縮小一點
+            （icon/字級/padding 都比之前小一號）。
            ============================================================ */}
-        <nav className="mt-3 grid grid-cols-3 gap-1.5 rounded-2xl bg-white/70 p-2 shadow-sm">
+        <nav className="mt-3 grid grid-cols-4 gap-1 rounded-2xl bg-white/70 p-1.5 shadow-sm">
           {[
             { href: "/shop", icon: "🏪", label: "商店" },
             { href: "/inventory", icon: "🎒", label: "物品" },
@@ -571,12 +574,12 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
               key={href}
               type="button"
               onClick={() => router.push(href)}
-              className="relative flex flex-col items-center gap-0.5 rounded-xl py-2 text-[#1A1A2E] transition-transform active:scale-95 hover:bg-[#E8B84B]/20"
+              className="relative flex flex-col items-center gap-0.5 rounded-xl py-1.5 text-[#1A1A2E] transition-transform active:scale-95 hover:bg-[#E8B84B]/20"
             >
-              <span className="text-xl">{icon}</span>
-              <span className="text-xs font-bold">{label}</span>
+              <span className="text-lg">{icon}</span>
+              <span className="text-[10px] font-bold">{label}</span>
               {badge ? (
-                <span className="absolute right-2 top-1.5 h-2 w-2 rounded-full bg-[#C0392B]" />
+                <span className="absolute right-1.5 top-1 h-2 w-2 rounded-full bg-[#C0392B]" />
               ) : null}
             </button>
           ))}
