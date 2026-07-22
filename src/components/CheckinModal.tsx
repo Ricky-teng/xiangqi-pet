@@ -90,7 +90,10 @@ export function CheckinModal({ open, onClose, checkinTasks = [] }: CheckinModalP
             <div className="text-6xl animate-bounce">🎉</div>
             <p className="mt-4 text-xl font-extrabold text-[#1A1A2E]">簽到成功！</p>
             <p className="mt-1 text-sm text-[#1A1A2E]/60">
-              連續簽到 <span className="font-extrabold text-[#E8B84B]">{streak + 1}</span> 天
+              {/* streak 是用「簽到成功後」最新的 checkinHistory 算出來的，
+                  今天已經算在裡面了，這裡直接顯示 streak 就好，
+                  不能再 +1（+1 會多算一天，是之前的 bug）。 */}
+              連續簽到 <span className="font-extrabold text-[#E8B84B]">{streak}</span> 天
             </p>
             {totalRewardFood > 0 ? (
               <div className="mt-5 flex items-center gap-2 rounded-2xl bg-[#E8B84B]/20 px-6 py-4">

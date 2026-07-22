@@ -349,6 +349,35 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
   const [showCheckinModal, setShowCheckinModal] = useState(false);
   const [dailyGrantMessage, setDailyGrantMessage] = useState<string | null>(null);
 
+  // ---- 每日任務：只為了首頁的「有未領取任務」紅點提示，抓一次啟用中
+  // 的任務列表就好，不需要任務的完整內容（那是 /tasks 頁面的事）。
+  // dailyTasksLoaded 額外用來擋下面的「自動彈出簽到視窗」——這個
+  // Firestore 查詢是非同步的，簽到彈窗如果搶先彈出來，這時候
+  // activeDailyTasks 還是空陣列，傳給 CheckinModal 的 checkinTasks
+  // 也會是空的，導致簽到當下沒有任何任務可以發飼料（簽到記錄照樣寫入，
+  // 但飼料是 0，要另外去 /tasks 頁面才能領到）——這是之前的 bug，
+  // 修法是讓簽到彈窗也等這個查詢跑完才會自動彈出。這段要放在下面的
+  // 簽到彈窗 useEffect 前面，因為那個 effect 要引用 dailyTasksLoaded。
+  const [activeDailyTasks, setActiveDailyTasks] = useState<DailyTaskDoc[]>([]);
+  const [dailyTasksLoaded, setDailyTasksLoaded] = useState(false);
+  useEffect(() => {
+    let isCancelled = false;
+    getDocs(query(collection(db, "dailyTasks"), where("isActive", "==", true)))
+      .then((snapshot) => {
+        if (isCancelled) return;
+        setActiveDailyTasks(snapshot.docs.map((docSnapshot) => docSnapshot.data() as DailyTaskDoc));
+      })
+      .catch((error) => {
+        console.error("[home] 讀取每日任務列表失敗（不影響其他功能，只是紅點提示不會顯示）：", error);
+      })
+      .finally(() => {
+        if (!isCancelled) setDailyTasksLoaded(true);
+      });
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
   // 新手教學：只有 hasSeenTutorial 明確是 false（新帳號）才會顯示，
   // 舊帳號沒有這個欄位（undefined）不會被強制看教學。
   const [showTutorial, setShowTutorial] = useState(user.hasSeenTutorial === false);
@@ -360,18 +389,19 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
     updateDoc(doc(db, "users", user.uid), { hasSeenTutorial: true, updatedAt: now }).catch(console.error);
   }
 
-  // 進大廳時：今天還沒簽到就自動跳出簽到彈框
-  // （教學顯示期間先不跳簽到彈框，避免兩個全螢幕的東西疊在一起；
-  // 教學結束後如果還沒簽到，下次進首頁還是會正常跳出來）
+  // 進大廳時：今天還沒簽到、而且每日任務列表也已經載入完成，
+  // 才自動跳出簽到彈框（教學顯示期間、任務列表還沒載入完成時都先不跳，
+  // 避免簽到當下 checkinTasks 是空的導致沒發到飼料——見上面
+  // dailyTasksLoaded 的說明）。
   useEffect(() => {
-    if (showTutorial) return;
+    if (showTutorial || !dailyTasksLoaded) return;
     const today = getTodayDateString();
     const history = user.checkinHistory ?? [];
     if (!history.includes(today)) {
       setShowCheckinModal(true);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showTutorial]);
+  }, [showTutorial, dailyTasksLoaded]);
 
   // 轉職系統改版公告：排在教學、簽到彈框都關閉之後才顯示，避免多個
   // 全螢幕彈窗疊在一起。只有舊帳號（hasSeenJobChangeAnnouncement
@@ -419,25 +449,6 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
   const changeJob = useGameStore((s) => s.changeJob);
   const rebirthPet = useGameStore((s) => s.rebirthPet);
   const resurrectPet = useGameStore((s) => s.resurrectPet);
-
-  // ---- 每日任務：只為了首頁的「有未領取任務」紅點提示，抓一次啟用中
-  // 的任務列表就好，不需要任務的完整內容（那是 /tasks 頁面的事）。
-  const [activeDailyTasks, setActiveDailyTasks] = useState<DailyTaskDoc[]>([]);
-  useEffect(() => {
-    let isCancelled = false;
-    getDocs(query(collection(db, "dailyTasks"), where("isActive", "==", true)))
-      .then((snapshot) => {
-        if (isCancelled) return;
-        setActiveDailyTasks(snapshot.docs.map((docSnapshot) => docSnapshot.data() as DailyTaskDoc));
-      })
-      .catch((error) => {
-        console.error("[home] 讀取每日任務列表失敗（不影響其他功能，只是紅點提示不會顯示）：", error);
-      });
-    return () => {
-      isCancelled = true;
-    };
-  }, []);
-
   // ---- 轉職（圖鑑收藏系統）相關狀態 ----
   const [jobChangeMessage, setJobChangeMessage] = useState<string | null>(null);
   const [isChangingJob, setIsChangingJob] = useState(false);
