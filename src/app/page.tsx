@@ -313,7 +313,7 @@ function LivingPetDisplay({
   }, [isAlive, healthStatus]);
 
   return (
-    <div className="relative flex h-56 w-full items-end justify-center">
+    <div className="relative flex h-40 w-full items-end justify-center">
       {dialogueText ? (
         <div className="pointer-events-none absolute top-0 z-10 max-w-[80%] rounded-2xl bg-white px-3 py-2 text-xs font-semibold text-[#1A1A2E] shadow-md">
           {dialogueText}
@@ -329,7 +329,7 @@ function LivingPetDisplay({
           if (isJobImage && !jobImageFailed) setJobImageFailed(true);
         }}
         className={[
-          "h-48 w-48 cursor-pointer object-contain transition-transform",
+          "h-32 w-32 cursor-pointer object-contain transition-transform",
           isJumping ? "-translate-y-6 scale-110" : "translate-y-0 scale-100",
           "duration-200 ease-out",
         ].join(" ")}
@@ -597,7 +597,7 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
             B'. 成長狀態區，兩者用各自獨立的卡片呈現，不再共用一個
             容器、不再互相擠壓。
            ============================================================ */}
-        <section className="mt-4 flex flex-col items-center rounded-3xl bg-white/60 px-4 py-8 shadow-sm">
+        <section className="mt-3 flex flex-col items-center rounded-3xl bg-white/60 px-4 py-4 shadow-sm">
           <LivingPetDisplay
             stage={pet.stage}
             healthStatus={pet.healthStatus}
@@ -625,7 +625,7 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
             onClick={() => router.push("/feed")}
             disabled={user.foodCount < 10 || pet.healthStatus === "dead" || pet.fullness >= 100}
             className={[
-              "mt-5 rounded-2xl px-8 py-3 text-base font-bold text-white shadow-md transition-transform active:scale-95",
+              "mt-3 rounded-2xl px-8 py-2.5 text-sm font-bold text-white shadow-md transition-transform active:scale-95",
               user.foodCount < 10 || pet.healthStatus === "dead" || pet.fullness >= 100
                 ? "cursor-not-allowed bg-[#A9764C]/40"
                 : "bg-[#C0392B]",
@@ -642,25 +642,25 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
                 直接看到自己的等級數字，所以拿掉了；等級仍在背景
                 運作，只是不再用這個徽章展示出來。）
            ============================================================ */}
-        <section className="mt-4 flex flex-col items-center rounded-3xl bg-white/60 px-4 py-6 shadow-sm">
+        <section className="mt-3 flex flex-col items-center rounded-3xl bg-white/60 px-4 py-4 shadow-sm">
           {/* 三大屬性數值條 */}
-          <div className="mt-4 grid w-full grid-cols-3 gap-2 text-center">
-            <div className="rounded-xl bg-white/80 px-2 py-2">
-              <div className="text-lg" aria-hidden="true">
+          <div className="grid w-full grid-cols-3 gap-2 text-center">
+            <div className="rounded-xl bg-white/80 px-2 py-1.5">
+              <div className="text-base" aria-hidden="true">
                 ❤️
               </div>
               <div className="text-xs font-semibold text-[#1A1A2E]">
                 {fullnessDisplay}/100
               </div>
             </div>
-            <div className="rounded-xl bg-white/80 px-2 py-2">
-              <div className="text-lg" aria-hidden="true">
+            <div className="rounded-xl bg-white/80 px-2 py-1.5">
+              <div className="text-base" aria-hidden="true">
                 ⚔️
               </div>
               <div className="text-xs font-semibold text-[#1A1A2E]">{winRatePercent}%</div>
             </div>
-            <div className="rounded-xl bg-white/80 px-2 py-2">
-              <div className="text-lg" aria-hidden="true">
+            <div className="rounded-xl bg-white/80 px-2 py-1.5">
+              <div className="text-base" aria-hidden="true">
                 🛡️
               </div>
               <div className="text-xs font-semibold text-[#1A1A2E]">
@@ -670,7 +670,7 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
           </div>
 
           {/* 飽食度進度條 */}
-          <div className="mt-4 w-full">
+          <div className="mt-3 w-full">
             <div className="mb-1 flex justify-between text-xs font-medium text-[#1A1A2E]/70">
               <span>飽食度</span>
               <span className="tabular-nums">{fullnessDisplay}/100</span>
@@ -685,7 +685,7 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
 
           {/* XP 進度條：egg/chick/teen 階段顯示成長進度；master 階段
               改顯示轉職進度（見上面 xpPercent 的計算） */}
-          <div className="mt-3 w-full">
+          <div className="mt-2 w-full">
             <div className="mb-1 flex justify-between text-xs font-medium text-[#1A1A2E]/70">
               <span>
                 {pet.stage === "master" && nextJobEntry
@@ -711,7 +711,7 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
               職業歸零，圖鑑蒐集紀錄不會消失）。 */}
           {pet.stage === "master" ? (
             isMaxJobLevel(pet.currentAppearanceId) ? (
-              <div className="mt-4 w-full rounded-2xl bg-gradient-to-b from-[#F6D87A] to-[#E8B84B] px-4 py-3 text-center shadow-md">
+              <div className="mt-3 w-full rounded-2xl bg-gradient-to-b from-[#F6D87A] to-[#E8B84B] px-4 py-2.5 text-center shadow-md">
                 <p className="text-sm font-bold text-[#5C3D0A]">🦚 小雞已經轉職成鳳凰雞了！</p>
                 <p className="mt-0.5 text-xs text-[#5C3D0A]/70">
                   轉生會讓小雞重新從蛋開始成長，準備下一輪轉職旅程（圖鑑蒐集紀錄不會消失）。
@@ -726,7 +726,7 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
                 </button>
               </div>
             ) : (
-              <div className="mt-4 w-full rounded-2xl bg-gradient-to-b from-[#F6D87A] to-[#E8B84B] px-4 py-3 text-center shadow-md">
+              <div className="mt-3 w-full rounded-2xl bg-gradient-to-b from-[#F6D87A] to-[#E8B84B] px-4 py-2.5 text-center shadow-md">
                 <p className="text-sm font-bold text-[#5C3D0A]">🎉 小雞已經完全長大成熟了！</p>
                 <p className="mt-0.5 text-xs text-[#5C3D0A]/70">
                   {nextJobEntry
@@ -751,7 +751,7 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
               resurrectPet 的註解），死亡是沒照顧好的後果，復活是付費補救，
               不會解鎖圖鑑、不會增加轉生次數。 */}
           {pet.healthStatus === "dead" ? (
-            <div className="mt-4 w-full rounded-2xl bg-[#1A1A2E]/5 px-4 py-3 text-center shadow-md">
+            <div className="mt-3 w-full rounded-2xl bg-[#1A1A2E]/5 px-4 py-2.5 text-center shadow-md">
               <p className="text-sm font-bold text-[#1A1A2E]">💔 小雞沒有得到及時醫治，已經死掉了……</p>
               <p className="mt-0.5 text-xs text-[#1A1A2E]/60">
                 花費 30 飼料復活小雞，會重新從蛋開始養（不會解鎖圖鑑、不計入轉生次數）。
@@ -796,117 +796,75 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
         </section>
 
         {/* ============================================================
-            C. 挑戰入口（不再內嵌棋盤，改成導向題庫列表頁）
-           ============================================================ */}
-        <section className="mt-4 rounded-3xl bg-white/60 px-4 py-5 shadow-sm">
-          <h2 className="mb-3 text-center text-sm font-bold text-[#1A1A2E]">🏆 殘局挑戰</h2>
-          <p className="mb-4 text-center text-xs text-[#1A1A2E]/60">
-            前往題庫挑選一道殘局題目，解開它讓{STAGE_LABEL[pet.stage] ?? "小雞"}獲得飼料獎勵！
-          </p>
-          <button
-            type="button"
-            onClick={() => router.push("/puzzle")}
-            className="w-full rounded-2xl bg-gradient-to-b from-[#F6D87A] to-[#E8B84B] px-4 py-3 text-base font-extrabold text-[#5C3D0A] shadow-md transition-transform active:scale-95"
-          >
-            🚀 開始挑戰
-          </button>
-        </section>
-
-        {/* ============================================================
-            D. 與電腦對弈入口
-           ============================================================ */}
-        <section className="mt-4 rounded-3xl bg-white/60 px-4 py-5 shadow-sm">
-          <h2 className="mb-3 text-center text-sm font-bold text-[#1A1A2E]">♟️ 與電腦對弈</h2>
-          <p className="mb-4 text-center text-xs text-[#1A1A2E]/60">
-            真正下一場棋，不是解題——選個難度，贏了有飼料獎勵！
-          </p>
-          <button
-            type="button"
-            onClick={() => router.push("/play")}
-            className="w-full rounded-2xl bg-gradient-to-b from-[#8B5FBF] to-[#6B4593] px-4 py-3 text-base font-extrabold text-white shadow-md transition-transform active:scale-95"
-          >
-            ♟️ 開始對弈
-          </button>
-        </section>
-
-        {/* ============================================================
-            E. 殘局作戰入口
+            C~E2. 四個遊戲入口（殘局挑戰／電腦對弈／殘局作戰／配對對弈）
+            合併成一個 2x2 緊湊格子，取代原本四張各自獨立、標題+說明+
+            大按鈕的滿版卡片——內容一樣，只是不再各自佔一整排。
+            殘局作戰／配對對弈的「飼料不足」提示縮短成一行小字，直接
+            放在按鈕正下方，不再是獨立的一大塊提示框。
            ============================================================ */}
         {dailyGrantMessage ? (
-          <div className="mt-4 rounded-2xl bg-[#5B8C5A] px-4 py-3 text-center text-sm font-bold text-white shadow-md">
+          <div className="mt-3 rounded-2xl bg-[#5B8C5A] px-4 py-2.5 text-center text-sm font-bold text-white shadow-md">
             {dailyGrantMessage}
           </div>
         ) : null}
-        <section className="mt-4 rounded-3xl bg-white/60 px-4 py-5 shadow-sm">
-          <h2 className="mb-1 text-center text-sm font-bold text-[#1A1A2E]">⚔️ 殘局作戰</h2>
-          <p className="mb-3 text-center text-xs text-[#1A1A2E]/60">
-            與其他玩家即時對戰！共 10 題殘局，每題限時 30 秒，贏的一方 +50 飼料（入場費 20）。
-          </p>
+        <section className="mt-3 rounded-3xl bg-white/60 px-3 py-3 shadow-sm">
           {(() => {
-            // 計算按下按鈕後實際會有多少飼料（可能有救助金可領）
             const todayStr = new Date().toISOString().slice(0, 10);
             const canGetGrant = user.foodCount < 20 && user.lastDailyGrantDate !== todayStr;
             const effectiveFoodCount = canGetGrant ? user.foodCount + 50 : user.foodCount;
-            const canBattle = effectiveFoodCount >= 20;
+            const canBattleOrMatch = effectiveFoodCount >= 20;
+            const shortageHint = !canBattleOrMatch
+              ? "飼料不足，無法參賽"
+              : user.foodCount < 20
+                ? "🎁 會自動領今日救助金"
+                : null;
 
             return (
-              <>
-                {!canBattle ? (
-                  <p className="mb-3 rounded-xl bg-[#C0392B]/10 px-3 py-2 text-center text-xs font-semibold text-[#C0392B]">
-                    飼料不足 20 且今天已領過救助金，無法參賽（目前 {user.foodCount} 飼料）
-                  </p>
-                ) : user.foodCount < 20 ? (
-                  <p className="mb-3 rounded-xl bg-[#5B8C5A]/10 px-3 py-2 text-center text-xs font-semibold text-[#5B8C5A]">
-                    🎁 飼料不足，按下配對會自動領取今日救助金 +50！
-                  </p>
-                ) : null}
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => router.push("/puzzle")}
+                  className="flex flex-col items-center gap-1 rounded-2xl bg-gradient-to-b from-[#F6D87A] to-[#E8B84B] px-2 py-3 shadow-md transition-transform active:scale-95"
+                >
+                  <span className="text-2xl">🚀</span>
+                  <span className="text-xs font-extrabold text-[#5C3D0A]">殘局挑戰</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => router.push("/play")}
+                  className="flex flex-col items-center gap-1 rounded-2xl bg-gradient-to-b from-[#8B5FBF] to-[#6B4593] px-2 py-3 shadow-md transition-transform active:scale-95"
+                >
+                  <span className="text-2xl">♟️</span>
+                  <span className="text-xs font-extrabold text-white">電腦對弈</span>
+                </button>
+
                 <button
                   type="button"
                   onClick={handleStartBattle}
-                  disabled={!canBattle}
-                  className="w-full rounded-2xl bg-gradient-to-b from-[#C0392B] to-[#922B21] px-4 py-3 text-base font-extrabold text-white shadow-md transition-transform active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={!canBattleOrMatch}
+                  className="flex flex-col items-center gap-0.5 rounded-2xl bg-gradient-to-b from-[#C0392B] to-[#922B21] px-2 py-3 shadow-md transition-transform active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  ⚔️ 開始配對（消耗 20 飼料）
+                  <span className="text-2xl">⚔️</span>
+                  <span className="text-xs font-extrabold text-white">殘局作戰</span>
+                  <span className="text-[9px] font-medium text-white/80">
+                    {shortageHint ?? "入場 20 飼料"}
+                  </span>
                 </button>
-              </>
-            );
-          })()}
-        </section>
 
-        {/* ============================================================
-            E2. 配對對弈入口：下一整盤真正的棋，不是殘局解謎
-           ============================================================ */}
-        <section className="mt-4 rounded-3xl bg-white/60 px-4 py-5 shadow-sm">
-          <h2 className="mb-1 text-center text-sm font-bold text-[#1A1A2E]">♟️ 配對對弈</h2>
-          <p className="mb-3 text-center text-xs text-[#1A1A2E]/60">
-            跟其他玩家下一整盤真正的棋！每人 15 分鐘棋鐘、每步加 5 秒，贏的一方 +50 飼料（入場費 20）。
-          </p>
-          {(() => {
-            const todayStr = new Date().toISOString().slice(0, 10);
-            const canGetGrant = user.foodCount < 20 && user.lastDailyGrantDate !== todayStr;
-            const effectiveFoodCount = canGetGrant ? user.foodCount + 50 : user.foodCount;
-            const canMatch = effectiveFoodCount >= 20;
-
-            return (
-              <>
-                {!canMatch ? (
-                  <p className="mb-3 rounded-xl bg-[#C0392B]/10 px-3 py-2 text-center text-xs font-semibold text-[#C0392B]">
-                    飼料不足 20 且今天已領過救助金，無法參賽（目前 {user.foodCount} 飼料）
-                  </p>
-                ) : user.foodCount < 20 ? (
-                  <p className="mb-3 rounded-xl bg-[#5B8C5A]/10 px-3 py-2 text-center text-xs font-semibold text-[#5B8C5A]">
-                    🎁 飼料不足，按下配對會自動領取今日救助金 +50！
-                  </p>
-                ) : null}
                 <button
                   type="button"
                   onClick={handleStartMatch}
-                  disabled={!canMatch}
-                  className="w-full rounded-2xl bg-gradient-to-b from-[#8B5FBF] to-[#6B4593] px-4 py-3 text-base font-extrabold text-white shadow-md transition-transform active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+                  disabled={!canBattleOrMatch}
+                  className="flex flex-col items-center gap-0.5 rounded-2xl bg-gradient-to-b from-[#8B5FBF] to-[#6B4593] px-2 py-3 shadow-md transition-transform active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  ♟️ 開始配對（消耗 20 飼料）
+                  <span className="text-2xl">♟️</span>
+                  <span className="text-xs font-extrabold text-white">配對對弈</span>
+                  <span className="text-[9px] font-medium text-white/80">
+                    {shortageHint ?? "入場 20 飼料"}
+                  </span>
                 </button>
-              </>
+              </div>
             );
           })()}
         </section>
@@ -972,8 +930,8 @@ function RecentGamesSection({ userUid }: { userUid: string }) {
   if (status === "error") return null; // 讀不到就不顯示這個區塊，不影響首頁其他功能
 
   return (
-    <section className="mt-4 rounded-3xl bg-white/60 px-4 py-5 shadow-sm">
-      <h2 className="mb-3 text-center text-sm font-bold text-[#1A1A2E]">📺 最近對局</h2>
+    <section className="mt-3 rounded-3xl bg-white/60 px-4 py-4 shadow-sm">
+      <h2 className="mb-2 text-center text-sm font-bold text-[#1A1A2E]">📺 最近對局</h2>
       {games.length === 0 ? (
         <p className="text-center text-xs text-[#1A1A2E]/50">還沒有對弈紀錄，去跟電腦下一局吧！</p>
       ) : (
