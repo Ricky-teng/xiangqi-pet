@@ -193,6 +193,11 @@ export interface UserDoc {
   /** 上次發送「每日任務未領」提醒的時間戳 */
   lastTaskReminderSentAt?: number | null;
 
+  /** 上次查看公告列表的時間戳，跟最新公告的 createdAt 比較，用來判斷
+   * 首頁「公告」入口要不要顯示紅點（見 hasUnreadAnnouncement，比照
+   * hasUnclaimedDailyTask 的寫法）。沒有這個欄位視為從來沒看過。 */
+  lastSeenAnnouncementsAt?: number | null;
+
   /** 已購買的背景 ID 陣列 */
   unlockedBackgrounds?: string[];
 
@@ -536,6 +541,30 @@ export interface ChessMatchRoomDoc {
   /** 贏家 uid，和局是 null；對局還沒結束時也是 null（靠 status 判斷） */
   winner: string | null;
   endReason: ChessMatchEndReason | null;
+  createdAt: number;
+  updatedAt: number;
+}
+
+/**
+ * 9. 公告 (路徑: announcements/{id})
+ * ------------------------------------------------------------
+ * 老師在 /admin/announcements 建立/編輯，學生在 /announcements 唯讀
+ * 瀏覽。圖片是選填的，用 canvas 在瀏覽器端先壓縮成小尺寸 JPEG 再轉
+ * base64 直接存進這個欄位（見 @/lib/image/compressImage.ts），沒有用
+ * Firebase Storage——這個專案目前沒有另外設定 Storage，用這個做法可以
+ * 完全不需要老師去 Firebase Console 多開一個服務、多設一次規則。
+ * 代價是 Firestore 單一文件有 1MiB 上限，所以壓縮目標抓得比較保守
+ * （壓完的圖檔本身抓在 500KB 以內，base64 編碼後大約再多 1/3）。
+ */
+export interface AnnouncementDoc {
+  id: string;
+  title: string;
+  /** 純文字內容，保留換行（畫面顯示時用 white-space: pre-wrap） */
+  content: string;
+  /** base64 圖片資料（data URL，例如 "data:image/jpeg;base64,..."），沒有附圖就是 null */
+  imageDataUrl: string | null;
+  authorUid: string;
+  authorName: string;
   createdAt: number;
   updatedAt: number;
 }

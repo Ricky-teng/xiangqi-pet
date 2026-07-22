@@ -39,6 +39,7 @@ import RequireAuth from "@/components/RequireAuth";
 import TutorialOverlay from "@/components/tutorial/TutorialOverlay";
 import { JobChangeAnnouncementModal } from "@/components/JobChangeAnnouncementModal";
 import { ResetCompensationModal } from "@/components/ResetCompensationModal";
+import { hasUnreadAnnouncement } from "@/lib/announcements";
 import { STAGE_XP_THRESHOLDS } from "@/lib/pet/petGrowth";
 import { SICKNESS_ESCALATION_HOURS } from "@/lib/pet/petDecay";
 import { getPetImagePath, getPetDisplaySrc } from "@/lib/pet/petImagePath";
@@ -216,6 +217,16 @@ function TeacherHomeContent({ user }: { user: UserDoc }) {
             <span className="text-base font-extrabold text-[#1A1A2E]">每日任務管理</span>
             <span className="text-xs font-medium text-[#1A1A2E]/60">新增、編輯、停用每日任務</span>
           </button>
+
+          <button
+            type="button"
+            onClick={() => router.push("/admin/announcements")}
+            className="flex flex-col items-center gap-1 rounded-3xl bg-white/70 px-4 py-6 shadow-sm transition-transform active:scale-95"
+          >
+            <span className="text-3xl" aria-hidden="true">📢</span>
+            <span className="text-base font-extrabold text-[#1A1A2E]">公告管理</span>
+            <span className="text-xs font-medium text-[#1A1A2E]/60">發布、編輯、刪除公告（可附圖）</span>
+          </button>
         </div>
       </div>
     </main>
@@ -373,6 +384,26 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
       })
       .finally(() => {
         if (!isCancelled) setDailyTasksLoaded(true);
+      });
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  // 只為了首頁「公告」入口的紅點提示，抓最新一則公告的 createdAt 就好，
+  // 不需要抓完整公告列表（那是 /announcements 頁面的事）。查詢失敗
+  // 不影響其他功能，紅點就是不顯示而已。
+  const [latestAnnouncementCreatedAt, setLatestAnnouncementCreatedAt] = useState(0);
+  useEffect(() => {
+    let isCancelled = false;
+    getDocs(query(collection(db, "announcements"), orderBy("createdAt", "desc"), limit(1)))
+      .then((snapshot) => {
+        if (isCancelled) return;
+        const latest = snapshot.docs[0]?.data()?.createdAt ?? 0;
+        setLatestAnnouncementCreatedAt(latest);
+      })
+      .catch((error) => {
+        console.error("[home] 讀取最新公告時間失敗（不影響其他功能，只是紅點提示不會顯示）：", error);
       });
     return () => {
       isCancelled = true;
@@ -577,9 +608,7 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
 
         {/* ============================================================
             A2. 主導覽 Tab Bar
-            7 個項目用 4 欄排版（4+3 兩排），比 3 欄（3+3+1，最後一排
-            擠出一個空蕩蕩的獨立項目）緊湊，整體高度也縮小一點
-            （icon/字級/padding 都比之前小一號）。
+            8 個項目用 4 欄排版（4+4 兩排，剛好填滿，不會有空格）。
            ============================================================ */}
         <nav className="mt-3 grid grid-cols-4 gap-1 rounded-2xl bg-white/70 p-1.5 shadow-sm">
           {[
@@ -590,6 +619,7 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
             { href: "/catalog", icon: "📖", label: "圖鑑" },
             { href: "/badges", icon: "🎖️", label: "勳章" },
             { href: "/friends", icon: "👥", label: "好友" },
+            { href: "/announcements", icon: "📢", label: "公告", badge: hasUnreadAnnouncement(user, latestAnnouncementCreatedAt) },
           ].map(({ href, icon, label, badge }) => (
             <button
               key={href}
