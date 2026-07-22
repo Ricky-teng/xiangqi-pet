@@ -58,6 +58,13 @@ export interface ShopItem {
   /** 棋盤造型圖片路徑（只有 board_skin 類型才有；貼在棋盤木紋底色的
    * 位置，格線/棋子顏色不受影響，見 ChessBoard.tsx 的 boardSkinSrc prop） */
   boardSkinSrc?: string;
+  /**
+   * 棋盤造型的深淺主題（只有 board_skin 類型才有意義）：深色材質
+   * （胡桃木、鎏金古銅這種）預設的深棕色格線會看不清楚，標成 "dark"
+   * 之後畫面會自動改用淺色格線。不填視為 "light"（用預設深棕色格線）。
+   * 見 getBoardLineColor()。
+   */
+  boardSkinTheme?: "light" | "dark";
   /** 預覽顏色（背景圖載入前的佔位色） */
   previewColor?: string;
   /** 背景/棋盤造型的稀有度（只有 background、board_skin 才有；沒填視為 common） */
@@ -248,6 +255,7 @@ export const SHOP_ITEMS: ShopItem[] = [
     boardSkinSrc: "/board-skins/dark_walnut.jpg",
     previewColor: "#6B4226",
     rarity: "uncommon",
+    boardSkinTheme: "dark",
   },
   {
     id: "bamboo_weave",
@@ -292,6 +300,7 @@ export const SHOP_ITEMS: ShopItem[] = [
     boardSkinSrc: "/board-skins/golden_bronze.jpg",
     previewColor: "#B8860B",
     rarity: "legendary",
+    boardSkinTheme: "dark",
   },
 ];
 
@@ -309,6 +318,18 @@ export function getActiveBoardSkinSrc(activeBoardSkin: string | null | undefined
   if (!activeBoardSkin) return null;
   const item = SHOP_ITEMS.find((i) => i.category === "board_skin" && i.id === activeBoardSkin);
   return item?.boardSkinSrc ?? null;
+}
+
+/**
+ * 依使用者目前選用的棋盤造型 ID，算出格線該用什麼顏色，給
+ * <ChessBoard lineColor={...} /> 用。深色主題（boardSkinTheme: "dark"）
+ * 用米白色格線，其餘（包含沒選、預設木紋）都用 null，讓 ChessBoard
+ * 自己套用預設的深棕色。
+ */
+export function getBoardLineColor(activeBoardSkin: string | null | undefined): string | undefined {
+  if (!activeBoardSkin) return undefined;
+  const item = SHOP_ITEMS.find((i) => i.category === "board_skin" && i.id === activeBoardSkin);
+  return item?.boardSkinTheme === "dark" ? "#FDF6E8" : undefined;
 }
 
 /** 判斷用戶是否已解鎖某個背景 */

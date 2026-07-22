@@ -40,7 +40,7 @@ import {
 import { recordVsComputerGame, computeAndSaveMoveQualityInBackground } from "@/lib/engine/gameRecording";
 import type { UserDoc } from "@/types/database";
 import { useAppBackground } from "@/lib/useAppBackground";
-import { getActiveBoardSkinSrc } from "@/lib/shopItems";
+import { getActiveBoardSkinSrc, getBoardLineColor } from "@/lib/shopItems";
 
 type GamePhase = "choosing_difficulty" | "student_turn" | "computer_thinking" | "game_over";
 
@@ -352,7 +352,7 @@ function VsComputerContent() {
               </div>
 
               <div className={["mt-3", isStudentTurn ? "" : "pointer-events-none opacity-60"].join(" ")}>
-                <ChessBoard board={board} onMove={handleStudentMove} lastMove={lastMove} boardSkinSrc={getActiveBoardSkinSrc(user.activeBoardSkin)} />
+                <ChessBoard board={board} onMove={handleStudentMove} lastMove={lastMove} boardSkinSrc={getActiveBoardSkinSrc(user.activeBoardSkin)} lineColor={getBoardLineColor(user.activeBoardSkin)} />
               </div>
 
               <div className="mt-3 min-h-[1.5rem] text-center text-xs">

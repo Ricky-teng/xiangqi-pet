@@ -56,7 +56,7 @@ const CELL = 50;
 const MARGIN = 32;
 const BOARD_WIDTH = MARGIN * 2 + CELL * 8;
 const BOARD_HEIGHT = MARGIN * 2 + CELL * 9;
-const LINE_COLOR = "#5C3D0A";
+const DEFAULT_LINE_COLOR = "#5C3D0A";
 const RIVER_ROW_TOP = 4; // 楚河上緣（row 4 這條橫線之下開始是河面）
 const RIVER_ROW_BOTTOM = 5; // 楚河下緣
 
@@ -116,6 +116,13 @@ export interface ChessBoardProps {
    * 的材質貼圖。
    */
   boardSkinSrc?: string | null;
+  /**
+   * 選用：格線顏色覆寫。棋盤造型是深色材質（例如胡桃木、鎏金古銅）時，
+   * 預設的深棕色格線會看不清楚，呼叫端應該傳入比較淺的顏色（例如
+   * 米白色）。不提供就用預設的深棕色 DEFAULT_LINE_COLOR。
+   * 見 @/lib/shopItems.ts 的 getBoardLineColor()。
+   */
+  lineColor?: string;
 }
 
 const MOVE_QUALITY_MARKER_STYLE: Record<"good" | "normal" | "mistake", { fill: string; symbol: string }> = {
@@ -134,7 +141,8 @@ function parseSquareLabel(square: string): { row: number; col: number } {
 // 4. 主體元件
 // ============================================================
 
-export default function ChessBoard({ board, onMove, highlightMove, lastMove, highlightMoves, blockedPoints, moveQualityMarker, boardSkinSrc }: ChessBoardProps) {
+export default function ChessBoard({ board, onMove, highlightMove, lastMove, highlightMoves, blockedPoints, moveQualityMarker, boardSkinSrc, lineColor }: ChessBoardProps) {
+  const LINE_COLOR = lineColor ?? DEFAULT_LINE_COLOR;
   const [selectedFrom, setSelectedFrom] = useState<{ row: number; col: number } | null>(null);
 
   function handleCellClick(row: number, col: number) {
