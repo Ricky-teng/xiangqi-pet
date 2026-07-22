@@ -35,6 +35,8 @@ export function ResetCompensationModal({ open, amount, onClaim }: ResetCompensat
             上次調整轉生機制的時候，不小心把大家的小雞狀態都重置了，
             造成養成進度受到影響，真的很抱歉！這裡補償一筆飼料，
             當作賠罪 🙏
+            補償飼料=解題數*10
+            上限為5000
           </p>
         </div>
 
