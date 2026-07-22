@@ -352,6 +352,7 @@ function AdminAnnouncementsContent() {
                           <p className="truncate text-sm font-semibold text-[#1A1A2E]">{announcement.title}</p>
                           <p className="truncate text-[11px] text-[#1A1A2E]/40">
                             {announcement.authorName} ・ {new Date(announcement.createdAt).toLocaleString("zh-TW")}
+                            {" ・ "}👀 {(announcement.viewedByUids ?? []).length} 人已讀
                           </p>
                         </div>
 

@@ -13,7 +13,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { collection, doc, getDocs, updateDoc } from "firebase/firestore";
+import { arrayUnion, collection, doc, getDocs, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useGameStore } from "@/stores/useGameStore";
 import RequireAuth from "@/components/RequireAuth";
@@ -58,6 +58,35 @@ function AnnouncementsContent() {
       isCancelled = true;
     };
   }, []);
+
+  // 公告列表載入完成、而且知道是誰在看之後，把自己加進每一則公告的
+  // viewedByUids（沒看過的才寫，已經看過的略過，省掉不必要的寫入）。
+  // arrayUnion 本身也是防重複的，就算真的重複呼叫也不會把同一個人
+  // 算兩次，這裡多一層「已經在陣列裡就跳過」純粹是省 Firestore 寫入次數。
+  useEffect(() => {
+    if (!user || announcements.length === 0) return;
+
+    const notYetViewed = announcements.filter((a) => !(a.viewedByUids ?? []).includes(user.uid));
+    if (notYetViewed.length === 0) return;
+
+    notYetViewed.forEach((announcement) => {
+      updateDoc(doc(db, "announcements", announcement.id), {
+        viewedByUids: arrayUnion(user.uid),
+      }).catch((error) => {
+        console.error(`[announcements] 記錄瀏覽人數失敗（不影響瀏覽公告，id: ${announcement.id}）：`, error);
+      });
+    });
+
+    // 樂觀更新本地狀態，畫面上的瀏覽人數立刻 +1，不用等重新整理頁面
+    setAnnouncements((prev) =>
+      prev.map((a) =>
+        notYetViewed.some((n) => n.id === a.id)
+          ? { ...a, viewedByUids: [...(a.viewedByUids ?? []), user.uid] }
+          : a
+      )
+    );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.uid, announcements.length]);
 
   // 進頁面就標記成「已讀」，首頁的紅點會消失。只在 user 存在、而且
   // 還沒標記過「現在這一刻」時寫一次，避免每次 re-render 都打一次 Firestore。
@@ -105,6 +134,7 @@ function AnnouncementsContent() {
                     <p className="text-sm font-extrabold text-[#1A1A2E]">{announcement.title}</p>
                     <p className="mt-0.5 text-[11px] text-[#1A1A2E]/40">
                       {announcement.authorName} ・ {new Date(announcement.createdAt).toLocaleString("zh-TW")}
+                      {" ・ "}👀 {(announcement.viewedByUids ?? []).length} 人已讀
                     </p>
                     <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-[#1A1A2E]/80">
                       {announcement.content}

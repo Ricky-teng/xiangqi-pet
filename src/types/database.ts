@@ -567,4 +567,14 @@ export interface AnnouncementDoc {
   authorName: string;
   createdAt: number;
   updatedAt: number;
+
+  /**
+   * 已瀏覽過這則公告的學生 uid 陣列（用 arrayUnion 寫入，天生防重複，
+   * 同一個人看幾次都只算一次）。瀏覽人數 = viewedByUids.length，不用
+   * 另外存一個計數欄位，也不會有「陣列跟計數兜不起來」的風險。
+   * 只有學生瀏覽 /announcements 才會被記錄；老師在後台
+   * /admin/announcements 看列表不會把自己算進去（那只是管理畫面，
+   * 不是公告真正的閱讀對象）。見 src/app/announcements/page.tsx。
+   */
+  viewedByUids?: string[];
 }
