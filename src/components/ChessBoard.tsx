@@ -109,6 +109,13 @@ export interface ChessBoardProps {
    * tag 直接用字面值（跟 database.ts 的 MoveQualityTag 對應但不 import）。
    */
   moveQualityMarker?: { square: string; tag: "good" | "normal" | "mistake" } | null;
+  /**
+   * 選用：棋盤木紋底色改用圖片材質（抽獎取得的棋盤造型，見
+   * @/lib/shopItems.ts 的 board_skin 分類）。不提供就用預設的
+   * 米黃木紋色 bg-[#E8D5B5]。格線/棋子顏色不受影響，只換棋盤本體
+   * 的材質貼圖。
+   */
+  boardSkinSrc?: string | null;
 }
 
 const MOVE_QUALITY_MARKER_STYLE: Record<"good" | "normal" | "mistake", { fill: string; symbol: string }> = {
@@ -127,7 +134,7 @@ function parseSquareLabel(square: string): { row: number; col: number } {
 // 4. 主體元件
 // ============================================================
 
-export default function ChessBoard({ board, onMove, highlightMove, lastMove, highlightMoves, blockedPoints, moveQualityMarker }: ChessBoardProps) {
+export default function ChessBoard({ board, onMove, highlightMove, lastMove, highlightMoves, blockedPoints, moveQualityMarker, boardSkinSrc }: ChessBoardProps) {
   const [selectedFrom, setSelectedFrom] = useState<{ row: number; col: number } | null>(null);
 
   function handleCellClick(row: number, col: number) {
@@ -166,6 +173,11 @@ export default function ChessBoard({ board, onMove, highlightMove, lastMove, hig
       <svg
         viewBox={`0 0 ${BOARD_WIDTH} ${BOARD_HEIGHT}`}
         className="h-auto w-full rounded-2xl border-4 border-[#A9764C] bg-[#E8D5B5] p-1 shadow-inner"
+        style={
+          boardSkinSrc
+            ? { backgroundImage: `url(${boardSkinSrc})`, backgroundSize: "cover", backgroundPosition: "center" }
+            : undefined
+        }
         role="group"
         aria-label="象棋棋盤"
       >

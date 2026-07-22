@@ -40,6 +40,7 @@ import { useRulesEngine } from "@/hooks/useRulesEngine";
 import { parseFen, STANDARD_START_FEN } from "@/lib/xiangqi/fen";
 import type { ChessMatchRoomDoc, ChessMatchQueueEntry, ChessMatchEndReason } from "@/types/database";
 import { useAppBackground } from "@/lib/useAppBackground";
+import { getActiveBoardSkinSrc } from "@/lib/shopItems";
 
 const BATTLE_ENTRY_COST = 20; // 跟 /battle 頁面同一套經濟模型，故意同名同值
 const BATTLE_WIN_REWARD = 50;
@@ -485,7 +486,7 @@ function MatchPageContent() {
 
         {/* 棋盤 */}
         <div className="mt-3">
-          <ChessBoard board={board} onMove={handleMove} lastMove={lastMove} />
+          <ChessBoard board={board} onMove={handleMove} lastMove={lastMove} boardSkinSrc={getActiveBoardSkinSrc(user.activeBoardSkin)} />
         </div>
 
         {moveError ? <p className="mt-2 text-center text-xs font-bold text-[#C0392B]">{moveError}</p> : null}

@@ -13,6 +13,7 @@ function InventoryContent() {
   const pet = useGameStore((s) => s.pet);
   const useItem = useGameStore((s) => s.useItem);
   const setActiveBackground = useGameStore((s) => s.setActiveBackground);
+  const setActiveBoardSkin = useGameStore((s) => s.setActiveBoardSkin);
   const isDoubleRewardActive = useGameStore((s) => s.isDoubleRewardActive);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -42,8 +43,14 @@ function InventoryContent() {
     showMessage(id ? "✅ 背景已套用！" : "✅ 已切換回預設背景");
   }
 
+  function handleSetBoardSkin(id: string | null) {
+    setActiveBoardSkin(id);
+    showMessage(id ? "✅ 棋盤造型已套用！" : "✅ 已切換回預設棋盤");
+  }
+
   const consumables = SHOP_ITEMS.filter((i) => i.category === "consumable");
   const backgrounds = SHOP_ITEMS.filter((i) => i.category === "background");
+  const boardSkins = SHOP_ITEMS.filter((i) => i.category === "board_skin");
 
   return (
     <main
@@ -174,6 +181,82 @@ function InventoryContent() {
                     <button
                       type="button"
                       onClick={() => handleSetBackground(isActive ? null : item.id)}
+                      className={["rounded-xl px-3 py-1.5 text-xs font-bold transition-transform active:scale-95",
+                        isActive ? "bg-[#1A1A2E]/10 text-[#1A1A2E]/50" : "bg-[#E8B84B] text-[#5C3D0A]",
+                      ].join(" ")}
+                    >
+                      {isActive ? "取消" : "套用"}
+                    </button>
+                  ) : (
+                    <button type="button" onClick={() => router.push("/shop")}
+                      className="rounded-xl bg-[#8B5FBF]/20 px-3 py-1.5 text-xs font-bold text-[#8B5FBF] transition-transform active:scale-95">
+                      前往抽獎
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </section>
+
+        {/* 棋盤造型：UI 完全比照上面的背景區塊，只是資料來源/切換函式
+            各自獨立（unlockedBoardSkins / activeBoardSkin / setActiveBoardSkin） */}
+        <section className="mt-4 rounded-3xl bg-white/70 px-4 py-4 shadow-sm">
+          <h2 className="mb-3 text-sm font-bold text-[#1A1A2E]">♟️ 棋盤造型</h2>
+
+          {/* 預設棋盤 */}
+          <div className="mb-2 flex items-center gap-3 rounded-2xl bg-white/80 px-4 py-3">
+            <div className="h-12 w-12 rounded-xl flex items-center justify-center text-xl" style={{ backgroundColor: "#E8D5B5" }}>♟️</div>
+            <div className="flex-1">
+              <p className="text-sm font-bold text-[#1A1A2E]">預設（原木色）</p>
+              <p className="text-xs text-[#1A1A2E]/50">系統預設棋盤</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => handleSetBoardSkin(null)}
+              className={["rounded-xl px-3 py-1.5 text-xs font-bold transition-transform active:scale-95",
+                !user.activeBoardSkin ? "bg-[#E8B84B] text-[#5C3D0A]" : "bg-[#1A1A2E]/10 text-[#1A1A2E]/50",
+              ].join(" ")}
+            >
+              {!user.activeBoardSkin ? "✓ 使用中" : "套用"}
+            </button>
+          </div>
+
+          {boardSkins.map((item) => {
+            const owned = (user.unlockedBoardSkins ?? []).includes(item.id);
+            const isActive = user.activeBoardSkin === item.id;
+            return (
+              <div key={item.id} className="mb-2 overflow-hidden rounded-2xl bg-white/80">
+                {owned && item.boardSkinSrc ? (
+                  <div className="relative h-28 w-full overflow-hidden">
+                    <img src={item.boardSkinSrc} alt={item.name} className="h-full w-full object-cover" />
+                    {isActive ? (
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                        <span className="rounded-full bg-[#E8B84B] px-3 py-1 text-xs font-extrabold text-[#5C3D0A]">✓ 使用中</span>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
+                <div className="flex items-center gap-3 px-4 py-3">
+                  <span className="text-2xl">{item.icon}</span>
+                  <div className="flex-1">
+                    <p className="text-sm font-bold text-[#1A1A2E]">
+                      {item.name}
+                      <span
+                        className="ml-2 rounded-full px-2 py-0.5 text-[10px] font-extrabold text-white"
+                        style={{ backgroundColor: RARITY_COLORS[item.rarity ?? "common"] }}
+                      >
+                        {RARITY_LABELS[item.rarity ?? "common"]}
+                      </span>
+                    </p>
+                    <p className="text-xs text-[#1A1A2E]/50">
+                      {owned ? "已擁有" : "尚未擁有（前往商店抽獎取得）"}
+                    </p>
+                  </div>
+                  {owned ? (
+                    <button
+                      type="button"
+                      onClick={() => handleSetBoardSkin(isActive ? null : item.id)}
                       className={["rounded-xl px-3 py-1.5 text-xs font-bold transition-transform active:scale-95",
                         isActive ? "bg-[#1A1A2E]/10 text-[#1A1A2E]/50" : "bg-[#E8B84B] text-[#5C3D0A]",
                       ].join(" ")}

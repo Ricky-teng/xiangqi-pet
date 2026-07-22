@@ -6,7 +6,7 @@
  * 新增/修改道具只需改這個檔案。
  */
 
-export type ItemCategory = "consumable" | "background";
+export type ItemCategory = "consumable" | "background" | "board_skin";
 
 /** 背景稀有度，由低到高排序 */
 export type BackgroundRarity = "common" | "uncommon" | "rare" | "super_rare" | "epic" | "legendary";
@@ -55,9 +55,12 @@ export interface ShopItem {
   price: number;
   /** 背景圖片路徑（只有 background 類型才有） */
   backgroundSrc?: string;
+  /** 棋盤造型圖片路徑（只有 board_skin 類型才有；貼在棋盤木紋底色的
+   * 位置，格線/棋子顏色不受影響，見 ChessBoard.tsx 的 boardSkinSrc prop） */
+  boardSkinSrc?: string;
   /** 預覽顏色（背景圖載入前的佔位色） */
   previewColor?: string;
-  /** 背景稀有度（只有 background 類型才有；沒填視為 common） */
+  /** 背景/棋盤造型的稀有度（只有 background、board_skin 才有；沒填視為 common） */
   rarity?: BackgroundRarity;
 }
 
@@ -218,11 +221,94 @@ export const SHOP_ITEMS: ShopItem[] = [
     previewColor: "#2FA8D5",
     rarity: "epic",
   },
+
+  // ---- 棋盤造型（獨立於背景之外的另一套抽獎池，見
+  // BOARD_SKIN_GACHA_COST 等常數；圖片檔案還沒準備，先放檔名佔位，
+  // 實際圖檔要放到 /public/board-skins/{id}.jpg，規格建議跟背景一樣：
+  // 橫向、至少 1200px 寬，木紋/石紋/玉石紋這種「棋盤本體材質」特寫，
+  // 不需要留白邊，棋盤本身的格線會直接疊在圖片上面。） ----
+  {
+    id: "classic_oak",
+    category: "board_skin",
+    name: "經典原木棋盤",
+    description: "淺色橡木紋理，最耐看的基本款棋盤。",
+    icon: "🪵",
+    price: 300,
+    boardSkinSrc: "/board-skins/classic_oak.jpg",
+    previewColor: "#E8D5B5",
+    rarity: "common",
+  },
+  {
+    id: "dark_walnut",
+    category: "board_skin",
+    name: "胡桃深木棋盤",
+    description: "深色胡桃木紋，沉穩大氣的高級感。",
+    icon: "🟫",
+    price: 300,
+    boardSkinSrc: "/board-skins/dark_walnut.jpg",
+    previewColor: "#6B4226",
+    rarity: "uncommon",
+  },
+  {
+    id: "bamboo_weave",
+    category: "board_skin",
+    name: "竹編棋盤",
+    description: "手工竹編紋理，清爽自然的棋盤造型。",
+    icon: "🎍",
+    price: 300,
+    boardSkinSrc: "/board-skins/bamboo_weave.jpg",
+    previewColor: "#C7A96B",
+    rarity: "uncommon",
+  },
+  {
+    id: "jade_stone",
+    category: "board_skin",
+    name: "翡翠玉石棋盤",
+    description: "溫潤翠綠的玉石紋理，價值連城的稀有造型。",
+    icon: "💚",
+    price: 300,
+    boardSkinSrc: "/board-skins/jade_stone.jpg",
+    previewColor: "#3A7D5C",
+    rarity: "rare",
+  },
+  {
+    id: "marble_white",
+    category: "board_skin",
+    name: "大理石棋盤",
+    description: "純白大理石紋路，帶點金色紋脈的華麗質感。",
+    icon: "🤍",
+    price: 300,
+    boardSkinSrc: "/board-skins/marble_white.jpg",
+    previewColor: "#D8D2C4",
+    rarity: "super_rare",
+  },
+  {
+    id: "golden_bronze",
+    category: "board_skin",
+    name: "鎏金古銅棋盤",
+    description: "古代青銅器質感，鑲著金色紋飾的傳說級棋盤。",
+    icon: "🏆",
+    price: 300,
+    boardSkinSrc: "/board-skins/golden_bronze.jpg",
+    previewColor: "#B8860B",
+    rarity: "legendary",
+  },
 ];
 
 /** 取得單一道具資料 */
 export function getShopItem(id: string): ShopItem | undefined {
   return SHOP_ITEMS.find((item) => item.id === id);
+}
+
+/**
+ * 依使用者目前選用的棋盤造型 ID，查出對應的圖片路徑，給
+ * <ChessBoard boardSkinSrc={...} /> 用。找不到（沒選、id 不存在）
+ * 回傳 null，ChessBoard 會自動退回預設木紋色。
+ */
+export function getActiveBoardSkinSrc(activeBoardSkin: string | null | undefined): string | null {
+  if (!activeBoardSkin) return null;
+  const item = SHOP_ITEMS.find((i) => i.category === "board_skin" && i.id === activeBoardSkin);
+  return item?.boardSkinSrc ?? null;
 }
 
 /** 判斷用戶是否已解鎖某個背景 */
@@ -249,13 +335,12 @@ export function getBackgroundGachaPool(): ShopItem[] {
 }
 
 /**
- * 從抽獎池中依「稀有度權重」隨機抽出一款背景。
- * 同稀有度的所有背景均分該稀有度的權重，所以同一級距內每款機率相等，
- * 但級距之間會照 RARITY_WEIGHTS 的比例拉開差距。
+ * 依「稀有度權重」從指定池子中隨機抽出一款——背景抽獎、棋盤造型抽獎
+ * 共用同一套演算法，只是池子不同。同稀有度的所有款式均分該稀有度的
+ * 權重，所以同一級距內每款機率相等，但級距之間會照 RARITY_WEIGHTS
+ * 的比例拉開差距。
  */
-export function drawRandomBackground(): ShopItem {
-  const pool = getBackgroundGachaPool();
-
+function drawRandomFromPool(pool: ShopItem[]): ShopItem {
   const countByRarity = new Map<BackgroundRarity, number>();
   for (const item of pool) {
     const r = item.rarity ?? "common";
@@ -277,6 +362,11 @@ export function drawRandomBackground(): ShopItem {
   return weighted[weighted.length - 1].item; // 浮點數誤差保險 fallback
 }
 
+/** 從抽獎池中依「稀有度權重」隨機抽出一款背景 */
+export function drawRandomBackground(): ShopItem {
+  return drawRandomFromPool(getBackgroundGachaPool());
+}
+
 /**
  * 完整抽一次的結果：先擲一次 BACKGROUND_GACHA_WIN_RATE 機率判斷有沒有中獎，
  * 沒中回傳 null（銘謝惠顧），中了才從池子裡均等抽一款出來。
@@ -284,4 +374,37 @@ export function drawRandomBackground(): ShopItem {
 export function drawBackgroundGachaResult(): ShopItem | null {
   if (Math.random() >= BACKGROUND_GACHA_WIN_RATE) return null;
   return drawRandomBackground();
+}
+
+// ============================================================
+// 棋盤造型抽獎（獨立於背景之外的另一套抽獎池，機制完全比照背景，
+// 只是池子、費用常數各自獨立，飼料花費不互通）
+// ============================================================
+
+/** 抽一次棋盤造型要花多少飼料 */
+export const BOARD_SKIN_GACHA_COST = 10;
+
+/** 棋盤造型十連抽優惠總價 */
+export const BOARD_SKIN_GACHA_TEN_COST = 90;
+
+/** 抽中「任一款棋盤造型」的機率（其餘機率是銘謝惠顧） */
+export const BOARD_SKIN_GACHA_WIN_RATE = 0.25;
+
+/** 抽獎池：目前就是全部的棋盤造型款式 */
+export function getBoardSkinGachaPool(): ShopItem[] {
+  return SHOP_ITEMS.filter((item) => item.category === "board_skin");
+}
+
+/** 從抽獎池中依「稀有度權重」隨機抽出一款棋盤造型 */
+export function drawRandomBoardSkin(): ShopItem {
+  return drawRandomFromPool(getBoardSkinGachaPool());
+}
+
+/**
+ * 完整抽一次的結果：先擲一次 BOARD_SKIN_GACHA_WIN_RATE 機率判斷有沒有
+ * 中獎，沒中回傳 null（銘謝惠顧），中了才從池子裡均等抽一款出來。
+ */
+export function drawBoardSkinGachaResult(): ShopItem | null {
+  if (Math.random() >= BOARD_SKIN_GACHA_WIN_RATE) return null;
+  return drawRandomBoardSkin();
 }

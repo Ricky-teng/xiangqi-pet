@@ -13,7 +13,15 @@ import {
   DRAW_REWARD_FOOD,
   type ComputerLevel,
 } from "@/lib/engine/computerPlayer";
-import { BACKGROUND_GACHA_COST, BACKGROUND_GACHA_TEN_COST, drawBackgroundGachaResult } from "@/lib/shopItems";
+import {
+  BACKGROUND_GACHA_COST,
+  BACKGROUND_GACHA_TEN_COST,
+  drawBackgroundGachaResult,
+  BOARD_SKIN_GACHA_COST,
+  BOARD_SKIN_GACHA_TEN_COST,
+  drawBoardSkinGachaResult,
+  type ItemCategory,
+} from "@/lib/shopItems";
 import { findNewlyEarnedBadges, type BadgeDefinition } from "@/lib/badges/badges";
 
 // 定義我們遊戲總機裡面有哪些資料與開關
@@ -116,8 +124,8 @@ interface GameStoreState {
    */
   claimDailyGrant: () => { granted: boolean };
 
-  /** 購買消耗道具（背景已改為抽獎取得，不再走這個函式） */
-  buyShopItem: (itemId: string, price: number, category: "consumable" | "background") => { success: boolean; message: string };
+  /** 購買消耗道具（背景、棋盤造型都改為抽獎取得，不再走這個函式） */
+  buyShopItem: (itemId: string, price: number, category: ItemCategory) => { success: boolean; message: string };
 
   /**
    * 抽一次背景（花費 BACKGROUND_GACHA_COST 飼料）。
@@ -136,11 +144,26 @@ interface GameStoreState {
     results: { itemId: string | null; isDuplicate: boolean }[];
   };
 
+  /**
+   * 棋盤造型抽獎：機制跟背景抽獎完全一樣（見上面兩個函式），只是
+   * 獨立的一套池子（unlockedBoardSkins），飼料花費也各自獨立算，
+   * 不會互相影響。
+   */
+  drawBoardSkinGacha: () => { success: boolean; message: string; itemId?: string; isDuplicate?: boolean };
+  drawBoardSkinGachaTen: () => {
+    success: boolean;
+    message: string;
+    results: { itemId: string | null; isDuplicate: boolean }[];
+  };
+
   /** 使用消耗道具（雙倍券/復活藥水/飽食護盾） */
   useItem: (itemId: string) => { success: boolean; message: string };
 
   /** 切換使用中的背景 */
   setActiveBackground: (backgroundId: string | null) => void;
+
+  /** 切換使用中的棋盤造型 */
+  setActiveBoardSkin: (boardSkinId: string | null) => void;
 
   /** 取得目前雙倍飼料券是否有效 */
   isDoubleRewardActive: () => boolean;
@@ -769,9 +792,13 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const { user } = get();
     if (!user) return { success: false, message: "找不到資料" };
 
-    // 背景已改為抽獎取得，不再支援直接花飼料購買（見 drawBackgroundGacha）
+    // 背景、棋盤造型都改為抽獎取得，不再支援直接花飼料購買
+    // （見 drawBackgroundGacha / drawBoardSkinGacha）
     if (category === "background") {
       return { success: false, message: "背景已改為抽獎取得，請到商店的抽獎區試試手氣！" };
+    }
+    if (category === "board_skin") {
+      return { success: false, message: "棋盤造型已改為抽獎取得，請到商店的抽獎區試試手氣！" };
     }
 
     if (user.foodCount < price) return { success: false, message: `飼料不足，需要 ${price} 飼料` };
@@ -942,6 +969,129 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     return { success: true, message, results };
   },
 
+  // 棋盤造型單抽：邏輯完全比照 drawBackgroundGacha，只是換成獨立的
+  // unlockedBoardSkins 欄位跟棋盤造型專屬的常數/池子。
+  drawBoardSkinGacha: () => {
+    const { user } = get();
+    if (!user) return { success: false, message: "找不到資料" };
+    if (user.foodCount < BOARD_SKIN_GACHA_COST) {
+      return { success: false, message: `飼料不足，抽一次需要 ${BOARD_SKIN_GACHA_COST} 飼料` };
+    }
+
+    const now = Date.now();
+    const foodAfterDraw = user.foodCount - BOARD_SKIN_GACHA_COST;
+    const spentAfterDraw = (user.totalFoodSpent ?? 0) + BOARD_SKIN_GACHA_COST;
+    const drawn = drawBoardSkinGachaResult();
+
+    if (!drawn) {
+      set({ user: { ...user, foodCount: foodAfterDraw, totalFoodSpent: spentAfterDraw, updatedAt: now } });
+      updateDoc(doc(db, "users", user.uid), { foodCount: foodAfterDraw, totalFoodSpent: spentAfterDraw, updatedAt: now }).catch(console.error);
+      return {
+        success: true,
+        message: `😢 銘謝惠顧，什麼都沒抽到，扣了 ${BOARD_SKIN_GACHA_COST} 飼料`,
+        isDuplicate: false,
+      };
+    }
+
+    const alreadyOwned = (user.unlockedBoardSkins ?? []).includes(drawn.id);
+
+    if (alreadyOwned) {
+      set({ user: { ...user, updatedAt: now } });
+      updateDoc(doc(db, "users", user.uid), { updatedAt: now }).catch(console.error);
+      return {
+        success: true,
+        message: `${drawn.icon} 抽到「${drawn.name}」，但你已經擁有了，飼料全額退還！`,
+        itemId: drawn.id,
+        isDuplicate: true,
+      };
+    }
+
+    const newUnlocked = [...(user.unlockedBoardSkins ?? []), drawn.id];
+    const updatedUser: UserDoc = {
+      ...user,
+      foodCount: foodAfterDraw,
+      totalFoodSpent: spentAfterDraw,
+      unlockedBoardSkins: newUnlocked,
+      updatedAt: now,
+    };
+    set({ user: updatedUser });
+    updateDoc(doc(db, "users", user.uid), {
+      foodCount: foodAfterDraw,
+      totalFoodSpent: spentAfterDraw,
+      unlockedBoardSkins: newUnlocked,
+      updatedAt: now,
+    }).catch(console.error);
+
+    return {
+      success: true,
+      message: `🎉 恭喜抽到新棋盤造型「${drawn.name}」！`,
+      itemId: drawn.id,
+      isDuplicate: false,
+    };
+  },
+
+  // 棋盤造型十連抽：邏輯完全比照 drawBackgroundGachaTen。
+  drawBoardSkinGachaTen: () => {
+    const { user } = get();
+    if (!user) return { success: false, message: "找不到資料", results: [] };
+
+    if (user.foodCount < BOARD_SKIN_GACHA_TEN_COST) {
+      return { success: false, message: `飼料不足，十連抽需要 ${BOARD_SKIN_GACHA_TEN_COST} 飼料`, results: [] };
+    }
+
+    const now = Date.now();
+    const perDrawCost = BOARD_SKIN_GACHA_TEN_COST / 10;
+    let foodCount = user.foodCount;
+    let totalFoodSpent = user.totalFoodSpent ?? 0;
+    let unlockedBoardSkins = [...(user.unlockedBoardSkins ?? [])];
+    const results: { itemId: string | null; isDuplicate: boolean }[] = [];
+    let newCount = 0;
+
+    for (let i = 0; i < 10; i++) {
+      foodCount -= perDrawCost;
+      totalFoodSpent += perDrawCost;
+
+      const drawn = drawBoardSkinGachaResult();
+      if (!drawn) {
+        results.push({ itemId: null, isDuplicate: false });
+        continue;
+      }
+
+      const alreadyOwned = unlockedBoardSkins.includes(drawn.id);
+      if (alreadyOwned) {
+        foodCount += perDrawCost;
+        totalFoodSpent -= perDrawCost;
+        results.push({ itemId: drawn.id, isDuplicate: true });
+      } else {
+        unlockedBoardSkins = [...unlockedBoardSkins, drawn.id];
+        newCount += 1;
+        results.push({ itemId: drawn.id, isDuplicate: false });
+      }
+    }
+
+    const updatedUser: UserDoc = {
+      ...user,
+      foodCount,
+      totalFoodSpent,
+      unlockedBoardSkins,
+      updatedAt: now,
+    };
+    set({ user: updatedUser });
+    updateDoc(doc(db, "users", user.uid), {
+      foodCount,
+      totalFoodSpent,
+      unlockedBoardSkins,
+      updatedAt: now,
+    }).catch(console.error);
+
+    const message =
+      newCount > 0
+        ? `🎉 十連抽完成！獲得 ${newCount} 款新棋盤造型！`
+        : "😢 十連抽完成，這次都沒抽到新造型，再試試手氣吧！";
+
+    return { success: true, message, results };
+  },
+
   useItem: (itemId) => {
     const { user } = get();
     if (!user) return { success: false, message: "找不到資料" };
@@ -1101,6 +1251,17 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     set({ user: updatedUser });
     updateDoc(doc(db, "users", user.uid), {
       activeBackground: backgroundId ?? null,
+      updatedAt: Date.now(),
+    }).catch(console.error);
+  },
+
+  setActiveBoardSkin: (boardSkinId) => {
+    const { user } = get();
+    if (!user) return;
+    const updatedUser = { ...user, activeBoardSkin: boardSkinId, updatedAt: Date.now() };
+    set({ user: updatedUser });
+    updateDoc(doc(db, "users", user.uid), {
+      activeBoardSkin: boardSkinId ?? null,
       updatedAt: Date.now(),
     }).catch(console.error);
   },

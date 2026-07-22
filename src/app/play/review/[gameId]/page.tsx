@@ -34,6 +34,7 @@ import { parseFen } from "@/lib/xiangqi/fen";
 import { toChineseNotation } from "@/lib/xiangqi/chineseNotation";
 import type { VsComputerGameDoc, MoveQualityTag } from "@/types/database";
 import { useAppBackground } from "@/lib/useAppBackground";
+import { getActiveBoardSkinSrc } from "@/lib/shopItems";
 
 const OUTCOME_LABEL: Record<"win" | "lose" | "draw", string> = {
   win: "🏆 獲勝",
@@ -333,6 +334,7 @@ function ReviewContent({ gameId }: { gameId: string }) {
               }
               lastMove={lastMoveHighlight}
               moveQualityMarker={currentMoveQualityMarker}
+              boardSkinSrc={getActiveBoardSkinSrc(user?.activeBoardSkin)}
             />
           </div>
 

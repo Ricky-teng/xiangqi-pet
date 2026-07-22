@@ -66,6 +66,7 @@ import { toChineseNotation } from "@/lib/xiangqi/chineseNotation";
 import type { PetHealthStatus, PuzzleDoc } from "@/types/database";
 import type { PuzzleLevel } from "@/types/xiangqi";
 import { useAppBackground } from "@/lib/useAppBackground";
+import { getActiveBoardSkinSrc } from "@/lib/shopItems";
 
 /** 使用一次提示需要扣除的飼料數量 */
 const HINT_COST_FOOD = 5;
@@ -559,6 +560,7 @@ function PuzzleSolverSection({
           <ChessBoard
             board={currentBoard}
             onMove={handleStudentMove}
+            boardSkinSrc={getActiveBoardSkinSrc(user?.activeBoardSkin)}
           />
         </div>
 

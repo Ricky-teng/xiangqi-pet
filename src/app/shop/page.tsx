@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useGameStore } from "@/stores/useGameStore";
 import RequireAuth from "@/components/RequireAuth";
-import { SHOP_ITEMS, BACKGROUND_GACHA_COST, BACKGROUND_GACHA_TEN_COST, BACKGROUND_GACHA_WIN_RATE, getBackgroundGachaPool, RARITY_LABELS, RARITY_COLORS, RARITY_ORDER, type ShopItem } from "@/lib/shopItems";
+import { SHOP_ITEMS, BACKGROUND_GACHA_COST, BACKGROUND_GACHA_TEN_COST, BACKGROUND_GACHA_WIN_RATE, getBackgroundGachaPool, BOARD_SKIN_GACHA_COST, BOARD_SKIN_GACHA_TEN_COST, BOARD_SKIN_GACHA_WIN_RATE, getBoardSkinGachaPool, RARITY_LABELS, RARITY_COLORS, RARITY_ORDER, type ShopItem } from "@/lib/shopItems";
 import GachaEgg, { type GachaPhase, type GachaResultData } from "@/components/shop/GachaEgg";
 import { getTodayDateString } from "@/lib/tasks/dailyTasks";
 
@@ -15,14 +15,26 @@ function ShopContent() {
   const buyShopItem = useGameStore((s) => s.buyShopItem);
   const drawBackgroundGacha = useGameStore((s) => s.drawBackgroundGacha);
   const drawBackgroundGachaTen = useGameStore((s) => s.drawBackgroundGachaTen);
+  const drawBoardSkinGacha = useGameStore((s) => s.drawBoardSkinGacha);
+  const drawBoardSkinGachaTen = useGameStore((s) => s.drawBoardSkinGachaTen);
+  const setActiveBoardSkin = useGameStore((s) => s.setActiveBoardSkin);
   const [message, setMessage] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"consumable" | "background">("consumable");
+  const [activeTab, setActiveTab] = useState<"consumable" | "background" | "board_skin">("consumable");
   const [isDrawing, setIsDrawing] = useState(false);
   const [gachaPhase, setGachaPhase] = useState<GachaPhase>("idle");
   const [gachaResult, setGachaResult] = useState<GachaResultData | null>(null);
   const [drawSeq, setDrawSeq] = useState(0);
   const [isDrawingTen, setIsDrawingTen] = useState(false);
   const [tenDrawResults, setTenDrawResults] = useState<{ itemId: string | null; isDuplicate: boolean }[] | null>(null);
+
+  // 棋盤造型抽獎：獨立於背景之外的另一套狀態，UI 邏輯完全比照背景
+  // （單抽用開蛋動畫、十連抽用彈窗），只是資料來源、飼料常數各自獨立。
+  const [isDrawingSkin, setIsDrawingSkin] = useState(false);
+  const [skinGachaPhase, setSkinGachaPhase] = useState<GachaPhase>("idle");
+  const [skinGachaResult, setSkinGachaResult] = useState<GachaResultData | null>(null);
+  const [skinDrawSeq, setSkinDrawSeq] = useState(0);
+  const [isDrawingSkinTen, setIsDrawingSkinTen] = useState(false);
+  const [tenSkinDrawResults, setTenSkinDrawResults] = useState<{ itemId: string | null; isDuplicate: boolean }[] | null>(null);
 
   if (!user) return null;
 
@@ -95,10 +107,63 @@ function ShopContent() {
     }, 600);
   }
 
+  function handleDrawSkin() {
+    setTenSkinDrawResults(null);
+    setIsDrawingSkin(true);
+    setSkinGachaResult(null);
+    setSkinDrawSeq((n) => n + 1);
+    setSkinGachaPhase("shaking");
+
+    setTimeout(() => {
+      const result = drawBoardSkinGacha();
+
+      if (!result.success) {
+        showMessage(result.message);
+        setSkinGachaPhase("idle");
+        setIsDrawingSkin(false);
+        return;
+      }
+
+      const resultData: GachaResultData = result.itemId
+        ? { item: getBoardSkinGachaPool().find((i) => i.id === result.itemId) ?? null, isDuplicate: !!result.isDuplicate, missed: false }
+        : { item: null, isDuplicate: false, missed: true };
+
+      setSkinGachaPhase("cracking");
+
+      setTimeout(() => {
+        setSkinGachaResult(resultData);
+        setSkinGachaPhase("revealed");
+        showMessage(result.message);
+        setIsDrawingSkin(false);
+      }, 500);
+    }, 900);
+  }
+
+  function handleDrawSkinTen() {
+    setSkinGachaResult(null);
+    setSkinGachaPhase("idle");
+    setIsDrawingSkinTen(true);
+    setTenSkinDrawResults(null);
+
+    setTimeout(() => {
+      const result = drawBoardSkinGachaTen();
+      if (!result.success) {
+        showMessage(result.message);
+        setIsDrawingSkinTen(false);
+        return;
+      }
+      setTenSkinDrawResults(result.results);
+      setIsDrawingSkinTen(false);
+    }, 600);
+  }
+
   const items = SHOP_ITEMS.filter((i) => i.category === activeTab);
   const gachaPool = getBackgroundGachaPool();
   const canAffordGacha = user.foodCount >= BACKGROUND_GACHA_COST;
   const canAffordGachaTen = user.foodCount >= BACKGROUND_GACHA_TEN_COST;
+  const skinGachaPool = getBoardSkinGachaPool();
+  const canAffordSkinGacha = user.foodCount >= BOARD_SKIN_GACHA_COST;
+  const canAffordSkinGachaTen = user.foodCount >= BOARD_SKIN_GACHA_TEN_COST;
 
   return (
     <main
@@ -125,13 +190,13 @@ function ShopContent() {
           </div>
         ) : null}
 
-        <div className="mt-4 grid grid-cols-2 gap-2">
-          {(["consumable", "background"] as const).map((tab) => (
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          {(["consumable", "background", "board_skin"] as const).map((tab) => (
             <button key={tab} type="button" onClick={() => setActiveTab(tab)}
-              className={["rounded-2xl py-2.5 text-sm font-bold transition-transform active:scale-95",
+              className={["rounded-2xl py-2.5 text-xs font-bold transition-transform active:scale-95",
                 activeTab === tab ? "bg-[#E8B84B] text-[#5C3D0A] shadow-md" : "bg-white/60 text-[#1A1A2E]/60",
               ].join(" ")}>
-              {tab === "consumable" ? "🧪 道具" : "🎨 背景"}
+              {tab === "consumable" ? "🧪 道具" : tab === "background" ? "🎨 背景" : "♟️ 棋盤"}
             </button>
           ))}
         </div>
@@ -165,7 +230,7 @@ function ShopContent() {
               );
             })}
           </div>
-        ) : (
+        ) : activeTab === "background" ? (
           <div className="mt-4 flex flex-col gap-4">
             {/* 抽獎主卡片 */}
             <div className="overflow-hidden rounded-3xl bg-white/70 p-5 text-center shadow-sm">
@@ -243,6 +308,88 @@ function ShopContent() {
               })}
             </div>
           </div>
+        ) : (
+          <div className="mt-4 flex flex-col gap-4">
+            {/* 棋盤造型抽獎主卡片：UI 完全比照背景抽獎，只是資料/常數
+                各自獨立（見 handleDrawSkin / handleDrawSkinTen） */}
+            <div className="overflow-hidden rounded-3xl bg-white/70 p-5 text-center shadow-sm">
+              <p className="text-sm font-bold text-[#1A1A2E]">棋盤造型抽獎</p>
+              <p className="mt-1 text-xs text-[#1A1A2E]/60 leading-relaxed">
+                每次有 {Math.round(BOARD_SKIN_GACHA_WIN_RATE * 100)}% 機率抽中任一款棋盤造型（均等機率），其餘會銘謝惠顧。
+                <br />抽到已擁有的造型，飼料會全額退還！跟背景抽獎是各自獨立的池子。
+              </p>
+
+              <GachaEgg key={skinDrawSeq} phase={skinGachaPhase} result={skinGachaResult} />
+
+              <button type="button" onClick={handleDrawSkin} disabled={!canAffordSkinGacha || isDrawingSkin || isDrawingSkinTen}
+                className={["mt-2 w-full rounded-xl py-2.5 text-sm font-bold transition-transform active:scale-95",
+                  canAffordSkinGacha && !isDrawingSkin && !isDrawingSkinTen ? "bg-[#8B5FBF] text-white" : "cursor-not-allowed bg-[#1A1A2E]/10 text-[#1A1A2E]/30",
+                ].join(" ")}>
+                {isDrawingSkin ? "抽獎中…" : canAffordSkinGacha ? `抽一次 🟪 ${BOARD_SKIN_GACHA_COST}` : "飼料不足"}
+              </button>
+
+              <button type="button" onClick={handleDrawSkinTen} disabled={!canAffordSkinGachaTen || isDrawingSkin || isDrawingSkinTen}
+                className={["mt-2 w-full rounded-xl py-2.5 text-sm font-bold transition-transform active:scale-95",
+                  canAffordSkinGachaTen && !isDrawingSkin && !isDrawingSkinTen ? "bg-[#E8B84B] text-[#5C3D0A]" : "cursor-not-allowed bg-[#1A1A2E]/10 text-[#1A1A2E]/30",
+                ].join(" ")}>
+                {isDrawingSkinTen ? "十連抽中…" : canAffordSkinGachaTen ? `十連抽 🟪 ${BOARD_SKIN_GACHA_TEN_COST}` : "飼料不足（十連抽）"}
+              </button>
+            </div>
+
+            {/* 抽獎池一覽（依稀有度由低到高排序），棋盤造型用小圖預覽
+                材質（用 boardSkinSrc），已擁有的可以直接切換使用 */}
+            <div className="flex flex-col gap-3">
+              {[...skinGachaPool]
+                .sort((a, b) => RARITY_ORDER.indexOf(a.rarity ?? "common") - RARITY_ORDER.indexOf(b.rarity ?? "common"))
+                .map((item) => {
+                const owned = (user.unlockedBoardSkins ?? []).includes(item.id);
+                const isActive = user.activeBoardSkin === item.id;
+                const rarity = item.rarity ?? "common";
+                return (
+                  <div key={item.id} className="overflow-hidden rounded-3xl bg-white/70 shadow-sm">
+                    {item.boardSkinSrc ? (
+                      <div className="relative h-24 w-full overflow-hidden">
+                        <img
+                          src={item.boardSkinSrc}
+                          alt={item.name}
+                          className={["h-full w-full object-cover", owned ? "" : "grayscale opacity-50"].join(" ")}
+                        />
+                        <span
+                          className="absolute left-2 top-2 rounded-full px-2 py-0.5 text-[10px] font-extrabold text-white shadow"
+                          style={{ backgroundColor: RARITY_COLORS[rarity] }}
+                        >
+                          {RARITY_LABELS[rarity]}
+                        </span>
+                        {!owned ? (
+                          <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                            <span className="rounded-full bg-white/80 px-3 py-1 text-xs font-extrabold text-[#1A1A2E]/60">❓ 尚未抽到</span>
+                          </div>
+                        ) : null}
+                      </div>
+                    ) : null}
+                    <div className="flex items-center gap-3 px-4 py-3">
+                      <span className="text-2xl">{item.icon}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-[#1A1A2E]">{item.name}</p>
+                        <p className="text-xs text-[#1A1A2E]/50">{item.description}</p>
+                      </div>
+                      {owned ? (
+                        <button
+                          type="button"
+                          onClick={() => setActiveBoardSkin(isActive ? null : item.id)}
+                          className={["shrink-0 rounded-xl px-3 py-1.5 text-xs font-bold transition-transform active:scale-95",
+                            isActive ? "bg-[#5B8C5A] text-white" : "bg-[#E8B84B] text-[#5C3D0A]",
+                          ].join(" ")}
+                        >
+                          {isActive ? "✓ 使用中" : "套用"}
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         )}
       </div>
 
@@ -295,6 +442,61 @@ function ShopContent() {
             <button
               type="button"
               onClick={() => setTenDrawResults(null)}
+              className="mt-5 w-full rounded-2xl bg-[#5C3D0A] px-4 py-3 text-sm font-bold text-[#FDF6E8] shadow-sm transition-transform active:scale-95"
+            >
+              知道了！
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {/* 棋盤造型十連抽結果彈窗：UI 完全比照背景十連抽彈窗 */}
+      {tenSkinDrawResults ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-sm rounded-3xl bg-[#FDF6E8] px-5 py-6 shadow-2xl">
+            <p className="text-center text-lg font-extrabold text-[#1A1A2E]">🎉 十連抽結果</p>
+            <p className="mt-1 text-center text-xs text-[#1A1A2E]/50">
+              獲得 {tenSkinDrawResults.filter((r) => r.itemId && !r.isDuplicate).length} 款新棋盤造型
+            </p>
+
+            <div className="mt-4 grid grid-cols-2 gap-2.5">
+              {tenSkinDrawResults.map((r, index) => {
+                const item = r.itemId ? skinGachaPool.find((i) => i.id === r.itemId) ?? null : null;
+                const rarity = item?.rarity ?? "common";
+                return (
+                  <div
+                    key={index}
+                    className={[
+                      "flex flex-col items-center gap-1 rounded-2xl px-2 py-3 text-center",
+                      !item
+                        ? "bg-[#1A1A2E]/5 shadow-sm"
+                        : r.isDuplicate
+                          ? "bg-[#1A1A2E]/10 shadow-sm"
+                          : "border-2 border-[#E8B84B] bg-[#F6D87A] shadow-md ring-2 ring-[#E8B84B]/40",
+                    ].join(" ")}
+                  >
+                    <span className="text-3xl">{item ? item.icon : "💨"}</span>
+                    <span className={["text-xs font-bold leading-tight", !item || r.isDuplicate ? "text-[#1A1A2E]" : "text-[#5C3D0A]"].join(" ")}>
+                      {item ? item.name : "銘謝惠顧"}
+                    </span>
+                    {item ? (
+                      <span
+                        className="rounded-full px-2 py-0.5 text-[9px] font-extrabold text-white"
+                        style={{ backgroundColor: RARITY_COLORS[rarity] }}
+                      >
+                        {r.isDuplicate ? "重複退還" : `🎉新款・${RARITY_LABELS[rarity]}`}
+                      </span>
+                    ) : (
+                      <span className="text-[9px] font-semibold text-[#1A1A2E]/40">沒中獎</span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setTenSkinDrawResults(null)}
               className="mt-5 w-full rounded-2xl bg-[#5C3D0A] px-4 py-3 text-sm font-bold text-[#FDF6E8] shadow-sm transition-transform active:scale-95"
             >
               知道了！

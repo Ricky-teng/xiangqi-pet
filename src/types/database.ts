@@ -79,6 +79,9 @@ export interface UserDoc {
   /** 目前使用的背景 ID，null 或 undefined = 預設米黃 */
   activeBackground?: string | null;
 
+  /** 目前使用的棋盤造型 ID，null 或 undefined = 預設木紋（見 ChessBoard.tsx） */
+  activeBoardSkin?: string | null;
+
   /** 雙倍飼料券到期時間戳（ms），null 或過期代表沒有效果 */
   doubleRewardExpiry?: number | null;
 
@@ -182,6 +185,10 @@ export interface UserDoc {
 
   /** 已購買的背景 ID 陣列 */
   unlockedBackgrounds?: string[];
+
+  /** 已抽到的棋盤造型 ID 陣列（機制跟 unlockedBackgrounds 完全一樣，
+   * 只是獨立的一套，見 @/lib/shopItems.ts 的棋盤造型抽獎） */
+  unlockedBoardSkins?: string[];
 
   /**
    * 每日任務完成進度（可選欄位：舊帳號沒有這個欄位時，視為「今天還沒

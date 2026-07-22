@@ -50,6 +50,7 @@ import { useRulesEngine } from "@/hooks/useRulesEngine";
 import { parseFen } from "@/lib/xiangqi/fen";
 import type { BattleRoomDoc, MatchmakingQueueEntry, PuzzleDoc } from "@/types/database";
 import { useAppBackground } from "@/lib/useAppBackground";
+import { getActiveBoardSkinSrc } from "@/lib/shopItems";
 
 const BATTLE_ENTRY_COST = 20;
 const BATTLE_WIN_REWARD = 50;
@@ -730,6 +731,7 @@ function BattlePageContent() {
             board={board}
             onMove={handleMove}
             lastMove={lastMoveHighlight}
+            boardSkinSrc={getActiveBoardSkinSrc(user?.activeBoardSkin)}
           />
         </div>
 
