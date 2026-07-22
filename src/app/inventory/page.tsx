@@ -16,6 +16,7 @@ function InventoryContent() {
   const setActiveBoardSkin = useGameStore((s) => s.setActiveBoardSkin);
   const isDoubleRewardActive = useGameStore((s) => s.isDoubleRewardActive);
   const [message, setMessage] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"consumable" | "background" | "board_skin">("consumable");
 
   if (!user) return null;
 
@@ -83,7 +84,21 @@ function InventoryContent() {
           </div>
         ) : null}
 
+        {/* 分頁按鈕：比照 /shop 的三分頁排版，避免道具/背景/棋盤三大塊
+            全部往下疊、頁面拉得太長。 */}
+        <div className="mt-4 grid grid-cols-3 gap-2">
+          {(["consumable", "background", "board_skin"] as const).map((tab) => (
+            <button key={tab} type="button" onClick={() => setActiveTab(tab)}
+              className={["rounded-2xl py-2.5 text-xs font-bold transition-transform active:scale-95",
+                activeTab === tab ? "bg-[#E8B84B] text-[#5C3D0A] shadow-md" : "bg-white/60 text-[#1A1A2E]/60",
+              ].join(" ")}>
+              {tab === "consumable" ? "🧪 道具" : tab === "background" ? "🎨 背景" : "♟️ 棋盤"}
+            </button>
+          ))}
+        </div>
+
         {/* 消耗道具 */}
+        {activeTab === "consumable" ? (
         <section className="mt-4 rounded-3xl bg-white/70 px-4 py-4 shadow-sm">
           <h2 className="mb-3 text-sm font-bold text-[#1A1A2E]">🧪 道具</h2>
           <div className="flex flex-col gap-2">
@@ -123,8 +138,10 @@ function InventoryContent() {
             })}
           </div>
         </section>
+        ) : null}
 
         {/* 背景 */}
+        {activeTab === "background" ? (
         <section className="mt-4 rounded-3xl bg-white/70 px-4 py-4 shadow-sm">
           <h2 className="mb-3 text-sm font-bold text-[#1A1A2E]">🎨 背景</h2>
 
@@ -198,9 +215,11 @@ function InventoryContent() {
             );
           })}
         </section>
+        ) : null}
 
         {/* 棋盤造型：UI 完全比照上面的背景區塊，只是資料來源/切換函式
             各自獨立（unlockedBoardSkins / activeBoardSkin / setActiveBoardSkin） */}
+        {activeTab === "board_skin" ? (
         <section className="mt-4 rounded-3xl bg-white/70 px-4 py-4 shadow-sm">
           <h2 className="mb-3 text-sm font-bold text-[#1A1A2E]">♟️ 棋盤造型</h2>
 
@@ -274,6 +293,7 @@ function InventoryContent() {
             );
           })}
         </section>
+        ) : null}
       </div>
     </main>
   );

@@ -17,7 +17,6 @@ function ShopContent() {
   const drawBackgroundGachaTen = useGameStore((s) => s.drawBackgroundGachaTen);
   const drawBoardSkinGacha = useGameStore((s) => s.drawBoardSkinGacha);
   const drawBoardSkinGachaTen = useGameStore((s) => s.drawBoardSkinGachaTen);
-  const setActiveBoardSkin = useGameStore((s) => s.setActiveBoardSkin);
   const [message, setMessage] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"consumable" | "background" | "board_skin">("consumable");
   const [isDrawing, setIsDrawing] = useState(false);
@@ -337,13 +336,13 @@ function ShopContent() {
             </div>
 
             {/* 抽獎池一覽（依稀有度由低到高排序），棋盤造型用小圖預覽
-                材質（用 boardSkinSrc），已擁有的可以直接切換使用 */}
+                材質（用 boardSkinSrc）。跟背景一樣，商店這裡只負責抽獎，
+                已擁有的要去 /inventory 才能切換套用，不在商店直接套用。 */}
             <div className="flex flex-col gap-3">
               {[...skinGachaPool]
                 .sort((a, b) => RARITY_ORDER.indexOf(a.rarity ?? "common") - RARITY_ORDER.indexOf(b.rarity ?? "common"))
                 .map((item) => {
                 const owned = (user.unlockedBoardSkins ?? []).includes(item.id);
-                const isActive = user.activeBoardSkin === item.id;
                 const rarity = item.rarity ?? "common";
                 return (
                   <div key={item.id} className="overflow-hidden rounded-3xl bg-white/70 shadow-sm">
@@ -374,14 +373,9 @@ function ShopContent() {
                         <p className="text-xs text-[#1A1A2E]/50">{item.description}</p>
                       </div>
                       {owned ? (
-                        <button
-                          type="button"
-                          onClick={() => setActiveBoardSkin(isActive ? null : item.id)}
-                          className={["shrink-0 rounded-xl px-3 py-1.5 text-xs font-bold transition-transform active:scale-95",
-                            isActive ? "bg-[#5B8C5A] text-white" : "bg-[#E8B84B] text-[#5C3D0A]",
-                          ].join(" ")}
-                        >
-                          {isActive ? "✓ 使用中" : "套用"}
+                        <button type="button" onClick={() => router.push("/inventory")}
+                          className="shrink-0 rounded-xl bg-[#E8B84B] px-3 py-1.5 text-xs font-bold text-[#5C3D0A] transition-transform active:scale-95">
+                          前往物品
                         </button>
                       ) : null}
                     </div>
