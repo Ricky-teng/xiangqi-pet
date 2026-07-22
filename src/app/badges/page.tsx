@@ -82,6 +82,7 @@ function BadgeCard({ badge, isEarned }: { badge: BadgeDefinition; isEarned: bool
       <div>
         <p className="text-xs font-bold text-[#1A1A2E]">{badge.name}</p>
         <p className="mt-0.5 text-[10px] text-[#1A1A2E]/50">{badge.description}</p>
+        <p className="mt-1 text-[10px] font-bold text-[#8B5FBF]">🟪 {badge.rewardFood}</p>
       </div>
     </div>
   );

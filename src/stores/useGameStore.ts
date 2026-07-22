@@ -414,6 +414,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       console.error("[useGameStore] changeJob 同步寫回 Firestore 失敗：", error);
     });
 
+    // 可能剛好集滿圖鑑，達成「集棋成癖」勳章條件
+    get().checkAndAwardBadges();
+
     return { success: true, message: `轉職成功！小雞變成了${nextEntry.name}！` };
   },
 
@@ -680,11 +683,21 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const newEarnedBadgeIds = Array.from(
       new Set([...(user.earnedBadgeIds ?? []), ...newlyEarned.map((b) => b.id)])
     );
-    const updatedUser: UserDoc = { ...user, earnedBadgeIds: newEarnedBadgeIds, updatedAt: now };
+    // 勳章本質上是長期任務，拿到的當下要一併發放 rewardFood（見
+    // @/lib/badges/badges.ts 的說明），不是只給個徽章而已。
+    const totalReward = newlyEarned.reduce((sum, b) => sum + b.rewardFood, 0);
+    const newFoodCount = user.foodCount + totalReward;
+    const updatedUser: UserDoc = {
+      ...user,
+      earnedBadgeIds: newEarnedBadgeIds,
+      foodCount: newFoodCount,
+      updatedAt: now,
+    };
 
     set({ user: updatedUser });
     updateDoc(doc(db, "users", user.uid), {
       earnedBadgeIds: newEarnedBadgeIds,
+      foodCount: newFoodCount,
       updatedAt: now,
     }).catch((error) => {
       console.error("[useGameStore] checkAndAwardBadges 同步寫回 Firestore 失敗：", error);

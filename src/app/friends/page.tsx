@@ -76,6 +76,7 @@ function FriendsPageContent() {
   const bgStyle = useAppBackground();
   const user = useGameStore((s) => s.user);
   const setUser = useGameStore((s) => s.setUser);
+  const checkAndAwardBadges = useGameStore((s) => s.checkAndAwardBadges);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<UserDoc[]>([]);
@@ -273,6 +274,8 @@ function FriendsPageContent() {
         return;
       }
       setUser({ ...user, friends: [...friendUids, fromUser.uid] });
+      // 剛好達成「以棋會友」勳章條件（擁有第一位好友）
+      checkAndAwardBadges();
       showMessage(`你跟 ${fromUser.displayName} 成為好友了！`);
     } catch (error) {
       console.error("[friends] 接受邀請失敗：", error);
