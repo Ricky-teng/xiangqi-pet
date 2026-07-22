@@ -70,3 +70,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Firebase 服務帳戶私鑰（一次性腳本用，絕對不能 commit）
+scripts/*serviceAccount*.json
+scripts/*service-account*.json
+Output
