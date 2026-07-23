@@ -6,27 +6,27 @@
  * 跟圖鑑（轉職/轉生，見 @/lib/pet/catalog.ts）是兩套並存、互不影響的
  * 收藏系統：圖鑑是「養成向」（靠飼料/經驗值養出來的），勳章是
  * 「行為向」（做過某些事情就永久拿到，不會因為小雞死掉或轉生而消失）。
- * 勳章本質上是「長期任務」——完成條件除了拿到勳章本身，也會發一筆
- * 飼料獎勵（見 rewardFood 欄位跟 useGameStore.ts 的 checkAndAwardBadges）。
+ * 勳章本質上是「長期任務」——達成條件之後不會自動發獎勵，要學生自己
+ * 到 /badges 頁面按「領取」才會真的拿到 rewardFood（見
+ * @/stores/useGameStore.ts 的 claimBadge）。
  *
- * 資料只存「拿到了哪些」：user.earnedBadgeIds（string[]）。判斷邏輯
- * 全部集中在這個檔案的 BADGES 陣列，用宣告式的 check(user) 函式描述
- * 「什麼條件算拿到」——之後要新增/調整勳章，只改這個檔案就好，
+ * 資料只存「已經領過的」：user.earnedBadgeIds（string[]）——這裡的
+ * 語意是「已領取」，不是「已達成」，達成但沒領的勳章不會出現在這個
+ * 陣列裡。「達成了沒」永遠是即時算出來的（呼叫 badge.check(user)），
+ * 不會另外存一份「達成清單」，避免兩份資料兜不起來。
+ *
+ * 判斷邏輯全部集中在這個檔案的 BADGES 陣列，用宣告式的 check(user)
+ * 函式描述「什麼條件算達成」——之後要新增/調整勳章，只改這個檔案就好，
  * 不用動資料庫欄位、不用寫 migration。
  *
  * check(user) 的規則：
  *   - 純函式，只能讀 user，不能有副作用（不能寫資料庫、不能呼叫 API）
- *   - 回傳 true 代表「條件已經滿足，可以拿到這個勳章了」
+ *   - 回傳 true 代表「條件已經滿足」（還沒領取的話，/badges 頁面會
+ *     顯示「領取」按鈕；已經領過的話，check 永遠不會再被拿來決定
+ *     要不要顯示按鈕，因為 earnedBadgeIds 已經記錄領過了）
  *   - 用 user 現有的欄位就能判斷的條件都可以放（stats、checkinHistory、
  *     rebirthCount、unlockedCatalogIds…），複雜的跨欄位條件也沒問題，
  *     邏輯全部包在 check 函式裡面即可
- *
- * 實際「檢查並發放」的動作在 @/stores/useGameStore.ts 的
- * checkAndAwardBadges()，目前掛在 checkin()、applyVsComputerResult()、
- * usePuzzleSolver.ts 解題成功、changeJob()/rebirthPet()、
- * applyBattleResult()（殘局作戰）、好友接受成功這幾個時機點呼叫。
- * 之後要在更多時機點檢查，照同樣的 pattern 在該動作完成後呼叫
- * checkAndAwardBadges() 就可以。
  */
 
 import type { UserDoc } from "@/types/database";
@@ -158,13 +158,12 @@ export const BADGES: BadgeDefinition[] = [
 ];
 
 /**
- * 純函式：依目前的 user 資料，算出「符合條件但還沒拿到」的勳章清單。
- * 不會做任何 IO，呼叫端（useGameStore.ts 的 checkAndAwardBadges）
- * 負責把結果寫回 Firestore、發放 rewardFood。
+ * 純函式：依目前的 user 資料，算出「條件已達成、但還沒領取」的勳章
+ * 清單，給 /badges 頁面判斷哪些勳章要顯示「領取」按鈕用。
  */
-export function findNewlyEarnedBadges(user: UserDoc): BadgeDefinition[] {
-  const earned = new Set(user.earnedBadgeIds ?? []);
-  return BADGES.filter((badge) => !earned.has(badge.id) && badge.check(user));
+export function getClaimableBadges(user: UserDoc): BadgeDefinition[] {
+  const claimed = new Set(user.earnedBadgeIds ?? []);
+  return BADGES.filter((badge) => !claimed.has(badge.id) && badge.check(user));
 }
 
 export function getBadgeById(id: string): BadgeDefinition | null {

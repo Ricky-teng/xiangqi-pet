@@ -85,7 +85,6 @@ function BattlePageContent() {
   const bgStyle = useAppBackground();
   const pet = useGameStore((s) => s.pet);
   const setUser = useGameStore((s) => s.setUser);
-  const checkAndAwardBadges = useGameStore((s) => s.checkAndAwardBadges);
   const { engine } = useRulesEngine();
 
   const [phase, setPhase] = useState<PagePhase>(directRoomId ? "matched" : "queuing");
@@ -578,8 +577,6 @@ function BattlePageContent() {
       updatedAt: now,
     }).catch(console.error);
 
-    // 這局殘局作戰打完了（不管輸贏），可能剛好達成「沙場初試」勳章條件
-    checkAndAwardBadges();
   }
 
   // ---- 結算畫面 ----

@@ -22,7 +22,7 @@ import {
   drawBoardSkinGachaResult,
   type ItemCategory,
 } from "@/lib/shopItems";
-import { findNewlyEarnedBadges, type BadgeDefinition } from "@/lib/badges/badges";
+import { getBadgeById, type BadgeDefinition } from "@/lib/badges/badges";
 
 // 定義我們遊戲總機裡面有哪些資料與開關
 interface GameStoreState {
@@ -102,7 +102,12 @@ interface GameStoreState {
    * 勳章定義在 @/lib/badges/badges.ts，這裡只負責「檢查+發放+存檔」
    * 這個機制本身。掛在哪些動作完成後呼叫，見該檔案開頭的說明。
    */
-  checkAndAwardBadges: () => BadgeDefinition[];
+  /**
+   * 手動領取一個勳章的獎勵。只有「條件已達成（badge.check(user) 為
+   * true）且還沒領過」才能領——領了才會真的發 rewardFood、把 badgeId
+   * 加進 earnedBadgeIds。勳章定義在 @/lib/badges/badges.ts。
+   */
+  claimBadge: (badgeId: string) => { success: boolean; message: string };
 
   /**
    * 領取「轉生機制改版補償」飼料，只能領一次（見
@@ -414,9 +419,6 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       console.error("[useGameStore] changeJob 同步寫回 Firestore 失敗：", error);
     });
 
-    // 可能剛好集滿圖鑑，達成「集棋成癖」勳章條件
-    get().checkAndAwardBadges();
-
     return { success: true, message: `轉職成功！小雞變成了${nextEntry.name}！` };
   },
 
@@ -664,29 +666,28 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const msg = totalRewardFood > 0
       ? `簽到成功！獲得 ${totalRewardFood} 飼料！`
       : "簽到成功！";
-    // 簽到可能剛好達成「初來乍到」「七日不輟」這類勳章條件，簽到動作
-    // 本身結算完（set 完 user）之後才檢查，這樣 checkAndAwardBadges
-    // 讀到的 user.checkinHistory 才是最新的。
-    get().checkAndAwardBadges();
     return { success: true, message: msg, alreadyDone: false };
   },
 
   // 6.55 成就勳章：檢查 + 發放 + 存檔（見 @/lib/badges/badges.ts 的說明）
-  checkAndAwardBadges: () => {
+  // 6.55b 手動領取勳章獎勵（見介面宣告的說明）
+  claimBadge: (badgeId) => {
     const { user } = get();
-    if (!user) return [];
+    if (!user) return { success: false, message: "找不到資料" };
 
-    const newlyEarned = findNewlyEarnedBadges(user);
-    if (newlyEarned.length === 0) return [];
+    const badge = getBadgeById(badgeId);
+    if (!badge) return { success: false, message: "找不到這個勳章" };
+
+    if ((user.earnedBadgeIds ?? []).includes(badgeId)) {
+      return { success: false, message: "這個勳章已經領過了" };
+    }
+    if (!badge.check(user)) {
+      return { success: false, message: "還沒達成這個勳章的條件" };
+    }
 
     const now = Date.now();
-    const newEarnedBadgeIds = Array.from(
-      new Set([...(user.earnedBadgeIds ?? []), ...newlyEarned.map((b) => b.id)])
-    );
-    // 勳章本質上是長期任務，拿到的當下要一併發放 rewardFood（見
-    // @/lib/badges/badges.ts 的說明），不是只給個徽章而已。
-    const totalReward = newlyEarned.reduce((sum, b) => sum + b.rewardFood, 0);
-    const newFoodCount = user.foodCount + totalReward;
+    const newEarnedBadgeIds = [...(user.earnedBadgeIds ?? []), badgeId];
+    const newFoodCount = user.foodCount + badge.rewardFood;
     const updatedUser: UserDoc = {
       ...user,
       earnedBadgeIds: newEarnedBadgeIds,
@@ -700,10 +701,10 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       foodCount: newFoodCount,
       updatedAt: now,
     }).catch((error) => {
-      console.error("[useGameStore] checkAndAwardBadges 同步寫回 Firestore 失敗：", error);
+      console.error("[useGameStore] claimBadge 同步寫回 Firestore 失敗：", error);
     });
 
-    return newlyEarned;
+    return { success: true, message: `🎉 領取成功！獲得 ${badge.rewardFood} 飼料！` };
   },
 
   // 6.55b 領取「轉生機制改版補償」飼料（一次性）
@@ -800,9 +801,6 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         : outcome === "draw"
           ? `和棋，獲得 ${DRAW_REWARD_FOOD} 飼料安慰獎。`
           : `這局輸了，扣 ${LOSE_PENALTY_FOOD} 飼料，再接再厲！`;
-
-    // 可能剛好達成「初戰告捷」這類跟對弈電腦戰績有關的勳章條件
-    get().checkAndAwardBadges();
 
     return { success: true, message, foodDelta };
   },
