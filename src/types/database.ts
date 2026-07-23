@@ -578,3 +578,34 @@ export interface AnnouncementDoc {
    */
   viewedByUids?: string[];
 }
+
+/**
+ * 10. 好友聊天 (路徑: chats/{chatId}，訊息在子集合 chats/{chatId}/messages/{messageId})
+ * ------------------------------------------------------------
+ * 只有好友之間能聊天，老師完全不介入、不會有查看好友聊天內容的入口。
+ * chatId 是兩個 uid 排序後用底線接起來（見 @/lib/chat.ts 的
+ * getChatId），這樣同一對好友永遠對應同一個 chatId，不會因為誰先
+ * 開啟聊天而產生兩份不同的紀錄。
+ */
+export interface ChatDoc {
+  id: string;
+  /** 兩位參與者的 uid，字母排序（getChatId 保證的順序），Firestore
+   * 規則靠這個陣列判斷「你是不是這個聊天室的人」 */
+  participants: [string, string];
+  /** uid -> 顯示名稱，聊天列表頁不用額外查 users collection 就能顯示對方名字 */
+  participantNames: Record<string, string>;
+  lastMessageText: string;
+  lastMessageAt: number;
+  lastMessageSenderUid: string;
+  /** uid -> 未讀則數。收到新訊息時對方 +1，自己打開聊天室時自己歸零 */
+  unreadCount: Record<string, number>;
+  createdAt: number;
+}
+
+export interface ChatMessageDoc {
+  id: string;
+  senderUid: string;
+  /** 純文字，emoji 直接以 unicode 字元存在字串裡，不需要特殊編碼 */
+  text: string;
+  createdAt: number;
+}
