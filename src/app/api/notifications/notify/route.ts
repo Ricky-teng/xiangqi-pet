@@ -22,7 +22,8 @@ type NotifyType =
   | "battle_challenge"
   | "battle_challenge_declined"
   | "match_challenge"
-  | "match_challenge_declined";
+  | "match_challenge_declined"
+  | "chat_message";
 
 const TEMPLATES: Record<NotifyType, (fromName: string) => { title: string; body: string; url: string }> = {
   friend_request: (fromName) => ({
@@ -55,7 +56,30 @@ const TEMPLATES: Record<NotifyType, (fromName: string) => { title: string; body:
     body: `${fromName} 現在沒空下棋，飼料已經退還給你了`,
     url: "/friends",
   }),
+  // 聊天訊息是唯一一個「內容不是伺服器固定文字」的通知類型——這裡
+  // body 先給預設值，實際處理時會用 buildChatMessageTemplate() 換成
+  // 訊息預覽（見下面 POST handler，需要先驗證雙方是不是好友才會用
+  // 呼叫端傳來的文字，避免被亂塞垃圾訊息）。
+  chat_message: (fromName) => ({
+    title: `💬 ${fromName}`,
+    body: "傳了一則新訊息給你",
+    url: "/chat",
+  }),
 };
+
+const CHAT_PREVIEW_MAX_LENGTH = 60;
+
+function buildChatMessageTemplate(fromName: string, fromUid: string, previewText: string) {
+  const trimmed = previewText.trim();
+  const preview = trimmed.length > CHAT_PREVIEW_MAX_LENGTH
+    ? `${trimmed.slice(0, CHAT_PREVIEW_MAX_LENGTH)}…`
+    : trimmed;
+  return {
+    title: `💬 ${fromName}`,
+    body: preview || "傳了一則新訊息給你",
+    url: `/chat/${fromUid}`,
+  };
+}
 
 export async function POST(request: Request) {
   let body: unknown;
@@ -69,7 +93,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "請求格式錯誤。" }, { status: 400 });
   }
 
-  const { toUid, type } = body as { toUid?: unknown; type?: unknown };
+  const { toUid, type, previewText } = body as { toUid?: unknown; type?: unknown; previewText?: unknown };
   if (typeof toUid !== "string" || !toUid) {
     return NextResponse.json({ error: "缺少 toUid。" }, { status: 400 });
   }
@@ -90,7 +114,22 @@ export async function POST(request: Request) {
     const fromSnap = await db.collection("users").doc(fromUid).get();
     const fromName = (fromSnap.data()?.displayName as string | undefined) ?? "同學";
 
-    const template = TEMPLATES[type as NotifyType](fromName);
+    let template: { title: string; body: string; url: string };
+
+    if (type === "chat_message") {
+      // 聊天訊息預覽文字是呼叫端傳來的，跟其他通知類型「內容完全固定」
+      // 不一樣，所以要先驗證雙方真的是好友才會採用這段文字，避免有人
+      // 拿這支 API 對任意 toUid 亂塞垃圾推播內容。不是好友就退回固定文字。
+      const friends: string[] = fromSnap.data()?.friends ?? [];
+      const isFriend = friends.includes(toUid);
+      const preview = typeof previewText === "string" ? previewText : "";
+      template = isFriend
+        ? buildChatMessageTemplate(fromName, fromUid, preview)
+        : TEMPLATES.chat_message(fromName);
+    } else {
+      template = TEMPLATES[type as NotifyType](fromName);
+    }
+
     await sendPushToUser(toUid, template);
 
     return NextResponse.json({ success: true });

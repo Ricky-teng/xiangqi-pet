@@ -31,7 +31,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { collection, doc, getDocs, limit, orderBy, query, updateDoc, where } from "firebase/firestore";
+import { collection, doc, getDocs, limit, onSnapshot, orderBy, query, updateDoc, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useGameStore } from "@/stores/useGameStore";
 import { signOutUser } from "@/hooks/useAuth";
@@ -359,6 +359,8 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
   const setUser = useGameStore((s) => s.setUser);
 
   const [showCheckinModal, setShowCheckinModal] = useState(false);
+  // 主導覽 9 宮格預設收合，平常不佔首頁空間，點「更多功能」才展開
+  const [isNavExpanded, setIsNavExpanded] = useState(false);
   const [dailyGrantMessage, setDailyGrantMessage] = useState<string | null>(null);
 
   // ---- 每日任務：只為了首頁的「有未領取任務」紅點提示，抓一次啟用中
@@ -409,6 +411,28 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
       isCancelled = true;
     };
   }, []);
+
+  // 首頁「聊天」入口的未讀紅點：即時監聽（不是抓一次就算了）——聊天
+  // 本來就是「當下在互動」的功能，紅點應該要即時更新，不像公告/任務
+  // 那種抓一次就夠的靜態提示。
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
+  useEffect(() => {
+    const chatsQuery = query(collection(db, "chats"), where("participants", "array-contains", user.uid));
+    const unsubscribe = onSnapshot(
+      chatsQuery,
+      (snapshot) => {
+        const total = snapshot.docs.reduce((sum, docSnapshot) => {
+          const unread = (docSnapshot.data() as { unreadCount?: Record<string, number> }).unreadCount ?? {};
+          return sum + (unread[user.uid] ?? 0);
+        }, 0);
+        setUnreadChatCount(total);
+      },
+      (error) => {
+        console.error("[home] 監聽聊天未讀數失敗（不影響其他功能，只是紅點提示不會顯示）：", error);
+      }
+    );
+    return () => unsubscribe();
+  }, [user.uid]);
 
   // 新手教學：只有 hasSeenTutorial 明確是 false（新帳號）才會顯示，
   // 舊帳號沒有這個欄位（undefined）不會被強制看教學。
@@ -608,10 +632,13 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
 
         {/* ============================================================
             A2. 主導覽 Tab Bar
-            8 個項目用 4 欄排版（4+4 兩排，剛好填滿，不會有空格）。
+            9 個項目改用 3 欄排版（3x3 整齊格子）。預設收合成一條窄窄的
+            列，點了才展開，平常不會佔掉首頁一大塊空間；收合狀態下
+            如果任一項目有紅點，切換列本身也會顯示一個小紅點，不會讓
+            學生錯過通知。
            ============================================================ */}
-        <nav className="mt-3 grid grid-cols-4 gap-1 rounded-2xl bg-white/70 p-1.5 shadow-sm">
-          {[
+        {(() => {
+          const navItems = [
             { href: "/shop", icon: "🏪", label: "商店" },
             { href: "/inventory", icon: "🎒", label: "物品" },
             { href: "/tasks", icon: "📋", label: "任務", badge: hasUnclaimedDailyTask(user, activeDailyTasks) },
@@ -619,22 +646,46 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
             { href: "/catalog", icon: "📖", label: "圖鑑" },
             { href: "/badges", icon: "🎖️", label: "勳章" },
             { href: "/friends", icon: "👥", label: "好友" },
+            { href: "/chat", icon: "💬", label: "聊天", badge: unreadChatCount > 0 },
             { href: "/announcements", icon: "📢", label: "公告", badge: hasUnreadAnnouncement(user, latestAnnouncementCreatedAt) },
-          ].map(({ href, icon, label, badge }) => (
-            <button
-              key={href}
-              type="button"
-              onClick={() => router.push(href)}
-              className="relative flex flex-col items-center gap-0.5 rounded-xl py-1.5 text-[#1A1A2E] transition-transform active:scale-95 hover:bg-[#E8B84B]/20"
-            >
-              <span className="text-lg">{icon}</span>
-              <span className="text-[10px] font-bold">{label}</span>
-              {badge ? (
-                <span className="absolute right-1.5 top-1 h-2 w-2 rounded-full bg-[#C0392B]" />
+          ];
+          const hasAnyBadge = navItems.some((item) => item.badge);
+
+          return (
+            <div className="mt-3 rounded-2xl bg-white/70 shadow-sm">
+              <button
+                type="button"
+                onClick={() => setIsNavExpanded((prev) => !prev)}
+                className="relative flex w-full items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-bold text-[#1A1A2E]/70"
+              >
+                <span>{isNavExpanded ? "收起功能選單" : "更多功能"}</span>
+                <span className={["transition-transform", isNavExpanded ? "rotate-180" : ""].join(" ")}>▾</span>
+                {!isNavExpanded && hasAnyBadge ? (
+                  <span className="absolute right-4 top-1.5 h-2 w-2 rounded-full bg-[#C0392B]" />
+                ) : null}
+              </button>
+
+              {isNavExpanded ? (
+                <nav className="grid grid-cols-3 gap-0.5 px-1 pb-1">
+                  {navItems.map(({ href, icon, label, badge }) => (
+                    <button
+                      key={href}
+                      type="button"
+                      onClick={() => router.push(href)}
+                      className="relative flex flex-col items-center gap-0 rounded-lg py-1 text-[#1A1A2E] transition-transform active:scale-95 hover:bg-[#E8B84B]/20"
+                    >
+                      <span className="text-base">{icon}</span>
+                      <span className="text-[9px] font-bold">{label}</span>
+                      {badge ? (
+                        <span className="absolute right-1.5 top-0.5 h-1.5 w-1.5 rounded-full bg-[#C0392B]" />
+                      ) : null}
+                    </button>
+                  ))}
+                </nav>
               ) : null}
-            </button>
-          ))}
-        </nav>
+            </div>
+          );
+        })()}
 
         {/* ============================================================
             B. 小雞展示區（獨立卡片，給小雞圖像足夠的呼吸空間）
