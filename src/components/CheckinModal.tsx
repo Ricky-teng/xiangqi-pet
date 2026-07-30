@@ -64,8 +64,13 @@ export function CheckinModal({ open, onClose, checkinTasks = [] }: CheckinModalP
     if (!user) return;
     const taskIds = checkinTasks.map((t) => t.id);
     const taskRewards = pendingCheckinTasks.map((t) => t.rewardFood);
+    // 暫時性診斷 log，抓完問題後會移除
+    console.log("[簽到診斷] checkinTasks prop:", checkinTasks);
+    console.log("[簽到診斷] pendingCheckinTasks:", pendingCheckinTasks);
+    console.log("[簽到診斷] 傳給 checkin() 的 taskIds/taskRewards:", taskIds, taskRewards);
     // store 的 checkin() 現在同時處理：標記任務完成 + 發飼料 + 寫 Firestore
     const result = checkin(taskIds, taskRewards);
+    console.log("[簽到診斷] checkin() 回傳結果:", result);
     if (result.success) setDone(true);
   }
 

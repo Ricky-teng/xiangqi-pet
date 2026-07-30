@@ -978,11 +978,24 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
       </div>
 
       {/* 每日簽到彈框 */}
-      <CheckinModal
-        open={showCheckinModal}
-        onClose={() => setShowCheckinModal(false)}
-        checkinTasks={activeDailyTasks.filter((t) => t.taskType === "checkin")}
-      />
+      {(() => {
+        const checkinTasksForModal = activeDailyTasks.filter((t) => t.taskType === "checkin");
+        if (showCheckinModal) {
+          // 暫時性診斷 log，抓完問題後會移除——印出簽到彈窗打開當下
+          // 實際拿到的任務資料，用來確認 dailyTasksLoaded 的保護到底
+          // 有沒有生效
+          console.log("[簽到診斷] dailyTasksLoaded:", dailyTasksLoaded);
+          console.log("[簽到診斷] activeDailyTasks 總數:", activeDailyTasks.length, activeDailyTasks);
+          console.log("[簽到診斷] 篩出的 checkin 任務:", checkinTasksForModal);
+        }
+        return (
+          <CheckinModal
+            open={showCheckinModal}
+            onClose={() => setShowCheckinModal(false)}
+            checkinTasks={checkinTasksForModal}
+          />
+        );
+      })()}
 
       {/* 轉職系統改版公告：只有舊帳號會看到一次 */}
       <JobChangeAnnouncementModal
