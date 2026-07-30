@@ -134,14 +134,18 @@ export async function POST(request: Request) {
       totalFoodSpent: (fromUser.totalFoodSpent ?? 0), // 對戰結果才決定是否真的算「花掉」，這裡先不動，跟 /battle 頁面的結算邏輯一致
       outgoingBattleChallengeUid: null,
       outgoingBattleChallengeSentAt: null,
-      lastChallengeRoomId: roomId,
       updatedAt: now,
     });
     batch.update(toRef, {
       foodCount: (toUser.foodCount ?? 0) - BATTLE_ENTRY_COST,
-      lastChallengeRoomId: roomId,
       updatedAt: now,
     });
+    // 房間 id 寫進獨立的 challengeRedirects/{uid} 文件，不是 users
+    // 文件本體（見 ChallengeRedirectDoc 的說明：避免全站掛載的即時
+    // 監聽被 users 文件的無關寫入拖著一起狂燒讀取數）。這兩份文件
+    // 平常幾乎不會被寫入，用 set+merge（不存在就建立）比較保險。
+    batch.set(db.collection("challengeRedirects").doc(fromUid), { battleRoomId: roomId, updatedAt: now }, { merge: true });
+    batch.set(db.collection("challengeRedirects").doc(toUid), { battleRoomId: roomId, updatedAt: now }, { merge: true });
     await batch.commit();
 
     return NextResponse.json({ success: true, roomId });

@@ -162,10 +162,14 @@ export interface UserDoc {
   outgoingBattleChallengeSentAt?: number | null;
 
   /**
-   * 我發出的挑戰被接受後，伺服器會把新建立的 battleRoom id 寫回這裡，
-   * 我的前端監聽到這個欄位變化就知道要跳轉進對戰房間。
+   * 我發出的挑戰被接受後，房間 id 現在寫到獨立的
+   * challengeRedirects/{uid} 文件（見下面 ChallengeRedirectDoc），
+   * 不再寫進這份 users 文件本身——原本寫在這裡的話，
+   * useChallengeRoomRedirect（全站掛載的即時監聽）會因為 users 文件
+   * 幾乎每個操作都會被寫入（餵食/解題/簽到/購物…）而被迫整份重新
+   * 推送，等於白白燒掉大量 Firestore 讀取次數。換成監聽一份「幾乎
+   * 不會被寫入」的專用文件，讀取數才不會被無關的操作拖著一起爆量。
    */
-  lastChallengeRoomId?: string | null;
 
   // ============================================================
   // 好友「配對對弈」挑戰（完整一盤棋，不是殘局對戰）
@@ -180,8 +184,6 @@ export interface UserDoc {
   outgoingMatchChallengeSentAt?: number | null;
   /** 挑戰時選的棋鐘設定（好友對戰可以自訂，公開配對固定用 15 分+5 秒） */
   outgoingMatchChallengeSettings?: { baseMinutes: number; incrementSeconds: number } | null;
-  /** 我發出的配對對弈挑戰被接受後，伺服器把新建立的 chessMatchRoom id 寫回這裡 */
-  lastMatchChallengeRoomId?: string | null;
 
   // ============================================================
   // 推播通知相關
@@ -608,4 +610,25 @@ export interface ChatMessageDoc {
   /** 純文字，emoji 直接以 unicode 字元存在字串裡，不需要特殊編碼 */
   text: string;
   createdAt: number;
+}
+
+/**
+ * 11. 好友挑戰跳轉通知 (路徑: challengeRedirects/{uid})
+ * ------------------------------------------------------------
+ * 從 UserDoc.lastChallengeRoomId / lastMatchChallengeRoomId 搬出來
+ * 獨立成自己的文件（見 useChallengeRoomRedirect.ts 開頭的說明：
+ * users/{uid} 幾乎每個操作都會被寫入，全站掛載的即時監聽如果盯著
+ * users 文件本體，會被這些無關的寫入拖著一起狂燒 Firestore 讀取數）。
+ * 這份文件只有在「我發出的戰帖被接受」時才會被伺服器（Admin SDK）
+ * 寫入，平常完全不會變動，即時監聽的成本才會降到接近零。
+ *
+ * 伺服器（Admin SDK）負責寫入房間 id；前端（client SDK）只會讀，
+ * 以及在導頁後把自己讀到的欄位清空成 null（避免重新整理頁面時又
+ * 重複導頁一次）。Firestore 規則只允許「自己讀寫自己的這份文件」，
+ * 沒有敏感資料，開放這樣的權限沒有風險。
+ */
+export interface ChallengeRedirectDoc {
+  battleRoomId?: string | null;
+  matchRoomId?: string | null;
+  updatedAt: number;
 }
