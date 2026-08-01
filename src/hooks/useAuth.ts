@@ -38,8 +38,10 @@
 import { useEffect } from "react";
 import {
   createUserWithEmailAndPassword,
+  GoogleAuthProvider,
   onAuthStateChanged,
   signInWithEmailAndPassword,
+  signInWithPopup,
   signOut,
   updateProfile,
 } from "firebase/auth";
@@ -269,6 +271,37 @@ export async function signUpWithEmail(
   // 同步進 useGameStore。
 }
 
+/**
+ * Google 登入。用彈窗方式（signInWithPopup），跟 Email 密碼登入不同的
+ * 地方是：Google 登入「登入」跟「註冊」是同一個動作——第一次用某個
+ * Google 帳號登入時，我們才知道這是新人，這時候才補寫
+ * users/{uid}、pets/{uid} 這兩份文件（用 Google 帳號的顯示名稱、
+ * 一律建立學生帳號，跟 Email 自助註冊的政策一致：不讓使用者自己選
+ * 身分，避免有人選「老師」拿到出題/監控其他學生的權限）。
+ * 如果 users/{uid} 已經存在（不是第一次登入），就什麼都不用補寫，
+ * 直接讓 onAuthStateChanged 同步既有資料就好。
+ */
+export async function signInWithGoogle(): Promise<void> {
+  const provider = new GoogleAuthProvider();
+  const credential = await signInWithPopup(auth, provider);
+  const uid = credential.user.uid;
+
+  const userSnap = await getDoc(doc(db, "users", uid));
+  if (userSnap.exists()) {
+    // 舊帳號，onAuthStateChanged 接著會自動同步既有資料
+    return;
+  }
+
+  const displayName = credential.user.displayName?.trim() || "新朋友";
+  const role: UserDoc["role"] = "student";
+  const userDoc = createDefaultUserDoc(uid, displayName, role);
+
+  await Promise.all([
+    setDoc(doc(db, "users", uid), userDoc),
+    setDoc(doc(db, "pets", uid), createDefaultPetDoc(uid)),
+  ]);
+}
+
 /** 登出 */
 export async function signOutUser(): Promise<void> {
   await signOut(auth);
@@ -303,6 +336,13 @@ export function getAuthErrorMessage(error: unknown): string {
       return "嘗試次數過多，請稍後再試一次。";
     case "auth/network-request-failed":
       return "網路連線異常，請檢查網路後再試一次。";
+    case "auth/popup-closed-by-user":
+    case "auth/cancelled-popup-request":
+      return "登入視窗被關閉了，請再試一次。";
+    case "auth/popup-blocked":
+      return "瀏覽器擋住了登入彈出視窗，請允許彈出視窗後再試一次。";
+    case "auth/account-exists-with-different-credential":
+      return "這個 Email 已經用其他方式註冊過了，請改用原本的登入方式。";
     default:
       return error instanceof Error ? error.message : "發生未知錯誤，請稍後再試。";
   }
