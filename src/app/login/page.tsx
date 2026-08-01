@@ -26,7 +26,7 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { useGameStore } from "@/stores/useGameStore";
-import { getAuthErrorMessage, signInWithEmail, signUpWithEmail } from "@/hooks/useAuth";
+import { getAuthErrorMessage, signInWithEmail, signInWithGoogle, signUpWithEmail } from "@/hooks/useAuth";
 
 type AuthMode = "login" | "signup";
 
@@ -49,6 +49,7 @@ export default function LoginPage() {
   const [displayName, setDisplayName] = useState("");
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // 已經登入的人不該停留在登入頁，直接導回大廳
@@ -117,6 +118,20 @@ export default function LoginPage() {
       setErrorMessage(getAuthErrorMessage(error));
     } finally {
       setIsSubmitting(false);
+    }
+  }
+
+  async function handleGoogleSignIn() {
+    setErrorMessage(null);
+    setIsGoogleSubmitting(true);
+    try {
+      await signInWithGoogle();
+      router.push("/");
+    } catch (error) {
+      console.error("[login] Google 登入失敗：", error);
+      setErrorMessage(getAuthErrorMessage(error));
+    } finally {
+      setIsGoogleSubmitting(false);
     }
   }
 
@@ -229,6 +244,31 @@ export default function LoginPage() {
                 : "建立帳號"}
           </button>
         </form>
+
+        {/* ---- 分隔線 ---- */}
+        <div className="mt-5 flex items-center gap-3">
+          <div className="h-px flex-1 bg-[#1A1A2E]/10" />
+          <span className="text-xs text-[#1A1A2E]/40">或</span>
+          <div className="h-px flex-1 bg-[#1A1A2E]/10" />
+        </div>
+
+        {/* ---- Google 登入：跟 Email 登入是同一組帳號系統，第一次用
+            某個 Google 帳號登入時會自動建立學生帳號（見 useAuth.ts
+            的 signInWithGoogle） ---- */}
+        <button
+          type="button"
+          onClick={handleGoogleSignIn}
+          disabled={isGoogleSubmitting || isSubmitting}
+          className="mt-4 flex w-full items-center justify-center gap-2.5 rounded-2xl border border-[#1A1A2E]/10 bg-white px-4 py-3 text-sm font-bold text-[#1A1A2E] shadow-sm transition-transform active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+            <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62Z" />
+            <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.81.54-1.85.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 0 0 9 18Z" />
+            <path fill="#FBBC05" d="M3.97 10.72A5.4 5.4 0 0 1 3.69 9c0-.6.1-1.18.28-1.72V4.95H.96A9 9 0 0 0 0 9c0 1.45.35 2.83.96 4.05l3.01-2.33Z" />
+            <path fill="#EA4335" d="M9 3.58c1.32 0 2.51.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58Z" />
+          </svg>
+          {isGoogleSubmitting ? "登入中…" : "使用 Google 帳號登入"}
+        </button>
       </div>
     </main>
   );
