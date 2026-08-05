@@ -38,10 +38,10 @@ export async function recordVsComputerGame(params: {
     moveHistory: params.moveHistory,
     fenHistory: params.fenHistory,
     playedAt: Date.now(),
-    // 好壞標記還沒開始算，回放頁看到 "computing" 會顯示「分析中」，
-    // 實際計算是呼叫端（play/page.tsx）在這個函式寫入成功之後另外
-    // 觸發的背景流程（見 @/lib/engine/moveQuality.ts）。
-    moveQualityStatus: "computing",
+    // 好壞標記改成「回放頁按了才分析」（見 analyzeMoveQualityOnDemand），
+    // 不再對局結束就自動在背景跑——這裡故意不設 moveQualityStatus，
+    // undefined 代表「還沒分析過」，回放頁看到這個狀態會顯示
+    // 「分析整局」按鈕，不會顯示「分析中」的誤導文字。
   };
 
   await setDoc(gameRef, record);
@@ -49,24 +49,27 @@ export async function recordVsComputerGame(params: {
 }
 
 /**
- * 對局紀錄寫入成功後呼叫：在背景分析整局每步好壞（見
- * @/lib/engine/moveQuality.ts），算完寫回同一份文件。這個函式故意
- * 不是 async、不回傳 Promise 給呼叫端 await——呼叫端（play/page.tsx）
- * 結算對局是「畫面需要立刻反應」的事，不應該被這個要跑好幾十秒的
- * 背景分析卡住；分析失敗也不影響對局本身已經結算完成的飼料/戰績，
- * 只是回放頁看不到好壞標記而已（moveQualityStatus 會變成 "failed"）。
+ * 學生在回放頁按下「分析整局」才會呼叫：分析整局每步好壞（見
+ * @/lib/engine/moveQuality.ts），算完寫回同一份文件。之前是對局
+ * 結束當下自動在背景跑，但每局要花 20~30 秒的 Pikafish 引擎 CPU
+ * 時間，不管學生有沒有要看回放都會燒掉——流量一大，這筆「其實沒人
+ * 在看」的運算會先把 Vercel 的 CPU 額度榨乾，所以改成使用者自己觸發，
+ * 只有真的想看好壞標記的人才會花這筆運算成本。
  */
-export function computeAndSaveMoveQualityInBackground(
+export function analyzeMoveQualityOnDemand(
   engine: RulesEngineApi,
   studentUid: string,
   gameId: string,
-  fenHistory: string[]
-): void {
+  fenHistory: string[],
+  onProgress?: (done: number, total: number) => void
+): Promise<void> {
   const gameRef = doc(db, "users", studentUid, "vsComputerGames", gameId);
-  computeMoveQualityTags(engine, fenHistory)
+  return updateDoc(gameRef, { moveQualityStatus: "computing" })
+    .then(() => computeMoveQualityTags(engine, fenHistory, onProgress))
     .then((tags) => updateDoc(gameRef, { moveQualityTags: tags, moveQualityStatus: "done" }))
     .catch((error) => {
-      console.error("[gameRecording] 背景計算每步好壞標記失敗：", error);
+      console.error("[gameRecording] 分析整局每步好壞失敗：", error);
       updateDoc(gameRef, { moveQualityStatus: "failed" }).catch(() => {});
+      throw error;
     });
 }
