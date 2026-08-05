@@ -35,6 +35,7 @@ import { toChineseNotation } from "@/lib/xiangqi/chineseNotation";
 import type { VsComputerGameDoc, MoveQualityTag } from "@/types/database";
 import { useAppBackground } from "@/lib/useAppBackground";
 import { getActiveBoardSkinSrc, getBoardLineColor } from "@/lib/shopItems";
+import { analyzeMoveQualityOnDemand } from "@/lib/engine/gameRecording";
 
 const OUTCOME_LABEL: Record<"win" | "lose" | "draw", string> = {
   win: "🏆 獲勝",
@@ -69,6 +70,34 @@ function ReviewContent({ gameId }: { gameId: string }) {
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [game, setGame] = useState<VsComputerGameDoc | null>(null);
+
+  // ---- 「分析整局」（好壞標記）按需觸發：改成使用者自己按才分析，
+  // 不再對局結束自動在背景跑（見 gameRecording.ts 的
+  // analyzeMoveQualityOnDemand 說明：自動分析太吃 Vercel 的 CPU 額度）。
+  const [isAnalyzingWholeGame, setIsAnalyzingWholeGame] = useState(false);
+  const [wholeGameAnalysisProgress, setWholeGameAnalysisProgress] = useState<{ done: number; total: number } | null>(null);
+  const [wholeGameAnalysisError, setWholeGameAnalysisError] = useState<string | null>(null);
+
+  async function handleAnalyzeWholeGame() {
+    if (!engine || !user || !game) return;
+    setIsAnalyzingWholeGame(true);
+    setWholeGameAnalysisError(null);
+    setWholeGameAnalysisProgress({ done: 0, total: game.fenHistory.length });
+    try {
+      await analyzeMoveQualityOnDemand(engine, user.uid, gameId, game.fenHistory, (done, total) => {
+        setWholeGameAnalysisProgress({ done, total });
+      });
+      // 分析完成後重新讀一次文件，畫面上的標記才會更新
+      const snap = await getDoc(doc(db, "users", user.uid, "vsComputerGames", gameId));
+      if (snap.exists()) setGame(snap.data() as VsComputerGameDoc);
+    } catch (error) {
+      console.error("[review] 分析整局失敗：", error);
+      setWholeGameAnalysisError("分析失敗，請稍後再試一次。");
+    } finally {
+      setIsAnalyzingWholeGame(false);
+      setWholeGameAnalysisProgress(null);
+    }
+  }
 
   const [step, setStep] = useState(0);
   const [mode, setMode] = useState<"replay" | "explore">("replay");
@@ -252,12 +281,33 @@ function ReviewContent({ gameId }: { gameId: string }) {
           {game.moveHistory.length} 手
         </section>
 
-        {/* 每步好壞標記的背景計算狀態：對局結束當下就在背景自動開始算
-            （見 play/page.tsx），學生如果很快就點進回放頁，可能還沒算
-            完，這裡給個提示，不要讓學生以為標記永遠不會出現。 */}
-        {game.moveQualityStatus === "computing" ? (
+        {/* 每步好壞標記：改成按需分析（見 handleAnalyzeWholeGame 的
+            說明），還沒分析過/分析失敗都顯示按鈕，分析中顯示進度，
+            這樣才不會每局都自動燒 Vercel 的 CPU 額度。 */}
+        {!game.moveQualityTags && game.moveQualityStatus !== "computing" ? (
+          <section className="mt-2 rounded-2xl bg-[#8B5FBF]/10 px-4 py-3 text-center">
+            <p className="text-xs text-[#8B5FBF]">
+              {game.moveQualityStatus === "failed" ? "上次分析失敗了，要不要再試一次？" : "想看每步好壞標記嗎？"}
+            </p>
+            {wholeGameAnalysisError ? (
+              <p className="mt-1 text-xs text-[#C0392B]">{wholeGameAnalysisError}</p>
+            ) : null}
+            <button
+              type="button"
+              onClick={handleAnalyzeWholeGame}
+              disabled={isAnalyzingWholeGame || !engine}
+              className="mt-2 rounded-xl bg-[#8B5FBF] px-4 py-2 text-xs font-bold text-white shadow-sm transition-transform active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isAnalyzingWholeGame
+                ? wholeGameAnalysisProgress
+                  ? `分析中… (${wholeGameAnalysisProgress.done}/${wholeGameAnalysisProgress.total})`
+                  : "分析中…"
+                : "🔍 分析整局好壞標記"}
+            </button>
+          </section>
+        ) : game.moveQualityStatus === "computing" ? (
           <section className="mt-2 rounded-2xl bg-[#8B5FBF]/10 px-4 py-2 text-center text-xs text-[#8B5FBF]">
-            🔍 每步好壞標記正在背景計算中，過一會兒重新整理頁面看看！
+            🔍 正在分析整局，請稍等…
           </section>
         ) : null}
 
