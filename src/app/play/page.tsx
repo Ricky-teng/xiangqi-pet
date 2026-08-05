@@ -37,7 +37,7 @@ import {
   DRAW_REWARD_FOOD,
   type ComputerLevel,
 } from "@/lib/engine/computerPlayer";
-import { recordVsComputerGame, computeAndSaveMoveQualityInBackground } from "@/lib/engine/gameRecording";
+import { recordVsComputerGame } from "@/lib/engine/gameRecording";
 import type { UserDoc } from "@/types/database";
 import { useAppBackground } from "@/lib/useAppBackground";
 import { getActiveBoardSkinSrc, getBoardLineColor } from "@/lib/shopItems";
@@ -135,15 +135,13 @@ function VsComputerContent() {
       foodDelta: rewardResult.foodDelta,
       moveHistory: finalMoveHistory,
       fenHistory: finalFenHistory,
-    }).then(({ gameId }) => {
-      // 對局紀錄寫入成功後，在背景分析整局每步好壞（不 await，不擋
-      // 畫面），算完會直接寫回這份文件，回放頁進去就看得到標記。
-      if (engine) {
-        computeAndSaveMoveQualityInBackground(engine, user.uid, gameId, finalFenHistory);
-      }
     }).catch((error) => {
       console.error("[play] 對局紀錄寫入失敗（不影響飼料獎懲，只是老師後台看不到這一局）：", error);
     });
+    // 好壞標記改成「回放頁按了才分析」（見 play/review/[gameId]/page.tsx
+    // 的「分析整局」按鈕），不再每局結束自動在背景跑——自動分析每局
+    // 要花 20~30 秒的 Pikafish 引擎 CPU 時間，不管學生有沒有要看
+    // 回放都會燒掉，流量一大這筆運算會先把 Vercel 的 CPU 額度榨乾。
   }
 
   function resolveGameOverIfNeeded(
