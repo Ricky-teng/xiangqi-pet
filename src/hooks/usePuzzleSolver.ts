@@ -19,38 +19,44 @@
  *   學生每走一步，會跟「目前還跟得上的所有線」（activeLineIndices）
  *   的當前步比對，只要符合其中任何一條，就算答對，並把
  *   activeLineIndices 收斂成「真的符合這一步」的那些線，繼續往下走。
- *   - 電腦的回應步、棋盤重播（rebuildBoardAtStep）都改成使用
- *     「目前還存活的線之中，第一條」（leadLine）作為依據，因為這些
- *     操作需要「一條明確的線」才能決定下一步是什麼，而存活的線
- *     到目前為止的走法都是一致的（只是接下來可能分岔），所以選哪條
- *     當 leadLine 在「目前」這一步都是等價的。
+ *   - 電腦的回應步、棋盤重播都改成使用「目前還存活的線之中，第一條」
+ *     （leadLine）作為依據，因為這些操作需要「一條明確的線」才能決定
+ *     下一步是什麼，而存活的線到目前為止的走法都是一致的（只是接下來
+ *     可能分岔），所以選哪條當 leadLine 在「目前」這一步都是等價的。
  *   - 出題老師要確保「替代線」跟主線在分岔之前的走法是逐字一致的
  *     （包含電腦回應步），這樣系統才能正確判斷「目前還跟得上哪幾條」。
- *     如果替代線整條從第一步就跟主線不同，也完全沒問題——這正是
- *     「同一個起手，不同的獲勝路徑」這種情境的標準用法。
+ *
+ * 【2026-07 新增：偏離已知正解線時，改用引擎即時判斷】
+ *   之前學生的走法一定要逐字符合 moves/alternativeLines 裡預存的某一
+ *   條線，走法稍有不同（哪怕客觀上也能將死）就直接判錯——這對「同一
+ *   殘局其實有不同解法」的情況不公平。現在改成：
+ *     1. 學生每一步，先照原本邏輯跟「目前還跟得上的已知正解線」比對，
+ *        符合就完全不花任何運算成本（跟以前一樣）。
+ *     2. 只有這一步「偏離了所有已知正解線」，才會呼叫
+ *        /api/puzzle/judge-move，讓 Pikafish 引擎即時判斷「這步是否
+ *        仍然在（步數預算內的）必勝路線上」——是的話，引擎同時給出
+ *        電腦這方的最強防守，雙方接下來的每一步都會持續呼叫這支 API
+ *        判斷（進入「偏離模式」，直到真的將死或超過步數預算為止）；
+ *        不是的話，判定這步答錯（走法失效，跟原本答錯的處理方式完全
+ *        一樣：重置棋盤、累計連續答錯次數）。
+ *   步數預算 = 題目原本正解線的步數（moves.length，雙方合計）+ 2，
+ *   超過預算即使理論上仍必勝，也視為答錯（見 MOVE_BUDGET_BUFFER）。
+ *
+ *   這個機制刻意設計成「已知正解線優先、免費比對；只有真的走出新招
+ *   才花引擎運算」，因為解題是本 App 使用頻率最高的功能，如果每一步
+ *   都呼叫引擎會嚴重超出 Vercel 的 CPU 額度（見這次改動前的討論）。
  *
  * 重要設計說明：
- *   - 「重置棋盤」採用「從 initialFen 重新解析、重播 [0, currentStep) 步」的方式，
- *     而非嘗試撤銷單步操作。這樣無論學生中途亂走了什麼，都能精準復原到
- *     「正解序列當前進度」對應的正確盤面，不會有狀態漂移風險。
+ *   - 「重置棋盤」統一用 confirmedFen（目前確認正確的局面 FEN）配合
+ *     parseFen 重新產生一份全新的 BoardGrid 物件，取代舊版「從
+ *     initialFen 重播 [0, currentStep) 步」的作法——因為進入偏離模式
+ *     之後，已經沒有一條「線」可以拿來重播了，改成「隨時記住目前
+ *     確認正確的 FEN」是唯一在兩種模式下都通用的作法。
  *   - 解題成功的飼料獎勵只更新 user.foodCount，不直接更動 pet.xp。
- *     小雞 XP 的累積仍透過「立即餵食」（store 的 feedPet）消耗飼料取得，
- *     避免飼料與 XP 兩套經濟系統互相打架、定義不一致。
  *   - 電腦自動回應步使用 setTimeout 延遲 500ms 執行，並在 Hook 卸載或
- *     下一次走法觸發前清除先前的計時器，避免 race condition（計時器
- *     觸發時更新一個已經不存在或已經被覆蓋的狀態）。
- *   - 本 Hook 不驗證走法是否「合法象棋走法」，只負責「逐字比對是否等於
- *     正解序列當前步」，完全對應需求書的解題策略（rules.ts 留待未來）。
- *
- *   - 【防刷修正】解題獎勵現在會先查詢 Firestore 的
- *     users/{uid}/solvedPuzzles/{puzzleId} 防刷記錄：若該題目該使用者
- *     已經解過，這次就不會再發放飼料（避免同一題反覆進出無限刷飼料），
- *     只有「第一次」解開某題才會真的拿到獎勵，並把獎勵結果（granted /
- *     already_claimed / error）透過 rewardOutcome 回傳給呼叫端的 UI，
- *     讓畫面能分別顯示「獲得 X 飼料」或「這題你已經解過了」。
- *     同時 user.foodCount／統計數字的更新現在會「同步寫回 Firestore」
- *     （用 increment() 做原子加總），不再只停留在本地 Zustand store，
- *     重新整理頁面後飼料數量不會跑掉。
+ *     下一次走法觸發前清除先前的計時器，避免 race condition。
+ *   - 【防刷修正】解題獎勵會依動態公式計算，並把獎勵結果（granted /
+ *     error）透過 rewardOutcome 回傳給呼叫端的 UI。
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -59,8 +65,9 @@ import { db } from "@/lib/firebase";
 import { useGameStore } from "@/stores/useGameStore";
 import type { PuzzleDoc, SolvedPuzzleRecord } from "@/types/database";
 import type { BoardGrid, SolverState } from "@/types/xiangqi";
-import { parseFen } from "@/lib/xiangqi/fen";
-import { applyMoveNotation, isMoveMatchingExpected } from "@/lib/xiangqi/move";
+import { parseFen, toFen } from "@/lib/xiangqi/fen";
+import { applyMoveNotation, isMoveMatchingExpected, parseMoveNotation } from "@/lib/xiangqi/move";
+import { useRulesEngine } from "@/hooks/useRulesEngine";
 
 // ============================================================
 // 1. 常數設定
@@ -71,6 +78,9 @@ const MAX_CONSECUTIVE_WRONG = 3;
 
 /** 答對後，等待電腦自動回應步的延遲時間（毫秒） */
 const COMPUTER_MOVE_DELAY_MS = 500;
+
+/** 步數預算 = 題目原本正解線步數（雙方合計）+ 這個緩衝值 */
+const MOVE_BUDGET_BUFFER = 2;
 
 // ============================================================
 // 2. 動態飼料獎勵公式
@@ -119,18 +129,27 @@ export interface UsePuzzleSolverResult {
   lastErrorMessage: string | null;
   /**
    * 解題完成後的獎勵結算狀態（尚未解完時為 null）。
-   * "granted" 代表這是第一次解開這題、真的拿到飼料；
-   * "already_claimed" 代表這題之前已經解過，這次不會重複發放。
+   * "granted" 代表真的拿到飼料。
    */
   rewardOutcome: RewardOutcome | null;
   /**
    * 目前「還跟得上」的正解線之中，排在最前面的那一條完整走法陣列。
    * 用途：給 puzzle/[id]/page.tsx 的提示功能讀
-   * leadLine[solverState.currentStep] 顯示下一步提示，
-   * 不直接寫 puzzle.moves（因為學生可能正走在某條替代線上，
-   * puzzle.moves 不一定是目前適用的線）。
+   * leadLine[solverState.currentStep] 顯示下一步提示。
+   * 一旦進入偏離模式（見 isDeviatedMode），已經沒有「線」可以提示了，
+   * leadLine 會停在偏離發生前最後一條存活的線（不會再更新），
+   * 索引超出範圍時是 undefined，呼叫端要自行處理「沒有提示可給」。
    */
   leadLine: string[];
+  /**
+   * 是否已經偏離所有已知正解線、進入「引擎即時判斷」模式。
+   * 給 UI 顯示「目前正在挑戰不同解法」之類的提示用。
+   */
+  isDeviatedMode: boolean;
+  /** 正在等待引擎判斷偏離的這一步（呼叫 /api/puzzle/judge-move 期間為 true） */
+  isJudging: boolean;
+  /** 步數預算（雙方合計），題目原本正解線步數 + MOVE_BUDGET_BUFFER */
+  moveBudget: number;
 }
 
 // ============================================================
@@ -150,14 +169,40 @@ export function usePuzzleSolver(puzzle: PuzzleDoc): UsePuzzleSolverResult {
   const setPet = useGameStore((s) => s.setPet);
   const triggerSickness = useGameStore((s) => s.triggerSickness);
 
+  // ---- 規則引擎：偏離已知正解線時，判斷合法性/終局狀態要靠這個 ----
+  const { engine } = useRulesEngine();
+
   // ---- 多組正解線：合併主線 + 替代線 ----
-  // puzzle.alternativeLines 每一條是 { moves: string[] }（不是直接的
-  // string[][]），因為 Firestore 不支援巢狀陣列，所以存檔時把每條線
-  // 包進一個物件——這裡讀取時要解開 .moves 還原成單純的 string[][]
-  // 供後面的比對邏輯使用。
   const allLines = useMemo<string[][]>(
     () => [puzzle.moves, ...(puzzle.alternativeLines ?? []).map((line) => line.moves)],
     [puzzle.moves, puzzle.alternativeLines]
+  );
+
+  // ---- 步數預算（雙方合計）：題目主線步數 + 緩衝值 ----
+  const moveBudget = useMemo(() => puzzle.moves.length + MOVE_BUDGET_BUFFER, [puzzle.moves.length]);
+
+  // ---- 這道題目「第一步」是哪一方在走：從 puzzle.moves[0] 的起點格子，
+  // 查初始盤面上那顆棋子的顏色決定，不需要另外在 PuzzleDoc 加欄位。 ----
+  const initialSideToMove = useMemo<"w" | "b">(() => {
+    const board = parseFen(puzzle.initialFen);
+    const firstMove = puzzle.moves[0];
+    if (!firstMove) return "w";
+    try {
+      const { from } = parseMoveNotation(firstMove);
+      const piece = board[from.row]?.[from.col];
+      return piece?.color === "b" ? "b" : "w";
+    } catch {
+      return "w";
+    }
+  }, [puzzle.initialFen, puzzle.moves]);
+
+  const sideToMoveAtPly = useCallback(
+    (ply: number): "w" | "b" => {
+      const isEven = ply % 2 === 0;
+      if (initialSideToMove === "w") return isEven ? "w" : "b";
+      return isEven ? "b" : "w";
+    },
+    [initialSideToMove]
   );
 
   // ---- 本地狀態：目前棋盤、解題進度 ----
@@ -170,24 +215,22 @@ export function usePuzzleSolver(puzzle: PuzzleDoc): UsePuzzleSolverResult {
       totalWrongAttempts: 0,
     });
 
-  // 目前「還跟得上」的正解線索引（每答對一步，會收斂成「真的符合這一步」的那些線）。
-  // 惰性初始化成全部線都還存活，puzzle 變了（換題）的話整個 Hook 會重新掛載
-  // （見 puzzle 頁面的 key remount 設計），不需要額外處理 puzzle 換了但這個
-  // state 沒重置的情況。
+  // 目前「還跟得上」的正解線索引
   const [activeLineIndices, setActiveLineIndices] = useState<number[]>(() =>
     allLines.map((_, index) => index)
   );
 
-  // 目前還存活的線之中，排在最前面那一條，作為「電腦回應步」「棋盤重播」
-  // 「提示」共用的依據（理由見檔案頂部說明）。
   const leadLine = allLines[activeLineIndices[0] ?? 0] ?? puzzle.moves;
 
-  // 修正：之前這裡會在小雞生病/死亡時把整個棋盤鎖住、不准繼續解題。
-  // 但飼料主要就是靠解題賺來的，生病/死亡卻不能解題，等於「治病要錢、
-  // 但生病了又賺不到錢」的死循環，不合理。現在小雞的健康狀態只會
-  // 顯示在畫面上（PuzzleHeader 的狀態徽章）提醒學生記得回去照顧牠，
-  // 不會再阻擋解題本身。連續答錯 3 次仍然會觸發生病（保留這個機制
-  // 帶來的提醒作用），但不會鎖棋盤，學生可以馬上繼續嘗試。
+  // 「目前確認正確的局面 FEN」：統一取代舊版「從 initialFen 重播正解線」
+  // 的重置作法——不管是照已知正解線走、還是已經進入偏離模式，每答對
+  // 一步（含電腦回應步）都會更新這個值，答錯時直接拿它重新產生一份
+  // 全新的 BoardGrid 物件重置畫面，兩種模式都適用同一套邏輯。
+  const confirmedFenRef = useRef<string>(puzzle.initialFen);
+
+  // 是否已經偏離所有已知正解線、進入引擎即時判斷模式
+  const [isDeviatedMode, setIsDeviatedMode] = useState(false);
+  const [isJudging, setIsJudging] = useState(false);
 
   const [lastErrorMessage, setLastErrorMessage] = useState<string | null>(null);
   const [rewardOutcome, setRewardOutcome] = useState<RewardOutcome | null>(null);
@@ -211,7 +254,6 @@ export function usePuzzleSolver(puzzle: PuzzleDoc): UsePuzzleSolverResult {
   }, [clearComputerMoveTimer]);
 
   // 進入題目時立刻 +1 totalAttempts（不管有沒有答對，只要開始嘗試就算）
-  // 答對時再額外 +1 totalSolved，這樣 totalSolved/totalAttempts 才是真正的通過率
   useEffect(() => {
     if (!user) return;
     updateDoc(doc(db, "users", user.uid), {
@@ -225,42 +267,15 @@ export function usePuzzleSolver(puzzle: PuzzleDoc): UsePuzzleSolverResult {
       stats: { ...user.stats, totalAttempts: user.stats.totalAttempts + 1 },
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [puzzle.id]); // puzzle.id 換了就是換題，重新計一次
+  }, [puzzle.id]);
 
-  /**
-   * 將棋盤重置為「目前正解進度」對應的正確盤面。
-   * 作法：從題目初始 FEN 重新解析，再依序重播 [0, stepIndex) 的正解走法。
-   * 這樣無論學生中途亂走了什麼步，都能精準復原，不會有狀態漂移風險。
-   */
-  const rebuildBoardAtStep = useCallback(
-    (stepIndex: number): BoardGrid => {
-      let board = parseFen(puzzle.initialFen);
-      for (let i = 0; i < stepIndex; i++) {
-        const notation = leadLine[i];
-        board = applyMoveNotation(board, notation).board;
-      }
-      return board;
-    },
-    [puzzle.initialFen, leadLine]
-  );
+  /** 依 confirmedFenRef 目前的值，產生一份全新的 BoardGrid 物件（強制觸發重新渲染） */
+  const rebuildConfirmedBoard = useCallback((): BoardGrid => {
+    return parseFen(confirmedFenRef.current);
+  }, []);
 
   /**
    * 解題完成時的獎勵結算。
-   * ------------------------------------------------------------
-   * 1. 先查 users/{uid}/solvedPuzzles/{puzzleId} 防刷記錄：
-   *    - 已存在 -> 這題之前解過了，不發放新的飼料獎勵
-   *      （rewardOutcome 設為 "already_claimed"）。
-   *    - 不存在 -> 第一次解開，依動態飼料公式計算 earnedFood，
-   *      寫入防刷記錄 + 用 increment() 原子更新 Firestore 上的
-   *      user.foodCount／stats，同時同步更新本地 store
-   *      （rewardOutcome 設為 "granted"）。
-   * 2. 不論是否拿到新獎勵，pet 的連續答錯計數都會歸零
-   *    （因為這題目前已經被正確解開了）。
-   *
-   * 設為 async：因為要等 Firestore 的 getDoc/setDoc/updateDoc 完成，
-   * 呼叫端（handleStudentMove）不會、也不需要 await 它——UI 上
-   * isCompleted 會立刻變 true，rewardOutcome 則是稍後才補上結果，
-   * 這段時間 UI 會先顯示「pending」（結算中）的過渡文字。
    */
   const grantSolveReward = useCallback(async () => {
     if (!user) {
@@ -273,18 +288,7 @@ export function usePuzzleSolver(puzzle: PuzzleDoc): UsePuzzleSolverResult {
     const solvedRecordRef = doc(db, "users", user.uid, "solvedPuzzles", puzzle.id);
 
     try {
-      // 原本這裡有「已解過就不發飼料」的防刷 check，改成每次解完都給飼料：
-      // /puzzle 頁面已改成「選等級隨機出題」，學生每次進來都是隨機抽題，
-      // 不像以前能在題目列表直接挑一道「最簡單且之前做過」的題反覆刷，
-      // 隨機選題的機制本身就已經大幅降低有意刷題的可能性，不需要在這裡
-      // 再擋一層。solvedPuzzles 子集合這裡還是繼續寫入（updateDoc 不會
-      // 重複 increment 只是因為 setDoc 有 merge），讓老師後台的解題紀錄
-      // 還是能正確統計（每次解題都有一筆記錄，老師看得到練習頻率）。
-      // 但用 puzzle.id 作為文件 ID 代表同一題只會有一筆記錄，若要每次都
-      // 記錄可考慮之後改成用 timestamp 當 ID，目前先維持現有資料結構。
-
       const baseFood = calculateFoodReward(user.chessLevel, puzzle.level);
-      // 雙倍飼料券：檢查 doubleRewardExpiry 是否還在有效期內
       const isDoubleActive = (user.doubleRewardExpiry ?? 0) > Date.now();
       const earnedFood = isDoubleActive ? baseFood * 2 : baseFood;
       const now = Date.now();
@@ -298,9 +302,6 @@ export function usePuzzleSolver(puzzle: PuzzleDoc): UsePuzzleSolverResult {
         wrongAttemptsBeforeSolving: solverState.totalWrongAttempts,
       };
 
-      // 先寫 Firestore（防刷記錄 + 原子 increment 更新 user 文件），
-      // 確認真的成功落地之後，才更新本地 store，避免「畫面顯示拿到了，
-      // 但 Firestore 其實沒寫成功」這種畫面與資料庫不一致的情況。
       await Promise.all([
         setDoc(solvedRecordRef, solvedRecord),
         updateDoc(doc(db, "users", user.uid), {
@@ -328,7 +329,6 @@ export function usePuzzleSolver(puzzle: PuzzleDoc): UsePuzzleSolverResult {
         });
       }
 
-
       setRewardOutcome({ status: "granted", earnedFood });
     } catch (error) {
       console.error("[usePuzzleSolver] 解題獎勵結算失敗：", error);
@@ -339,12 +339,43 @@ export function usePuzzleSolver(puzzle: PuzzleDoc): UsePuzzleSolverResult {
     }
   }, [user, pet, puzzle.id, puzzle.level, setUser, setPet, solverState.totalWrongAttempts]);
 
+  /** 答錯共用處理：重置棋盤、累計連續答錯次數，達上限觸發生病 */
+  const commitWrongAnswer = useCallback(
+    (message: string) => {
+      const newWrongCount = solverState.consecutiveWrongCount + 1;
+      const newTotalWrongAttempts = solverState.totalWrongAttempts + 1;
+      const justTriggeredSickness = newWrongCount >= MAX_CONSECUTIVE_WRONG;
+
+      if (justTriggeredSickness) {
+        triggerSickness(puzzle.id, newWrongCount);
+      }
+
+      setCurrentBoard(rebuildConfirmedBoard());
+      setSolverState((prev) => ({
+        ...prev,
+        consecutiveWrongCount: justTriggeredSickness ? 0 : newWrongCount,
+        totalWrongAttempts: newTotalWrongAttempts,
+      }));
+      setLastErrorMessage(
+        justTriggeredSickness
+          ? `已連續答錯 ${MAX_CONSECUTIVE_WRONG} 次，小雞生病了！記得有空回主頁買藥水照顧牠，現在可以繼續練習。`
+          : `${message}（已連續答錯 ${newWrongCount} 次，連續答錯 ${MAX_CONSECUTIVE_WRONG} 次小雞會生病）`
+      );
+
+      if (pet && !justTriggeredSickness) {
+        setPet({
+          ...pet,
+          currentWrongPuzzleId: puzzle.id,
+          consecutiveWrongCount: newWrongCount,
+        });
+      }
+    },
+    [solverState, triggerSickness, puzzle.id, rebuildConfirmedBoard, pet, setPet]
+  );
+
   /**
-   * 安排電腦自動回應步：延遲 COMPUTER_MOVE_DELAY_MS 後，
-   * 自動執行正解序列中下一步（電腦方），並將 currentStep 再推進 1 步。
-   *
-   * @param boardAfterStudentMove 學生剛才那一步走完後的棋盤狀態
-   * @param computerStepIndex 電腦這一步在 puzzle.moves 中的索引
+   * 安排電腦自動回應步（已知正解線模式）：延遲 COMPUTER_MOVE_DELAY_MS
+   * 後，自動執行正解序列中下一步（電腦方）。
    */
   const scheduleComputerMove = useCallback(
     (boardAfterStudentMove: BoardGrid, computerStepIndex: number, computerNotation: string) => {
@@ -356,6 +387,7 @@ export function usePuzzleSolver(puzzle: PuzzleDoc): UsePuzzleSolverResult {
           computerNotation
         );
 
+        confirmedFenRef.current = toFen(boardAfterComputerMove);
         setCurrentBoard(boardAfterComputerMove);
         setSolverState((prev) => ({
           ...prev,
@@ -369,42 +401,147 @@ export function usePuzzleSolver(puzzle: PuzzleDoc): UsePuzzleSolverResult {
   );
 
   /**
+   * 偏離已知正解線時的處理：先本地判斷合法性/是否已經將死（免費），
+   * 都沒有結果才呼叫 /api/puzzle/judge-move 讓引擎判斷。
+   */
+  const handleDeviatedMove = useCallback(
+    async (moveNotation: string) => {
+      if (!engine) {
+        commitWrongAnswer("引擎還沒準備好，這步先不算數，再試一次！");
+        return;
+      }
+
+      const currentFen = confirmedFenRef.current;
+      const currentSide = sideToMoveAtPly(solverState.currentStep);
+
+      if (!engine.isLegalMove(currentFen, currentSide, moveNotation)) {
+        commitWrongAnswer("這步不是合法的走法喔");
+        return;
+      }
+
+      const afterStudent = engine.applyMove(currentFen, currentSide, moveNotation);
+      const statusAfterStudent = engine.getGameStatus(afterStudent.fen, afterStudent.sideToMove);
+      const studentWinsIfOver =
+        statusAfterStudent.isGameOver &&
+        ((currentSide === "w" && statusAfterStudent.result === "red_wins") ||
+          (currentSide === "b" && statusAfterStudent.result === "black_wins"));
+
+      if (statusAfterStudent.isGameOver) {
+        if (studentWinsIfOver) {
+          // 學生這步就已經直接將死對方了，免呼叫引擎，直接過關
+          confirmedFenRef.current = afterStudent.fen;
+          setCurrentBoard(parseFen(afterStudent.fen));
+          setIsDeviatedMode(true);
+          setLastErrorMessage(null);
+          setSolverState((prev) => ({
+            ...prev,
+            currentStep: prev.currentStep + 1,
+            isCompleted: true,
+            consecutiveWrongCount: 0,
+          }));
+          grantSolveReward();
+        } else {
+          // 把自己走進和局/困斃，不算數
+          commitWrongAnswer("這步會讓對方無路可走但沒有將死（困斃/和棋），不算解出喔");
+        }
+        return;
+      }
+
+      const pliesUsedIncludingThisMove = solverState.currentStep + 1;
+      const remainingPlies = moveBudget - pliesUsedIncludingThisMove;
+
+      if (remainingPlies <= 0) {
+        commitWrongAnswer(`已經用完 ${moveBudget} 步的步數限制了`);
+        return;
+      }
+
+      setIsJudging(true);
+      try {
+        const res = await fetch("/api/puzzle/judge-move", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            fen: afterStudent.fen,
+            sideToMove: afterStudent.sideToMove,
+            remainingPlies,
+          }),
+        });
+
+        if (!res.ok) {
+          throw new Error(`判斷失敗（HTTP ${res.status}）`);
+        }
+        const data = (await res.json()) as { accepted: boolean; opponentMove?: string };
+
+        if (!data.accepted || !data.opponentMove) {
+          commitWrongAnswer("這步讓必勝的機會流失掉了，再想想看！");
+          return;
+        }
+
+        const afterOpponent = engine.applyMove(afterStudent.fen, afterStudent.sideToMove, data.opponentMove);
+        const boardAfterOpponent = parseFen(afterOpponent.fen);
+
+        setIsDeviatedMode(true);
+        setLastErrorMessage(null);
+        clearComputerMoveTimer();
+        computerMoveTimerRef.current = setTimeout(() => {
+          confirmedFenRef.current = afterOpponent.fen;
+          setCurrentBoard(boardAfterOpponent);
+          setSolverState((prev) => ({
+            ...prev,
+            currentStep: prev.currentStep + 2,
+            consecutiveWrongCount: 0,
+          }));
+          computerMoveTimerRef.current = null;
+        }, COMPUTER_MOVE_DELAY_MS);
+      } catch (error) {
+        console.error("[usePuzzleSolver] 偏離正解線判斷失敗：", error);
+        // 判斷失敗（網路/伺服器問題）不該讓學生揹黑鍋算答錯，只顯示
+        // 錯誤訊息、不重置棋盤、不累計連續答錯，讓他們可以再試一次。
+        setLastErrorMessage("判斷這步時發生問題，請稍後再試一次。");
+      } finally {
+        setIsJudging(false);
+      }
+    },
+    [engine, solverState.currentStep, sideToMoveAtPly, moveBudget, commitWrongAnswer, grantSolveReward, clearComputerMoveTimer]
+  );
+
+  /**
    * 核心處理函式：接收學生輸入的走法記號，執行比對與後續邏輯。
    */
   const handleStudentMove = useCallback(
     (moveNotation: string) => {
-      // 已過關，不再接受任何走法輸入（生病/死亡不再是阻擋條件，理由見上方說明）
-      if (solverState.isCompleted) {
+      // 已過關、正在等引擎判斷、或電腦回應步還沒播完，都先不接受輸入
+      if (solverState.isCompleted || isJudging) {
         return;
       }
 
-      // 學生再次出手前，先清除任何尚未觸發的電腦回應步計時器，
-      // 避免「學生在電腦思考期間又走了一步」造成的狀態錯亂
       clearComputerMoveTimer();
+
+      // 已經進入偏離模式：不用再比對已知正解線，直接走引擎判斷路線
+      if (isDeviatedMode) {
+        handleDeviatedMove(moveNotation);
+        return;
+      }
 
       const matchingLineIndices = activeLineIndices.filter((lineIndex) =>
         isMoveMatchingExpected(moveNotation, allLines[lineIndex][solverState.currentStep])
       );
 
-      // ---- 答對（至少有一條還存活的線，這一步的記號跟學生走的相符） ----
+      // ---- 符合已知正解線（免費比對） ----
       if (matchingLineIndices.length > 0) {
         setLastErrorMessage(null);
         setActiveLineIndices(matchingLineIndices);
 
         const { board: boardAfterMove } = applyMoveNotation(currentBoard, moveNotation);
+        confirmedFenRef.current = toFen(boardAfterMove);
         setCurrentBoard(boardAfterMove);
 
         const nextStepIndex = solverState.currentStep + 1;
-        // 修正：只要「目前還跟得上的線之中，任何一條」在這一步剛好走完，
-        // 就視為解完——不能只看排第一的那條線的長度。否則學生選了一條
-        // 比較短的替代解法、剛好把它走完，但主線恰好排第一且比較長，
-        // 會誤判成「還沒解完」，逼學生硬是把主線多餘的步數也走完。
         const isLastStep = matchingLineIndices.some(
           (lineIndex) => nextStepIndex >= allLines[lineIndex].length
         );
 
         if (isLastStep) {
-          // 學生這一步就是（其中一條）正解序列的最後一步，整題解完
           setSolverState((prev) => ({
             ...prev,
             currentStep: nextStepIndex,
@@ -413,11 +550,6 @@ export function usePuzzleSolver(puzzle: PuzzleDoc): UsePuzzleSolverResult {
           }));
           grantSolveReward();
         } else {
-          // 後面還有電腦的回應步，先把進度推進到「電腦步」的索引，
-          // 並安排 500ms 後自動播放電腦走法。
-          // 用「剛剛算出來的 matchingLineIndices」直接查出這一步該怎麼回應，
-          // 不依賴 leadLine 這個閉包變數（它可能還是上一次 render 的舊值，
-          // 如果這一步剛好讓排第一的線換成別的線，會抓到錯誤的回應步）。
           setSolverState((prev) => ({
             ...prev,
             currentStep: nextStepIndex,
@@ -429,62 +561,20 @@ export function usePuzzleSolver(puzzle: PuzzleDoc): UsePuzzleSolverResult {
         return;
       }
 
-      // ---- 答錯 ----
-      const newWrongCount = solverState.consecutiveWrongCount + 1;
-      const newTotalWrongAttempts = solverState.totalWrongAttempts + 1;
-
-      // 連續答錯達上限：觸發小雞生病（提醒學生記得回主頁買藥照顧牠），
-      // 但不再鎖定棋盤——飼料主要靠解題賺來，生病/死亡卻不能解題會造成
-      // 「治病要飼料、生病又賺不到飼料」的死循環，不合理（理由見檔案
-      // 上方說明）。觸發生病之後，跟未達上限時一樣重置棋盤、讓學生可以
-      // 馬上繼續嘗試，並把 consecutiveWrongCount 歸零重新開始算
-      // （生病的提醒已經觸發過了，不需要繼續累加同一輪的計數）。
-      const justTriggeredSickness = newWrongCount >= MAX_CONSECUTIVE_WRONG;
-      if (justTriggeredSickness) {
-        // 修正：triggerSickness 直接接收 puzzleId/wrongCount，在 store 裡
-        // 一次性原子更新 healthStatus + currentWrongPuzzleId + consecutiveWrongCount，
-        // 不再額外呼叫 setPet（之前那個額外呼叫會用「呼叫前」捕捉到的舊 pet
-        // 物件覆蓋掉剛設好的生病狀態，導致主頁畫面一直顯示「健康」）。
-        triggerSickness(puzzle.id, newWrongCount);
-      }
-
-      const resetBoard = rebuildBoardAtStep(solverState.currentStep);
-      setCurrentBoard(resetBoard);
-      setSolverState((prev) => ({
-        ...prev,
-        consecutiveWrongCount: justTriggeredSickness ? 0 : newWrongCount,
-        totalWrongAttempts: newTotalWrongAttempts,
-      }));
-      setLastErrorMessage(
-        justTriggeredSickness
-          ? `已連續答錯 ${MAX_CONSECUTIVE_WRONG} 次，小雞生病了！記得有空回主頁買藥水照顧牠，現在可以繼續練習。`
-          : `這步不對喔，再想想看！（已連續答錯 ${newWrongCount} 次，連續答錯 ${MAX_CONSECUTIVE_WRONG} 次小雞會生病）`
-      );
-
-      if (pet && !justTriggeredSickness) {
-        // justTriggeredSickness 的情況下，triggerSickness 已經把
-        // currentWrongPuzzleId/consecutiveWrongCount 一起寫進 pet 了，
-        // 這裡不需要、也不應該再 setPet 一次（避免跟之前一樣的競態覆蓋問題）。
-        setPet({
-          ...pet,
-          currentWrongPuzzleId: puzzle.id,
-          consecutiveWrongCount: newWrongCount,
-        });
-      }
+      // ---- 偏離所有已知正解線：不直接判錯，改讓引擎判斷這步是否仍然算數 ----
+      handleDeviatedMove(moveNotation);
     },
     [
       solverState,
       currentBoard,
       activeLineIndices,
       allLines,
-      puzzle.id,
+      isDeviatedMode,
+      isJudging,
       clearComputerMoveTimer,
       grantSolveReward,
       scheduleComputerMove,
-      rebuildBoardAtStep,
-      triggerSickness,
-      pet,
-      setPet,
+      handleDeviatedMove,
     ]
   );
 
@@ -495,5 +585,8 @@ export function usePuzzleSolver(puzzle: PuzzleDoc): UsePuzzleSolverResult {
     lastErrorMessage,
     rewardOutcome,
     leadLine,
+    isDeviatedMode,
+    isJudging,
+    moveBudget,
   };
 }

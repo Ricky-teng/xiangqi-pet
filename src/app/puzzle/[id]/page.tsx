@@ -464,7 +464,7 @@ function PuzzleSolverSection({
   const pet = useGameStore((s) => s.pet);
   const setUser = useGameStore((s) => s.setUser);
 
-  const { currentBoard, solverState, handleStudentMove, lastErrorMessage, rewardOutcome, leadLine } =
+  const { currentBoard, solverState, handleStudentMove, lastErrorMessage, rewardOutcome, leadLine, isDeviatedMode, isJudging, moveBudget } =
     usePuzzleSolver(puzzle);
 
   const [showHint, setShowHint] = useState(false);
@@ -569,20 +569,38 @@ function PuzzleSolverSection({
         <div className="flex flex-col gap-3 md:w-56">
           <div className="rounded-2xl bg-white/80 px-4 py-3">
             <div className="mb-1 flex justify-between text-xs font-medium text-[#1A1A2E]/70">
-              <span>解題進度</span>
+              <span>{isDeviatedMode ? "步數（雙方合計）" : "解題進度"}</span>
               <span className="tabular-nums">
-                {clampedStep}/{totalSteps} 步
+                {isDeviatedMode
+                  ? `${solverState.currentStep}/${moveBudget} 步`
+                  : `${clampedStep}/${totalSteps} 步`}
               </span>
             </div>
             <div className="h-2 w-full overflow-hidden rounded-full bg-[#E5DFCB]">
               <div
-                className="h-full rounded-full bg-[#5B8C5A] transition-all duration-300"
+                className={[
+                  "h-full rounded-full transition-all duration-300",
+                  isDeviatedMode ? "bg-[#8B5FBF]" : "bg-[#5B8C5A]",
+                ].join(" ")}
                 style={{
-                  width: totalSteps > 0 ? `${(clampedStep / totalSteps) * 100}%` : "0%",
+                  width: isDeviatedMode
+                    ? `${Math.min(100, (solverState.currentStep / moveBudget) * 100)}%`
+                    : totalSteps > 0
+                      ? `${(clampedStep / totalSteps) * 100}%`
+                      : "0%",
                 }}
               />
             </div>
           </div>
+
+          {/* 偏離已知正解線：走出教材以外的招，改用引擎即時判斷每一步，
+              步數預算是題目原本步數 + 2（雙方合計），超過就算輸。
+              判斷中會鎖一下輸入，避免學生在等待期間又連續下棋造成混亂。 */}
+          {isDeviatedMode ? (
+            <p className="rounded-2xl bg-[#8B5FBF]/10 px-3 py-2 text-center text-xs font-semibold text-[#8B5FBF]">
+              {isJudging ? "🔍 引擎判斷中…" : "✨ 你走出了不同的解法，繼續加油！"}
+            </p>
+          ) : null}
 
           <button
             type="button"

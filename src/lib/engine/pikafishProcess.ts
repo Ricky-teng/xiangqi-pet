@@ -411,3 +411,39 @@ export async function analyzePositionFast(
   }
   return { move: fromPikafishMove(bestmoveToken), scoreCp: 0, depth: 0, mateIn: null };
 }
+
+// 給「殘局解題偏離已知正解線」判斷用的搜尋設定：不需要等級10那種
+// 8.5秒的極致強度（那是給棋局分析用的），但要夠深才能可靠抓到
+// 「還有沒有強制將死」——殘局題本身步數短（通常合計沒幾步），這個
+// 深度/時間組合足夠可靠偵測到範圍內的強制將死，又不會太吃資源。
+const PUZZLE_JUDGE_SEARCH_CONFIG = { depth: 16, movetimeMs: 3000 };
+
+/**
+ * 殘局解題判斷用：學生走的這步偏離了題庫裡所有已知正解線時，呼叫
+ * 這個函式。從「學生走完之後、輪到電腦這方」的局面做一次搜尋，回傳
+ * 的 mateIn 就能同時回答兩件事：
+ *   - mateIn 是負數：代表電腦這方不管怎麼防守都會在 |mateIn| 步內被
+ *     將死——也就是學生這步「仍然算數」，還在必勝的路上，回傳的
+ *     move 同時就是電腦這方的最強防守（呼叫端要用這步當電腦的回應）。
+ *   - mateIn 是正數或 null：代表電腦這方守得住（甚至反過來變優勢），
+ *     學生這步讓必勝的優勢流失掉了，判定這步不算數（答錯）。
+ * 呼叫端（/api/puzzle/judge-move）還要另外拿 |mateIn| 換算成「還需要
+ * 幾個回合」，跟剩餘步數預算比較，超過預算一樣視為不算數。
+ */
+export async function judgeDeviatedPuzzleMove(
+  appFen: string,
+  sideToMove: "w" | "b"
+): Promise<SearchResult> {
+  const { candidatesByRank, bestmoveToken } = await runPikafishSearch(
+    appFen,
+    sideToMove,
+    PUZZLE_JUDGE_SEARCH_CONFIG,
+    1
+  );
+
+  const top = candidatesByRank.get(1);
+  if (top) {
+    return { move: fromPikafishMove(top.move), scoreCp: top.scoreCp, depth: top.depth, mateIn: top.mateIn };
+  }
+  return { move: fromPikafishMove(bestmoveToken), scoreCp: 0, depth: 0, mateIn: null };
+}
