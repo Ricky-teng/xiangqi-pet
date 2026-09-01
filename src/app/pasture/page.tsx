@@ -37,7 +37,7 @@ import { useGameStore } from "@/stores/useGameStore";
 import RequireAuth from "@/components/RequireAuth";
 import { getPetDisplaySrc, getPetImagePath } from "@/lib/pet/petImagePath";
 import { getCatalogEntryById } from "@/lib/pet/catalog";
-import { PASTURE_ENTRY_FEE, PASTURE_DAILY_INCOME_CAP } from "@/lib/pasture";
+import { PASTURE_ENTRY_FEE, PASTURE_HOURLY_INCOME, PASTURE_DAILY_INCOME_CAP } from "@/lib/pasture";
 import { getTodayDateString } from "@/lib/tasks/dailyTasks";
 import type { PastureDoc, PetDoc, UserDoc } from "@/types/database";
 
@@ -89,7 +89,8 @@ function PastureContent() {
   const router = useRouter();
   const user = useGameStore((s) => s.user);
   const setUser = useGameStore((s) => s.setUser);
-  const claimPastureEconomy = useGameStore((s) => s.claimPastureEconomy);
+  const payPastureEntry = useGameStore((s) => s.payPastureEntry);
+  const claimPastureIncome = useGameStore((s) => s.claimPastureIncome);
 
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -98,37 +99,44 @@ function PastureContent() {
   const [selectedChicken, setSelectedChicken] = useState<PastureChickenData | null>(null);
   const [findMeSignal, setFindMeSignal] = useState(0);
   const [economyMessage, setEconomyMessage] = useState<string | null>(null);
+  const [isPaying, setIsPaying] = useState(false);
+  const [payError, setPayError] = useState<string | null>(null);
 
-  // 今天已經領到的被動收入（給右上角小字顯示用），還沒入場過今天的話
-  // 是 null，不顯示這行。
-  const todaysPastureIncome =
-    user?.pastureEconomy && user.pastureEconomy.date === getTodayDateString()
-      ? user.pastureEconomy.incomeClaimedToday
-      : null;
+  // 今天是否已經付過入場費——沒付過就先不載入牧場成員名單（省一次
+  // Firestore 讀取），改顯示規則說明 + 付費入場的畫面。
+  const hasEnteredToday = !!user?.pastureEconomy && user.pastureEconomy.date === getTodayDateString();
+  const todaysPastureIncome = hasEnteredToday ? user!.pastureEconomy!.incomeClaimedToday : null;
 
-  // 進頁面時結算一次牧場經濟（入場費 + 被動收入），跟載入牧場成員名單
-  // 是各自獨立的兩件事，互不依賴，所以分開成獨立的 effect。
+  function handlePayEntry() {
+    setIsPaying(true);
+    setPayError(null);
+    const result = payPastureEntry();
+    setIsPaying(false);
+    if (!result.success) {
+      setPayError(result.message);
+      return;
+    }
+    if (!result.alreadyPaid) {
+      setEconomyMessage(result.message);
+    }
+    // 付費成功後，下面的 effect 會偵測到 hasEnteredToday 變 true，
+    // 自動去載入牧場成員名單，這裡不用手動觸發。
+  }
+
+  // 已經入場的狀態下，進頁面順便結算一次被動收入（背景累積的部分）。
   useEffect(() => {
-    if (!user) return;
-    const result = claimPastureEconomy();
-    if (result.insufficientForEntry) {
-      setEconomyMessage(`🪙 飼料不足 ${PASTURE_ENTRY_FEE}，今天先不收入場費，逛逛就好～`);
-    } else if (result.entryCharged && result.incomeGained > 0) {
-      setEconomyMessage(
-        `🎫 入場費 -${PASTURE_ENTRY_FEE} 飼料｜💰 被動收入 +${result.incomeGained}（今日 ${result.incomeClaimedToday}/${PASTURE_DAILY_INCOME_CAP}）`
-      );
-    } else if (result.entryCharged) {
-      setEconomyMessage(`🎫 入場費 -${PASTURE_ENTRY_FEE} 飼料`);
-    } else if (result.incomeGained > 0) {
+    if (!user || !hasEnteredToday) return;
+    const result = claimPastureIncome();
+    if (result.incomeGained > 0) {
       setEconomyMessage(
         `💰 被動收入 +${result.incomeGained} 飼料（今日 ${result.incomeClaimedToday}/${PASTURE_DAILY_INCOME_CAP}）`
       );
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.uid]);
+  }, [user?.uid, hasEnteredToday]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !hasEnteredToday) return;
     let isCancelled = false;
 
     async function loadPasture() {
@@ -200,7 +208,7 @@ function PastureContent() {
       isCancelled = true;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.uid]);
+  }, [user?.uid, hasEnteredToday]);
 
   return (
     <main className="min-h-screen bg-[#FDF6E8] pb-10">
@@ -217,55 +225,130 @@ function PastureContent() {
           <span className="w-[68px]" aria-hidden="true" />
         </header>
 
-        {economyMessage ? (
-          <div className="mt-2 rounded-2xl bg-[#5B8C5A] px-4 py-2 text-center text-xs font-bold text-white shadow-md">
-            {economyMessage}
-          </div>
-        ) : null}
+        {!hasEnteredToday ? (
+          <PastureEntryGate
+            foodCount={user?.foodCount ?? 0}
+            isPaying={isPaying}
+            payError={payError}
+            onPay={handlePayEntry}
+          />
+        ) : (
+          <>
+            {economyMessage ? (
+              <div className="mt-2 rounded-2xl bg-[#5B8C5A] px-4 py-2 text-center text-xs font-bold text-white shadow-md">
+                {economyMessage}
+              </div>
+            ) : null}
 
-        <div className="mt-2 flex items-center justify-between">
-          <p className="text-xs text-[#1A1A2E]/50">
-            {status === "success" ? `這間牧場目前有 ${memberCount} 位同學` : "\u00A0"}
-          </p>
-          {todaysPastureIncome !== null ? (
-            <span className="text-[10px] font-bold text-[#1A1A2E]/40">
-              🌾 今日被動收入 {todaysPastureIncome}/{PASTURE_DAILY_INCOME_CAP}
-            </span>
-          ) : null}
-          {status === "success" && chickens.some((c) => c.isSelf) ? (
-            <button
-              type="button"
-              onClick={() => setFindMeSignal((n) => n + 1)}
-              className="rounded-full bg-[#E8B84B] px-3 py-1 text-[11px] font-bold text-[#5C3D0A] shadow-sm transition-transform active:scale-95"
-            >
-              📍 找到我的小雞
-            </button>
-          ) : null}
-        </div>
+            <div className="mt-2 flex items-center justify-between">
+              <p className="text-xs text-[#1A1A2E]/50">
+                {status === "success" ? `這間牧場目前有 ${memberCount} 位同學` : "\u00A0"}
+              </p>
+              {todaysPastureIncome !== null ? (
+                <span className="text-[10px] font-bold text-[#1A1A2E]/40">
+                  🌾 今日被動收入 {todaysPastureIncome}/{PASTURE_DAILY_INCOME_CAP}
+                </span>
+              ) : null}
+              {status === "success" && chickens.some((c) => c.isSelf) ? (
+                <button
+                  type="button"
+                  onClick={() => setFindMeSignal((n) => n + 1)}
+                  className="rounded-full bg-[#E8B84B] px-3 py-1 text-[11px] font-bold text-[#5C3D0A] shadow-sm transition-transform active:scale-95"
+                >
+                  📍 找到我的小雞
+                </button>
+              ) : null}
+            </div>
 
-        <div className="mt-2">
-          {status === "loading" ? (
-            <p className="py-20 text-center text-xs text-[#1A1A2E]/50">牧場載入中…</p>
-          ) : status === "error" ? (
-            <p className="py-20 text-center text-xs text-[#C0392B]">{errorMessage ?? "載入失敗，請稍後再試。"}</p>
-          ) : (
-            <PastureField
-              chickens={chickens}
-              onSelectChicken={setSelectedChicken}
-              findMeSignal={findMeSignal}
-            />
-          )}
-        </div>
+            <div className="mt-2">
+              {status === "loading" ? (
+                <p className="py-20 text-center text-xs text-[#1A1A2E]/50">牧場載入中…</p>
+              ) : status === "error" ? (
+                <p className="py-20 text-center text-xs text-[#C0392B]">{errorMessage ?? "載入失敗，請稍後再試。"}</p>
+              ) : (
+                <PastureField
+                  chickens={chickens}
+                  onSelectChicken={setSelectedChicken}
+                  findMeSignal={findMeSignal}
+                />
+              )}
+            </div>
 
-        <p className="mt-2 text-center text-[10px] text-[#1A1A2E]/30">
-          點小雞可以看牠的狀態卡片
-        </p>
+            <p className="mt-2 text-center text-[10px] text-[#1A1A2E]/30">
+              點小雞可以看牠的狀態卡片
+            </p>
+          </>
+        )}
       </div>
 
       {selectedChicken ? (
         <ChickenInfoCard chicken={selectedChicken} onClose={() => setSelectedChicken(null)} />
       ) : null}
     </main>
+  );
+}
+
+/**
+ * 入場規則說明 + 付費入場按鈕。今天還沒付過入場費時顯示這個畫面，
+ * 取代整個牧場草地——先讓學生看清楚規則（入場費多少、被動收入怎麼
+ * 算、什麼時候重置），按下去才真的扣飼料、正式入場。
+ */
+function PastureEntryGate({
+  foodCount,
+  isPaying,
+  payError,
+  onPay,
+}: {
+  foodCount: number;
+  isPaying: boolean;
+  payError: string | null;
+  onPay: () => void;
+}) {
+  const canAfford = foodCount >= PASTURE_ENTRY_FEE;
+
+  return (
+    <div className="mt-4 rounded-3xl bg-white/80 px-5 py-6 text-center shadow-sm">
+      <p className="text-3xl">🚜🐣</p>
+      <h2 className="mt-2 text-base font-extrabold text-[#1A1A2E]">歡迎來到牧場！</h2>
+      <p className="mt-1 text-xs text-[#1A1A2E]/60">
+        付一次入場費，小雞就能在草地上跟同學們一起跑一整天。
+      </p>
+
+      <div className="mt-4 space-y-2 rounded-2xl bg-[#FDF6E8] px-4 py-3 text-left text-xs text-[#1A1A2E]/80">
+        <p>
+          🎫 <span className="font-bold">入場費 {PASTURE_ENTRY_FEE} 飼料</span>：每天只收一次，付過之後今天都能自由進出。
+        </p>
+        <p>
+          💰 <span className="font-bold">被動收入每小時 +{PASTURE_HOURLY_INCOME} 飼料</span>：入場後開始累積，就算沒開著頁面也照算，下次回來一次補發。
+        </p>
+        <p>
+          📈 <span className="font-bold">單日上限 {PASTURE_DAILY_INCOME_CAP} 飼料</span>：被動收入最多算到這裡，之後要等明天重新開始。
+        </p>
+        <p>
+          🕛 <span className="font-bold">每天 00:00 重置</span>：入場費跟被動收入額度都會重新來一次，要記得再付一次入場費。
+        </p>
+      </div>
+
+      <p className="mt-3 text-xs text-[#1A1A2E]/50">目前飼料：{foodCount}</p>
+
+      {payError ? (
+        <p className="mt-2 text-xs font-bold text-[#C0392B]">{payError}</p>
+      ) : null}
+
+      <button
+        type="button"
+        onClick={onPay}
+        disabled={isPaying || !canAfford}
+        className={[
+          "mt-4 w-full rounded-2xl px-4 py-3 text-sm font-bold shadow-sm transition-transform active:scale-95",
+          canAfford
+            ? "bg-[#E8B84B] text-[#5C3D0A]"
+            : "cursor-not-allowed bg-[#1A1A2E]/10 text-[#1A1A2E]/40",
+        ].join(" ")}
+      >
+        {isPaying ? "入場中…" : canAfford ? `🎫 付費入場（-${PASTURE_ENTRY_FEE} 飼料）` : "飼料不足，無法入場"}
+      </button>
+    </div>
   );
 }
 
