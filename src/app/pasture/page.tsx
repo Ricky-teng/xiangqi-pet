@@ -37,6 +37,8 @@ import { useGameStore } from "@/stores/useGameStore";
 import RequireAuth from "@/components/RequireAuth";
 import { getPetDisplaySrc, getPetImagePath } from "@/lib/pet/petImagePath";
 import { getCatalogEntryById } from "@/lib/pet/catalog";
+import { PASTURE_ENTRY_FEE, PASTURE_DAILY_INCOME_CAP } from "@/lib/pasture";
+import { getTodayDateString } from "@/lib/tasks/dailyTasks";
 import type { PastureDoc, PetDoc, UserDoc } from "@/types/database";
 
 interface PastureChickenData {
@@ -87,6 +89,7 @@ function PastureContent() {
   const router = useRouter();
   const user = useGameStore((s) => s.user);
   const setUser = useGameStore((s) => s.setUser);
+  const claimPastureEconomy = useGameStore((s) => s.claimPastureEconomy);
 
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -94,6 +97,35 @@ function PastureContent() {
   const [memberCount, setMemberCount] = useState(0);
   const [selectedChicken, setSelectedChicken] = useState<PastureChickenData | null>(null);
   const [findMeSignal, setFindMeSignal] = useState(0);
+  const [economyMessage, setEconomyMessage] = useState<string | null>(null);
+
+  // 今天已經領到的被動收入（給右上角小字顯示用），還沒入場過今天的話
+  // 是 null，不顯示這行。
+  const todaysPastureIncome =
+    user?.pastureEconomy && user.pastureEconomy.date === getTodayDateString()
+      ? user.pastureEconomy.incomeClaimedToday
+      : null;
+
+  // 進頁面時結算一次牧場經濟（入場費 + 被動收入），跟載入牧場成員名單
+  // 是各自獨立的兩件事，互不依賴，所以分開成獨立的 effect。
+  useEffect(() => {
+    if (!user) return;
+    const result = claimPastureEconomy();
+    if (result.insufficientForEntry) {
+      setEconomyMessage(`🪙 飼料不足 ${PASTURE_ENTRY_FEE}，今天先不收入場費，逛逛就好～`);
+    } else if (result.entryCharged && result.incomeGained > 0) {
+      setEconomyMessage(
+        `🎫 入場費 -${PASTURE_ENTRY_FEE} 飼料｜💰 被動收入 +${result.incomeGained}（今日 ${result.incomeClaimedToday}/${PASTURE_DAILY_INCOME_CAP}）`
+      );
+    } else if (result.entryCharged) {
+      setEconomyMessage(`🎫 入場費 -${PASTURE_ENTRY_FEE} 飼料`);
+    } else if (result.incomeGained > 0) {
+      setEconomyMessage(
+        `💰 被動收入 +${result.incomeGained} 飼料（今日 ${result.incomeClaimedToday}/${PASTURE_DAILY_INCOME_CAP}）`
+      );
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.uid]);
 
   useEffect(() => {
     if (!user) return;
@@ -185,10 +217,21 @@ function PastureContent() {
           <span className="w-[68px]" aria-hidden="true" />
         </header>
 
+        {economyMessage ? (
+          <div className="mt-2 rounded-2xl bg-[#5B8C5A] px-4 py-2 text-center text-xs font-bold text-white shadow-md">
+            {economyMessage}
+          </div>
+        ) : null}
+
         <div className="mt-2 flex items-center justify-between">
           <p className="text-xs text-[#1A1A2E]/50">
             {status === "success" ? `這間牧場目前有 ${memberCount} 位同學` : "\u00A0"}
           </p>
+          {todaysPastureIncome !== null ? (
+            <span className="text-[10px] font-bold text-[#1A1A2E]/40">
+              🌾 今日被動收入 {todaysPastureIncome}/{PASTURE_DAILY_INCOME_CAP}
+            </span>
+          ) : null}
           {status === "success" && chickens.some((c) => c.isSelf) ? (
             <button
               type="button"

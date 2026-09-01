@@ -213,6 +213,26 @@ export interface UserDoc {
   pastureId?: string | null;
 
   /**
+   * 牧場經濟：入場費 + 被動收入（見 @/lib/pasture.ts 的常數定義）。
+   * date：這筆記錄對應的本地日期字串（YYYY-MM-DD，用
+   *   getTodayDateString()）。跟目前日期不同就代表跨天了，視為「今天
+   *   還沒入場」——下次進牧場會重新收一次入場費、被動收入歸零重算，
+   *   不需要另外跑排程清資料。
+   * lastIncomeAt：上次結算被動收入的時間戳（ms）。入場當下會設成
+   *   入場時間；之後每次進牧場頁面都會用「現在時間 - 這個時間戳」
+   *   換算成經過幾個整小時來補發被動收入，只會往前推進「已經算過的
+   *   整小時數」，不足一小時的零頭留到下次繼續累計。
+   * incomeClaimedToday：今天已經透過被動收入拿到的飼料總量，封頂
+   *   PASTURE_DAILY_INCOME_CAP，達到上限後當天不再增加。
+   * 舊帳號沒有這個欄位時視為「還沒入場過」。
+   */
+  pastureEconomy?: {
+    date: string;
+    lastIncomeAt: number;
+    incomeClaimedToday: number;
+  };
+
+  /**
    * 每日任務完成進度（可選欄位：舊帳號沒有這個欄位時，視為「今天還沒
    * 完成任何任務」，見 @/lib/tasks/dailyTasks.ts 的 getTodaysCompletedTaskIds）。
    * date 用本地（瀏覽器所在時區）的 YYYY-MM-DD 字串記錄「上次更新是哪一天」，

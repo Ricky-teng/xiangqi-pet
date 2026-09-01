@@ -23,6 +23,7 @@ import {
   type ItemCategory,
 } from "@/lib/shopItems";
 import { getBadgeById, type BadgeDefinition } from "@/lib/badges/badges";
+import { PASTURE_ENTRY_FEE, PASTURE_HOURLY_INCOME, PASTURE_DAILY_INCOME_CAP } from "@/lib/pasture";
 
 // 定義我們遊戲總機裡面有哪些資料與開關
 interface GameStoreState {
@@ -136,6 +137,22 @@ interface GameStoreState {
    * 回傳 granted=true 代表這次真的發放了，可以顯示提示給學生。
    */
   claimDailyGrant: () => { granted: boolean };
+
+  /**
+   * 牧場經濟結算：每天第一次呼叫會先收 PASTURE_ENTRY_FEE 入場費，
+   * 同時把被動收入計時器歸零；不管是不是第一次呼叫，都會順便結算
+   * 「距離上次結算過了幾個整小時」的被動收入（封頂
+   * PASTURE_DAILY_INCOME_CAP）。進 /pasture 頁面時呼叫一次即可，
+   * 同一小時內重複呼叫不會重複發放。
+   * insufficientForEntry=true 代表飼料不夠付入場費，今天先不收費也
+   * 不開始算被動收入，但不擋學生逛牧場本身。
+   */
+  claimPastureEconomy: () => {
+    entryCharged: boolean;
+    incomeGained: number;
+    incomeClaimedToday: number;
+    insufficientForEntry: boolean;
+  };
 
   /** 購買消耗道具（背景、棋盤造型都改為抽獎取得，不再走這個函式） */
   buyShopItem: (itemId: string, price: number, category: ItemCategory) => { success: boolean; message: string };
@@ -838,6 +855,71 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     });
 
     return { granted: true };
+  },
+
+  claimPastureEconomy: () => {
+    const { user } = get();
+    if (!user) {
+      return { entryCharged: false, incomeGained: 0, incomeClaimedToday: 0, insufficientForEntry: false };
+    }
+
+    const today = getTodayDateString();
+    const now = Date.now();
+
+    let foodCount = user.foodCount;
+    let totalFoodSpent = user.totalFoodSpent ?? 0;
+    let economy = user.pastureEconomy;
+    let entryCharged = false;
+
+    // 還沒入場過，或者入場的那天不是今天：要先收入場費，被動收入
+    // 計時器也重新從現在開始算。
+    if (!economy || economy.date !== today) {
+      if (foodCount < PASTURE_ENTRY_FEE) {
+        // 飼料不夠付入場費：今天先不收費、不開始算被動收入，但不擋
+        // 學生逛牧場（pastureEconomy 維持原樣，下次飼料夠了再重試）。
+        return { entryCharged: false, incomeGained: 0, incomeClaimedToday: 0, insufficientForEntry: true };
+      }
+      foodCount -= PASTURE_ENTRY_FEE;
+      totalFoodSpent += PASTURE_ENTRY_FEE;
+      economy = { date: today, lastIncomeAt: now, incomeClaimedToday: 0 };
+      entryCharged = true;
+    }
+
+    // 被動收入結算：算「距離上次結算過了幾個整小時」，不足一小時的
+    // 零頭留到下次繼續累計（lastIncomeAt 只往前推進整小時的份量）。
+    const HOUR_MS = 60 * 60 * 1000;
+    const elapsedHours = Math.floor((now - economy.lastIncomeAt) / HOUR_MS);
+    let incomeGained = 0;
+    if (elapsedHours > 0) {
+      const remainingCap = Math.max(0, PASTURE_DAILY_INCOME_CAP - economy.incomeClaimedToday);
+      incomeGained = Math.min(elapsedHours * PASTURE_HOURLY_INCOME, remainingCap);
+      economy = {
+        ...economy,
+        lastIncomeAt: economy.lastIncomeAt + elapsedHours * HOUR_MS,
+        incomeClaimedToday: economy.incomeClaimedToday + incomeGained,
+      };
+      foodCount += incomeGained;
+    }
+
+    const updatedUser: UserDoc = {
+      ...user,
+      foodCount,
+      totalFoodSpent,
+      pastureEconomy: economy,
+      updatedAt: now,
+    };
+    set({ user: updatedUser });
+
+    updateDoc(doc(db, "users", user.uid), {
+      foodCount,
+      totalFoodSpent,
+      pastureEconomy: economy,
+      updatedAt: now,
+    }).catch((error) => {
+      console.error("[useGameStore] claimPastureEconomy 同步寫回 Firestore 失敗：", error);
+    });
+
+    return { entryCharged, incomeGained, incomeClaimedToday: economy.incomeClaimedToday, insufficientForEntry: false };
   },
 
   buyShopItem: (itemId, price, category) => {
