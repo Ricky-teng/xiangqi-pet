@@ -648,6 +648,7 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
             { href: "/friends", icon: "👥", label: "好友" },
             { href: "/chat", icon: "💬", label: "聊天", badge: unreadChatCount > 0 },
             { href: "/announcements", icon: "📢", label: "公告", badge: hasUnreadAnnouncement(user, latestAnnouncementCreatedAt) },
+            { href: "/pasture", icon: "🚜", label: "牧場" },
           ];
           const hasAnyBadge = navItems.some((item) => item.badge);
 
@@ -666,7 +667,7 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
               </button>
 
               {isNavExpanded ? (
-                <nav className="grid grid-cols-3 gap-0.5 px-1 pb-1">
+                <nav className="grid grid-cols-5 gap-0.5 px-1 pb-1">
                   {navItems.map(({ href, icon, label, badge }) => (
                     <button
                       key={href}

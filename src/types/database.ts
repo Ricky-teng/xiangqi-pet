@@ -207,6 +207,11 @@ export interface UserDoc {
    * 只是獨立的一套，見 @/lib/shopItems.ts 的棋盤造型抽獎） */
   unlockedBoardSkins?: string[];
 
+  /** 分配到的牧場 id（見 PastureDoc），null/undefined 代表還沒分配過，
+   * 第一次進 /pasture 頁面時會呼叫 /api/pasture/join 分配一次，
+   * 之後永久固定，不會動態搬遷。 */
+  pastureId?: string | null;
+
   /**
    * 每日任務完成進度（可選欄位：舊帳號沒有這個欄位時，視為「今天還沒
    * 完成任何任務」，見 @/lib/tasks/dailyTasks.ts 的 getTodaysCompletedTaskIds）。
@@ -631,4 +636,26 @@ export interface ChallengeRedirectDoc {
   battleRoomId?: string | null;
   matchRoomId?: string | null;
   updatedAt: number;
+}
+
+/**
+ * 12. 牧場 (路徑: pastures/{id})
+ * ------------------------------------------------------------
+ * 純展示用的社交空間：可以看到同一間牧場裡其他人的小雞狀態（外觀/
+ * 健康狀態），不能互動（先做 v1，之後想加拜訪/送禮物再擴充）。
+ * 一間牧場最多 MAX_PASTURE_MEMBERS（20）人，滿了自動開新的一間
+ * （見 @/lib/pasture.ts 的常數、/api/pasture/join 的分配邏輯）。
+ * 學生只會被分配一次，之後永久待在同一間牧場（不會動態搬遷），
+ * 見 UserDoc.pastureId。
+ *
+ * 只有 Admin SDK（/api/pasture/join）會寫這份文件，一般 client SDK
+ * 只有讀取權限——分配名額需要用 Firestore transaction 保證「不會有
+ * 兩個人同時搶到同一間牧場的最後一個名額導致爆量」，這個保證只有
+ * 伺服器端可以做，開放給 client 直接寫入的話沒辦法防止這種競態問題。
+ */
+export interface PastureDoc {
+  id: string;
+  memberUids: string[];
+  memberCount: number;
+  createdAt: number;
 }
