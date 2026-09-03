@@ -29,3 +29,10 @@ export const PASTURE_BUG_CATCH_DAILY_LIMIT = 5;
 
 /** 送表情可以選的幾個表情，純娛樂用，跟拍拍一樣算一次牧場互動 */
 export const PASTURE_POKE_EMOJIS = ["👋", "❤️", "😄", "👍", "🎉"] as const;
+
+/**
+ * 拍拍 / 送表情的每日總次數上限（不分對象，是全部加起來的次數）：
+ * 拍拍一天只能拍 1 次，送表情一天最多 5 次。
+ */
+export const PASTURE_PAT_DAILY_LIMIT = 1;
+export const PASTURE_EMOJI_DAILY_LIMIT = 5;

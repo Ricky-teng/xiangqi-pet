@@ -29,6 +29,8 @@ import {
   PASTURE_DAILY_INCOME_CAP,
   PASTURE_BUG_CATCH_REWARD_FOOD,
   PASTURE_BUG_CATCH_DAILY_LIMIT,
+  PASTURE_PAT_DAILY_LIMIT,
+  PASTURE_EMOJI_DAILY_LIMIT,
 } from "@/lib/pasture";
 
 // 定義我們遊戲總機裡面有哪些資料與開關
@@ -168,12 +170,15 @@ interface GameStoreState {
   getDailyPastureInteractCount: () => number;
 
   /**
-   * 記錄一次牧場互動（拍拍 / 送表情共用這個function）。targetUid 是
-   * 自己的話直接忽略（不計入任務進度，也不必要通知自己）。同一隻
-   * 小雞當天重複互動不會重複計算，isNew 用來讓呼叫端知道要不要顯示
-   * 「今天已經互動過」之類的提示。
+   * 記錄一次牧場互動（拍拍 / 送表情共用這個 function，用 kind 區分）。
+   * targetUid 是自己的話直接擋掉（allowed=false, reason="self"）——
+   * 拍自己的小雞毫無意義，不該被允許。拍拍每天限 1 次、送表情每天
+   * 限 5 次（不分對象，是總次數），超過上限一樣 allowed=false。
    */
-  recordPastureInteraction: (targetUid: string) => { isNew: boolean; countToday: number };
+  recordPastureInteraction: (
+    targetUid: string,
+    kind: "pat" | "emoji"
+  ) => { allowed: boolean; isNewChicken: boolean; remaining: number; reason?: "self" | "limit_reached" };
 
   /**
    * 找蟲子小遊戲：抓到一隻蟲。當天次數達到 PASTURE_BUG_CATCH_DAILY_LIMIT
@@ -438,6 +443,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const updatedUser: UserDoc = {
       ...user,
       unlockedCatalogIds: newUnlockedCatalogIds,
+      totalJobChanges: (user.totalJobChanges ?? 0) + 1,
       updatedAt: now,
     };
 
@@ -454,6 +460,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     Promise.all([
       updateDoc(doc(db, "users", user.uid), {
         unlockedCatalogIds: updatedUser.unlockedCatalogIds,
+        totalJobChanges: updatedUser.totalJobChanges,
         updatedAt: now,
       }),
       updateDoc(doc(db, "pets", user.uid), {
@@ -1002,25 +1009,35 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     return prog?.date === today ? prog.interactedUids.length : 0;
   },
 
-  recordPastureInteraction: (targetUid) => {
+  recordPastureInteraction: (targetUid, kind) => {
     const { user } = get();
-    if (!user) return { isNew: false, countToday: 0 };
+    if (!user) return { allowed: false, isNewChicken: false, remaining: 0 };
 
-    // 拍自己的小雞不算——牧場每日任務的用意是鼓勵跟同學互動。
+    // 拍自己的小雞毫無意義，直接擋掉——UI 那邊也會把按鈕藏起來，這裡
+    // 是防呆用的第二層檢查。
     if (targetUid === user.uid) {
-      return { isNew: false, countToday: get().getDailyPastureInteractCount() };
+      return { allowed: false, isNewChicken: false, remaining: 0, reason: "self" };
     }
 
     const today = getTodayDateString();
     const prevProg = user.dailyPastureInteractProgress;
-    const prevUids = prevProg?.date === today ? prevProg.interactedUids : [];
+    const isToday = prevProg?.date === today;
+    const prevUids = isToday ? prevProg.interactedUids : [];
+    const prevPatCount = isToday ? prevProg.patCount ?? 0 : 0;
+    const prevEmojiCount = isToday ? prevProg.emojiCount ?? 0 : 0;
 
-    if (prevUids.includes(targetUid)) {
-      return { isNew: false, countToday: prevUids.length };
+    const limit = kind === "pat" ? PASTURE_PAT_DAILY_LIMIT : PASTURE_EMOJI_DAILY_LIMIT;
+    const currentCount = kind === "pat" ? prevPatCount : prevEmojiCount;
+
+    if (currentCount >= limit) {
+      return { allowed: false, isNewChicken: false, remaining: 0, reason: "limit_reached" };
     }
 
-    const newUids = [...prevUids, targetUid];
-    const newProg = { date: today, interactedUids: newUids };
+    const newPatCount = kind === "pat" ? prevPatCount + 1 : prevPatCount;
+    const newEmojiCount = kind === "emoji" ? prevEmojiCount + 1 : prevEmojiCount;
+    const isNewChicken = !prevUids.includes(targetUid);
+    const newUids = isNewChicken ? [...prevUids, targetUid] : prevUids;
+    const newProg = { date: today, interactedUids: newUids, patCount: newPatCount, emojiCount: newEmojiCount };
     const now = Date.now();
 
     const updatedUser: UserDoc = { ...user, dailyPastureInteractProgress: newProg, updatedAt: now };
@@ -1033,7 +1050,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       console.error("[useGameStore] recordPastureInteraction 同步寫回 Firestore 失敗：", error);
     });
 
-    return { isNew: true, countToday: newUids.length };
+    const remaining = limit - (kind === "pat" ? newPatCount : newEmojiCount);
+    return { allowed: true, isNewChicken, remaining };
   },
 
   catchPastureBug: () => {

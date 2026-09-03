@@ -60,6 +60,15 @@ export interface UserDoc {
   
   // 總轉生次數（真正「回到蛋重新養」的次數，轉職不計入；見 lib/pet/catalog.ts）
   rebirthCount: number;
+
+  /**
+   * 總轉職次數（每次 changeJob() 成功呼叫都 +1，累計不會因為轉生/
+   * 死亡重養而歸零——跟 currentAppearanceId 不一樣，那個是「現在的
+   * 職業」，死亡重養會歸零；這個是「這輩子總共轉職過幾次」的累計
+   * 總數，拿來當排行榜指標，因為轉生比轉職慢很多，轉生次數當排行
+   * 指標太難拉開差距）。
+   */
+  totalJobChanges?: number;
   
   // 行動裝置推播用的 FCM Token 陣列（可能登入多台裝置）
   fcmTokens: string[];
@@ -233,14 +242,20 @@ export interface UserDoc {
   };
 
   /**
-   * 牧場互動（拍拍 / 送表情）當天記錄，給「牧場每日任務」用來判斷
-   * 有沒有達標。interactedUids 存「今天已經互動過的、非自己的小雞
-   * uid」，不重複計算同一隻——所以任務講的「跟 N 隻不同小雞互動」是
-   * 看 interactedUids.length，不是看互動的總次數。
+   * 牧場互動（拍拍 / 送表情）當天記錄，給「牧場每日任務」判斷有沒有
+   * 達標，也用來限制每天能拍拍/送表情幾次：
+   * - interactedUids：今天已經互動過的、非自己的小雞 uid（去重），
+   *   任務講的「跟 N 隻不同小雞互動」看這個陣列長度。
+   * - patCount：今天已經拍拍幾次，上限 PASTURE_PAT_DAILY_LIMIT（1）。
+   * - emojiCount：今天已經送出幾次表情，上限 PASTURE_EMOJI_DAILY_LIMIT（5）。
+   * 這兩個次數是「總次數」，不分對象——拍過一次任何人的小雞，今天
+   * 就不能再拍了。
    */
   dailyPastureInteractProgress?: {
     date: string;
     interactedUids: string[];
+    patCount: number;
+    emojiCount: number;
   };
 
   /**

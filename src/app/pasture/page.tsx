@@ -48,7 +48,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { collection, doc, documentId, getDoc, getDocs, query, where } from "firebase/firestore";
+import { arrayUnion, collection, doc, documentId, getDoc, getDocs, query, updateDoc, where } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { useGameStore } from "@/stores/useGameStore";
 import RequireAuth from "@/components/RequireAuth";
@@ -62,6 +62,8 @@ import {
   PASTURE_BUG_CATCH_REWARD_FOOD,
   PASTURE_BUG_CATCH_DAILY_LIMIT,
   PASTURE_POKE_EMOJIS,
+  PASTURE_PAT_DAILY_LIMIT,
+  PASTURE_EMOJI_DAILY_LIMIT,
 } from "@/lib/pasture";
 import { getTodayDateString } from "@/lib/tasks/dailyTasks";
 import type { PastureDoc, PetDoc, UserDoc } from "@/types/database";
@@ -110,17 +112,17 @@ async function getAuthHeader(): Promise<Record<string, string>> {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-/** 送表情時順便通知對方（推播失敗不影響主要操作，靜默失敗就好） */
-async function notifyPoke(toUid: string) {
+/** 發推播通知，失敗不影響主要操作，靜默失敗就好（送表情/加好友共用） */
+async function notify(toUid: string, type: string) {
   try {
     const headers = await getAuthHeader();
     await fetch("/api/notifications/notify", {
       method: "POST",
       headers: { "Content-Type": "application/json", ...headers },
-      body: JSON.stringify({ toUid, type: "pasture_poke" }),
+      body: JSON.stringify({ toUid, type }),
     });
   } catch (error) {
-    console.error("[pasture] 發送互動通知失敗（不影響主要操作）：", error);
+    console.error("[pasture] 發送通知失敗（不影響主要操作）：", error);
   }
 }
 
@@ -163,22 +165,52 @@ function PastureContent() {
     setBugCatchRemaining(Math.max(0, PASTURE_BUG_CATCH_DAILY_LIMIT - caughtToday));
   }, [user?.uid, user?.dailyBugCatchProgress]);
 
+  // 今天還能拍拍/送表情幾次（不分對象的總次數上限），從 user 資料
+  // 直接算，不用另外存 state。
+  const todayInteractProg =
+    user?.dailyPastureInteractProgress?.date === getTodayDateString() ? user.dailyPastureInteractProgress : null;
+  const patRemaining = Math.max(0, PASTURE_PAT_DAILY_LIMIT - (todayInteractProg?.patCount ?? 0));
+  const emojiRemaining = Math.max(0, PASTURE_EMOJI_DAILY_LIMIT - (todayInteractProg?.emojiCount ?? 0));
+
   function handlePatChicken(chicken: PastureChickenData) {
-    setInteractionSignal({ uid: chicken.uid, kind: "pat", seq: Date.now() });
+    // 拍自己的小雞毫無意義，按鈕在 UI 上就不會出現，這裡是防呆。
     if (chicken.isSelf) return;
-    const result = recordPastureInteraction(chicken.uid);
-    if (result.isNew) {
-      setEconomyMessage(`🤚 拍拍了 ${chicken.displayName} 的小雞！`);
+    const result = recordPastureInteraction(chicken.uid, "pat");
+    if (!result.allowed) {
+      setEconomyMessage("🤚 今天已經拍拍過了，明天再來吧！");
+      return;
     }
+    setInteractionSignal({ uid: chicken.uid, kind: "pat", seq: Date.now() });
+    setEconomyMessage(`🤚 拍拍了 ${chicken.displayName} 的小雞！`);
   }
 
   function handleSendEmoji(chicken: PastureChickenData, emoji: string) {
-    setInteractionSignal({ uid: chicken.uid, kind: emoji, seq: Date.now() });
     if (chicken.isSelf) return;
-    const result = recordPastureInteraction(chicken.uid);
-    notifyPoke(chicken.uid);
-    if (result.isNew) {
-      setEconomyMessage(`${emoji} 送給了 ${chicken.displayName} 一個招呼！`);
+    const result = recordPastureInteraction(chicken.uid, "emoji");
+    if (!result.allowed) {
+      setEconomyMessage("😄 今天的表情額度用完了，明天再來吧！");
+      return;
+    }
+    setInteractionSignal({ uid: chicken.uid, kind: emoji, seq: Date.now() });
+    notify(chicken.uid, "pasture_poke");
+    setEconomyMessage(`${emoji} 送給了 ${chicken.displayName} 一個招呼！`);
+  }
+
+  async function handleAddFriend(chicken: PastureChickenData) {
+    if (!user || chicken.isSelf) return;
+    const friends = user.friends ?? [];
+    const outgoing = user.outgoingFriendRequestUids ?? [];
+    if (friends.includes(chicken.uid) || outgoing.includes(chicken.uid)) return;
+
+    const newOutgoing = [...outgoing, chicken.uid];
+    setUser({ ...user, outgoingFriendRequestUids: newOutgoing });
+    try {
+      await updateDoc(doc(db, "users", user.uid), { outgoingFriendRequestUids: arrayUnion(chicken.uid) });
+      await notify(chicken.uid, "friend_request");
+      setEconomyMessage(`➕ 已經送出好友邀請給 ${chicken.displayName}！`);
+    } catch (error) {
+      console.error("[pasture] 送出好友邀請失敗：", error);
+      setEconomyMessage("送出好友邀請失敗，請稍後再試。");
     }
   }
 
@@ -374,6 +406,18 @@ function PastureContent() {
           onClose={() => setSelectedChicken(null)}
           onPat={handlePatChicken}
           onSendEmoji={handleSendEmoji}
+          onAddFriend={handleAddFriend}
+          patRemaining={patRemaining}
+          emojiRemaining={emojiRemaining}
+          friendStatus={
+            selectedChicken.isSelf
+              ? "self"
+              : (user?.friends ?? []).includes(selectedChicken.uid)
+              ? "friend"
+              : (user?.outgoingFriendRequestUids ?? []).includes(selectedChicken.uid)
+              ? "pending"
+              : "none"
+          }
         />
       ) : null}
     </main>
@@ -1021,11 +1065,19 @@ function ChickenInfoCard({
   onClose,
   onPat,
   onSendEmoji,
+  onAddFriend,
+  patRemaining,
+  emojiRemaining,
+  friendStatus,
 }: {
   chicken: PastureChickenData;
   onClose: () => void;
   onPat: (chicken: PastureChickenData) => void;
   onSendEmoji: (chicken: PastureChickenData, emoji: string) => void;
+  onAddFriend: (chicken: PastureChickenData) => void;
+  patRemaining: number;
+  emojiRemaining: number;
+  friendStatus: "self" | "friend" | "pending" | "none";
 }) {
   const jobEntry = chicken.currentAppearanceId ? getCatalogEntryById(chicken.currentAppearanceId) : null;
   const { src: petImageSrc } = getPetDisplaySrc(chicken.stage, chicken.healthStatus, chicken.currentAppearanceId);
@@ -1048,6 +1100,24 @@ function ChickenInfoCard({
           {chicken.displayName}
           {chicken.isSelf ? <span className="ml-1 text-xs font-bold text-[#E8B84B]">（我）</span> : null}
         </p>
+
+        {friendStatus === "none" ? (
+          <button
+            type="button"
+            onClick={() => onAddFriend(chicken)}
+            className="mt-1.5 rounded-full bg-[#5B8C5A] px-3 py-1 text-[11px] font-bold text-white shadow-sm transition-transform active:scale-95"
+          >
+            ➕ 加好友
+          </button>
+        ) : friendStatus === "pending" ? (
+          <span className="mt-1.5 inline-block rounded-full bg-[#1A1A2E]/10 px-3 py-1 text-[11px] font-bold text-[#1A1A2E]/50">
+            ⏳ 邀請已送出
+          </span>
+        ) : friendStatus === "friend" ? (
+          <span className="mt-1.5 inline-block rounded-full bg-[#E8B84B]/30 px-3 py-1 text-[11px] font-bold text-[#5C3D0A]">
+            ✅ 已經是好友
+          </span>
+        ) : null}
 
         <div className="mt-3 grid grid-cols-2 gap-2 text-left text-xs">
           <div className="rounded-xl bg-white/70 px-3 py-2">
@@ -1072,31 +1142,49 @@ function ChickenInfoCard({
           </div>
         </div>
 
-        <div className="mt-4 flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => onPat(chicken)}
-            className="flex-1 rounded-2xl bg-[#E8B84B] px-3 py-2.5 text-sm font-bold text-[#5C3D0A] shadow-sm transition-transform active:scale-95"
-          >
-            🤚 拍拍
-          </button>
-        </div>
+        {chicken.isSelf ? (
+          <p className="mt-4 rounded-xl bg-white/50 px-3 py-2 text-xs text-[#1A1A2E]/50">
+            😊 這是你自己的小雞，跟同學的小雞互動才能累積牧場任務進度喔！
+          </p>
+        ) : (
+          <>
+            <div className="mt-4 flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => onPat(chicken)}
+                disabled={patRemaining <= 0}
+                className={[
+                  "flex-1 rounded-2xl px-3 py-2.5 text-sm font-bold shadow-sm transition-transform active:scale-95",
+                  patRemaining > 0
+                    ? "bg-[#E8B84B] text-[#5C3D0A]"
+                    : "cursor-not-allowed bg-[#1A1A2E]/10 text-[#1A1A2E]/40",
+                ].join(" ")}
+              >
+                {patRemaining > 0 ? "🤚 拍拍" : "🤚 今天拍過了"}
+              </button>
+            </div>
 
-        <div className="mt-2 flex items-center justify-center gap-1.5">
-          {PASTURE_POKE_EMOJIS.map((emoji) => (
-            <button
-              key={emoji}
-              type="button"
-              onClick={() => onSendEmoji(chicken, emoji)}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/70 text-lg shadow-sm transition-transform active:scale-90"
-            >
-              {emoji}
-            </button>
-          ))}
-        </div>
-        <p className="mt-1 text-[10px] text-[#1A1A2E]/40">
-          {chicken.isSelf ? "自己的小雞拍好玩的，不算牧場互動" : "拍拍或送表情都算一次牧場互動"}
-        </p>
+            <div className="mt-2 flex items-center justify-center gap-1.5">
+              {PASTURE_POKE_EMOJIS.map((emoji) => (
+                <button
+                  key={emoji}
+                  type="button"
+                  onClick={() => onSendEmoji(chicken, emoji)}
+                  disabled={emojiRemaining <= 0}
+                  className={[
+                    "flex h-9 w-9 items-center justify-center rounded-full text-lg shadow-sm transition-transform active:scale-90",
+                    emojiRemaining > 0 ? "bg-white/70" : "cursor-not-allowed bg-white/30 opacity-40",
+                  ].join(" ")}
+                >
+                  {emoji}
+                </button>
+              ))}
+            </div>
+            <p className="mt-1 text-[10px] text-[#1A1A2E]/40">
+              今天還能拍拍 {patRemaining} 次、送表情 {emojiRemaining} 次
+            </p>
+          </>
+        )}
 
         <button
           type="button"
