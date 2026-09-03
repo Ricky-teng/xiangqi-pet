@@ -23,7 +23,8 @@ type NotifyType =
   | "battle_challenge_declined"
   | "match_challenge"
   | "match_challenge_declined"
-  | "chat_message";
+  | "chat_message"
+  | "pasture_poke";
 
 const TEMPLATES: Record<NotifyType, (fromName: string) => { title: string; body: string; url: string }> = {
   friend_request: (fromName) => ({
@@ -55,6 +56,11 @@ const TEMPLATES: Record<NotifyType, (fromName: string) => { title: string; body:
     title: "對局邀請被婉拒了",
     body: `${fromName} 現在沒空下棋，飼料已經退還給你了`,
     url: "/friends",
+  }),
+  pasture_poke: (fromName) => ({
+    title: "🐣 牧場裡有人跟你打招呼",
+    body: `${fromName} 在牧場跟你的小雞互動了！`,
+    url: "/pasture",
   }),
   // 聊天訊息是唯一一個「內容不是伺服器固定文字」的通知類型——這裡
   // body 先給預設值，實際處理時會用 buildChatMessageTemplate() 換成

@@ -1,3 +1,19 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* 牧場：拍拍/送表情/抓蟲成功時共用的「往上飄一下、淡出」小動畫。
+   放在全域樣式表是刻意的——styled-jsx 的 <style jsx> 會自動幫
+   @keyframes 加上 scope hash，同名字在不同元件裡其實對不到同一組
+   動畫，這個效果又同時被 WanderingChicken 跟 BugHuntLayer 兩個不同
+   元件使用，所以搬來這裡當全域共用。 */
+@keyframes pasture-float-up {
+  from {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(0.8);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -40px) scale(1.2);
+  }
+}

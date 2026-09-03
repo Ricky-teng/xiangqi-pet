@@ -33,6 +33,7 @@ function TasksContent() {
   const bgStyle = useAppBackground();
   const claimDailyTask = useGameStore((s) => s.claimDailyTask);
   const getDailyVsComputerCount = useGameStore((s) => s.getDailyVsComputerCount);
+  const getDailyPastureInteractCount = useGameStore((s) => s.getDailyPastureInteractCount);
   const checkin = useGameStore((s) => s.checkin);
   const [showCheckinModal, setShowCheckinModal] = useState(false);
 
@@ -126,11 +127,18 @@ function TasksContent() {
 
                 // 對弈任務進度
                 const vsCount = task.taskType === "vs_computer" ? getDailyVsComputerCount() : 0;
+                // 牧場互動任務進度
+                const pastureCount =
+                  task.taskType === "pasture_interact" ? getDailyPastureInteractCount() : 0;
                 const required = task.requiredCount ?? 1;
                 const vsReady = task.taskType === "vs_computer" && vsCount >= required;
+                const pastureReady = task.taskType === "pasture_interact" && pastureCount >= required;
 
                 // 是否可以領取
-                const canClaim = !isCompleted && (task.taskType !== "vs_computer" || vsReady);
+                const canClaim =
+                  !isCompleted &&
+                  (task.taskType !== "vs_computer" || vsReady) &&
+                  (task.taskType !== "pasture_interact" || pastureReady);
 
                 return (
                   <div
@@ -152,6 +160,11 @@ function TasksContent() {
                       {task.taskType === "vs_computer" && !isCompleted ? (
                         <p className="mt-0.5 text-xs font-semibold text-[#5B8C5A]">
                           進度：{vsCount}/{required} 局
+                        </p>
+                      ) : null}
+                      {task.taskType === "pasture_interact" && !isCompleted ? (
+                        <p className="mt-0.5 text-xs font-semibold text-[#5B8C5A]">
+                          進度：{pastureCount}/{required} 隻小雞
                         </p>
                       ) : null}
                       <p className="mt-0.5 text-xs font-semibold text-[#8B5FBF]">

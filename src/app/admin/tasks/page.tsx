@@ -19,7 +19,7 @@ import { collection, deleteDoc, doc, getDocs, setDoc, updateDoc } from "firebase
 import { db } from "@/lib/firebase";
 import { useGameStore } from "@/stores/useGameStore";
 import RequireAuth from "@/components/RequireAuth";
-import type { DailyTaskDoc } from "@/types/database";
+import type { DailyTaskDoc, DailyTaskType } from "@/types/database";
 
 type FetchStatus = "loading" | "success" | "error";
 
@@ -46,7 +46,7 @@ function AdminTasksContent() {
 
   // ---- 表單欄位 ----
   const [taskId, setTaskId] = useState("");
-  const [taskType, setTaskType] = useState<"checkin" | "vs_computer">("checkin");
+  const [taskType, setTaskType] = useState<DailyTaskType>("checkin");
   const [requiredCount, setRequiredCount] = useState(1);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -170,7 +170,7 @@ function AdminTasksContent() {
     const payload: DailyTaskDoc = {
       id: trimmedId,
       taskType,
-      requiredCount: taskType === "vs_computer" ? requiredCount : 1,
+      requiredCount: taskType === "vs_computer" || taskType === "pasture_interact" ? requiredCount : 1,
       title: trimmedTitle,
       description: description.trim(),
       icon: trimmedIcon,
@@ -284,17 +284,30 @@ function AdminTasksContent() {
             <Field label="任務類型">
               <select
                 value={taskType}
-                onChange={(e) => setTaskType(e.target.value as "checkin" | "vs_computer")}
+                onChange={(e) => setTaskType(e.target.value as DailyTaskType)}
                 disabled={editingTaskId !== null}
                 className={INPUT_CLASS_NAME}
               >
                 <option value="checkin">📅 每日簽到</option>
                 <option value="vs_computer">🤖 對弈電腦</option>
+                <option value="pasture_interact">🐣 牧場互動</option>
               </select>
             </Field>
 
             {taskType === "vs_computer" ? (
               <Field label="需要對弈幾局">
+                <input
+                  type="number"
+                  min={1}
+                  value={requiredCount}
+                  onChange={(e) => setRequiredCount(Number(e.target.value))}
+                  className={INPUT_CLASS_NAME}
+                />
+              </Field>
+            ) : null}
+
+            {taskType === "pasture_interact" ? (
+              <Field label="需要跟幾隻不同的小雞互動（拍拍或送表情都算）">
                 <input
                   type="number"
                   min={1}

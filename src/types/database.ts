@@ -233,6 +233,26 @@ export interface UserDoc {
   };
 
   /**
+   * 牧場互動（拍拍 / 送表情）當天記錄，給「牧場每日任務」用來判斷
+   * 有沒有達標。interactedUids 存「今天已經互動過的、非自己的小雞
+   * uid」，不重複計算同一隻——所以任務講的「跟 N 隻不同小雞互動」是
+   * 看 interactedUids.length，不是看互動的總次數。
+   */
+  dailyPastureInteractProgress?: {
+    date: string;
+    interactedUids: string[];
+  };
+
+  /**
+   * 牧場找蟲子小遊戲，當天已經抓過幾隻蟲（見
+   * PASTURE_BUG_CATCH_DAILY_LIMIT），達到上限後今天不能再抓。
+   */
+  dailyBugCatchProgress?: {
+    date: string;
+    count: number;
+  };
+
+  /**
    * 每日任務完成進度（可選欄位：舊帳號沒有這個欄位時，視為「今天還沒
    * 完成任何任務」，見 @/lib/tasks/dailyTasks.ts 的 getTodaysCompletedTaskIds）。
    * date 用本地（瀏覽器所在時區）的 YYYY-MM-DD 字串記錄「上次更新是哪一天」，
@@ -378,19 +398,22 @@ export interface PuzzleDoc {
  * 自己新增/編輯/刪除任務。現在改成跟 PuzzleDoc 一樣存在 Firestore，
  * 老師透過 /admin/tasks 後台管理，學生端從這個 collection 動態讀取。
  */
-export type DailyTaskType = "checkin" | "vs_computer";
+export type DailyTaskType = "checkin" | "vs_computer" | "pasture_interact";
 
 export interface DailyTaskDoc {
   id: string;
-  /** 任務類型：checkin = 簽到，vs_computer = 當天對弈電腦 N 局 */
+  /** 任務類型：checkin = 簽到，vs_computer = 當天對弈電腦 N 局，
+   *  pasture_interact = 當天在牧場跟 N 隻不同的小雞互動（拍拍或送
+   *  表情都算，見 UserDoc.dailyPastureInteractProgress） */
   taskType: DailyTaskType;
   title: string;
   description: string;
   icon: string;
   rewardFood: number;
   /**
-   * 任務完成門檻（僅 vs_computer 有意義）：
+   * 任務完成門檻：
    * vs_computer：當天對弈幾局才算完成，預設 1
+   * pasture_interact：當天要跟幾隻不同的小雞互動才算完成，預設 1
    * checkin：固定 1，不用設定
    */
   requiredCount: number;

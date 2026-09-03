@@ -25,6 +25,23 @@
  *   2. 小雞會隨機冒出對話泡泡，講幾句可愛的話。
  *   3. 「找到我的小雞」按鈕，讓自己的小雞閃爍幾秒方便一眼找到。
  *   4. 背景加幾朵緩慢飄動的雲，純裝飾。
+ *
+ * 【2026-09 再加強互動感】新增五個東西：
+ *   1. 拍拍小雞：在資訊卡片裡按「🤚 拍拍」，冒愛心動畫，純前端零成本；
+ *      拍別人的小雞算一次「牧場互動」（見 recordPastureInteraction）。
+ *   2. 送表情：資訊卡片裡選一個表情送出去，除了跟拍拍一樣算一次互動，
+ *      還會呼叫 /api/notifications/notify 通知對方（新增的
+ *      "pasture_poke" 通知類型）。
+ *   3. 牧場每日任務：跟 N 隻不同小雞互動可以在 /tasks 頁面領獎勵
+ *      （見 DailyTaskType 的 "pasture_interact"）。
+ *   4. 找蟲子小遊戲：草地上會冒出可以點的蟲，點到給少量飼料，每天有
+ *      次數上限（PASTURE_BUG_CATCH_DAILY_LIMIT）。跟第 5 點的裝飾蟲蟲
+ *      故意做成不同外觀，一眼就能分辨「這隻蟲可以點」跟「這只是裝飾」。
+ *   5. 天氣/時段變化：依現在時間換草地的光線色調（清晨/白天/傍晚/
+ *      夜晚），偶爾隨機下雨或出彩虹，純前端算，每次進頁面才重新抽一次。
+ *   6. 裝飾用的蟲蟲/食物物件：漂浮的蝴蝶、掉落的穀粒，純裝飾不能點，
+ *      跟找蟲子小遊戲的蟲外觀刻意做出區隔（見 PastureField 裡的
+ *      DecorativeCritters）。
  */
 
 "use client";
@@ -35,9 +52,17 @@ import { collection, doc, documentId, getDoc, getDocs, query, where } from "fire
 import { auth, db } from "@/lib/firebase";
 import { useGameStore } from "@/stores/useGameStore";
 import RequireAuth from "@/components/RequireAuth";
+import { useAppBackground } from "@/lib/useAppBackground";
 import { getPetDisplaySrc, getPetImagePath } from "@/lib/pet/petImagePath";
 import { getCatalogEntryById } from "@/lib/pet/catalog";
-import { PASTURE_ENTRY_FEE, PASTURE_HOURLY_INCOME, PASTURE_DAILY_INCOME_CAP } from "@/lib/pasture";
+import {
+  PASTURE_ENTRY_FEE,
+  PASTURE_HOURLY_INCOME,
+  PASTURE_DAILY_INCOME_CAP,
+  PASTURE_BUG_CATCH_REWARD_FOOD,
+  PASTURE_BUG_CATCH_DAILY_LIMIT,
+  PASTURE_POKE_EMOJIS,
+} from "@/lib/pasture";
 import { getTodayDateString } from "@/lib/tasks/dailyTasks";
 import type { PastureDoc, PetDoc, UserDoc } from "@/types/database";
 
@@ -85,12 +110,29 @@ async function getAuthHeader(): Promise<Record<string, string>> {
   return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+/** 送表情時順便通知對方（推播失敗不影響主要操作，靜默失敗就好） */
+async function notifyPoke(toUid: string) {
+  try {
+    const headers = await getAuthHeader();
+    await fetch("/api/notifications/notify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...headers },
+      body: JSON.stringify({ toUid, type: "pasture_poke" }),
+    });
+  } catch (error) {
+    console.error("[pasture] 發送互動通知失敗（不影響主要操作）：", error);
+  }
+}
+
 function PastureContent() {
   const router = useRouter();
+  const bgStyle = useAppBackground();
   const user = useGameStore((s) => s.user);
   const setUser = useGameStore((s) => s.setUser);
   const payPastureEntry = useGameStore((s) => s.payPastureEntry);
   const claimPastureIncome = useGameStore((s) => s.claimPastureIncome);
+  const recordPastureInteraction = useGameStore((s) => s.recordPastureInteraction);
+  const catchPastureBug = useGameStore((s) => s.catchPastureBug);
 
   const [status, setStatus] = useState<"loading" | "success" | "error">("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -101,11 +143,53 @@ function PastureContent() {
   const [economyMessage, setEconomyMessage] = useState<string | null>(null);
   const [isPaying, setIsPaying] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
+  // 每次拍拍/送表情，遞增這個訊號並附上目標小雞 uid，讓
+  // <PastureField> 對那隻小雞播放一次對應的飄浮動畫。
+  const [interactionSignal, setInteractionSignal] = useState<{ uid: string; kind: string; seq: number } | null>(null);
+  const [bugCatchRemaining, setBugCatchRemaining] = useState(PASTURE_BUG_CATCH_DAILY_LIMIT);
 
   // 今天是否已經付過入場費——沒付過就先不載入牧場成員名單（省一次
   // Firestore 讀取），改顯示規則說明 + 付費入場的畫面。
   const hasEnteredToday = !!user?.pastureEconomy && user.pastureEconomy.date === getTodayDateString();
   const todaysPastureIncome = hasEnteredToday ? user!.pastureEconomy!.incomeClaimedToday : null;
+
+  // 今天已經抓過幾隻蟲，一開始就從 user 資料算好，之後每抓一隻就
+  // 在本地遞減，不用重新整理頁面也能即時看到剩餘次數。
+  useEffect(() => {
+    if (!user) return;
+    const today = getTodayDateString();
+    const prog = user.dailyBugCatchProgress;
+    const caughtToday = prog?.date === today ? prog.count : 0;
+    setBugCatchRemaining(Math.max(0, PASTURE_BUG_CATCH_DAILY_LIMIT - caughtToday));
+  }, [user?.uid, user?.dailyBugCatchProgress]);
+
+  function handlePatChicken(chicken: PastureChickenData) {
+    setInteractionSignal({ uid: chicken.uid, kind: "pat", seq: Date.now() });
+    if (chicken.isSelf) return;
+    const result = recordPastureInteraction(chicken.uid);
+    if (result.isNew) {
+      setEconomyMessage(`🤚 拍拍了 ${chicken.displayName} 的小雞！`);
+    }
+  }
+
+  function handleSendEmoji(chicken: PastureChickenData, emoji: string) {
+    setInteractionSignal({ uid: chicken.uid, kind: emoji, seq: Date.now() });
+    if (chicken.isSelf) return;
+    const result = recordPastureInteraction(chicken.uid);
+    notifyPoke(chicken.uid);
+    if (result.isNew) {
+      setEconomyMessage(`${emoji} 送給了 ${chicken.displayName} 一個招呼！`);
+    }
+  }
+
+  function handleCatchBug() {
+    const result = catchPastureBug();
+    if (result.success) {
+      setBugCatchRemaining(result.remainingToday);
+      setEconomyMessage(`🐛 抓到一隻蟲！+${result.foodGained} 飼料（今天還能抓 ${result.remainingToday} 次）`);
+    }
+    return result.success;
+  }
 
   function handlePayEntry() {
     setIsPaying(true);
@@ -211,7 +295,7 @@ function PastureContent() {
   }, [user?.uid, hasEnteredToday]);
 
   return (
-    <main className="min-h-screen bg-[#FDF6E8] pb-10">
+    <main className="min-h-screen pb-10" style={bgStyle}>
       <div className="mx-auto max-w-md px-4 pt-4">
         <header className="flex items-center justify-between rounded-2xl bg-white/70 px-4 py-3 shadow-sm">
           <button
@@ -270,19 +354,27 @@ function PastureContent() {
                   chickens={chickens}
                   onSelectChicken={setSelectedChicken}
                   findMeSignal={findMeSignal}
+                  interactionSignal={interactionSignal}
+                  bugCatchRemaining={bugCatchRemaining}
+                  onCatchBug={handleCatchBug}
                 />
               )}
             </div>
 
             <p className="mt-2 text-center text-[10px] text-[#1A1A2E]/30">
-              點小雞可以看牠的狀態卡片
+              點小雞可以看牠的狀態卡片，草地上的蟲可以點來抓（今天還能抓 {bugCatchRemaining} 次）
             </p>
           </>
         )}
       </div>
 
       {selectedChicken ? (
-        <ChickenInfoCard chicken={selectedChicken} onClose={() => setSelectedChicken(null)} />
+        <ChickenInfoCard
+          chicken={selectedChicken}
+          onClose={() => setSelectedChicken(null)}
+          onPat={handlePatChicken}
+          onSendEmoji={handleSendEmoji}
+        />
       ) : null}
     </main>
   );
@@ -352,19 +444,53 @@ function PastureEntryGate({
   );
 }
 
+/** 依現在時間分四個時段，決定草地的光線色調（純前端，每次進頁面重算一次） */
+type TimeOfDay = "dawn" | "day" | "dusk" | "night";
+
+function getTimeOfDay(): TimeOfDay {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 8) return "dawn";
+  if (hour >= 8 && hour < 17) return "day";
+  if (hour >= 17 && hour < 20) return "dusk";
+  return "night";
+}
+
+const TIME_OF_DAY_GRADIENT: Record<TimeOfDay, string> = {
+  dawn: "linear-gradient(180deg, #FFD9A0 0%, #B7D98A 45%, #8FBF6F 100%)",
+  day: "linear-gradient(180deg, #A8D97F 0%, #8FBF6F 55%, #7CAE5E 100%)",
+  dusk: "linear-gradient(180deg, #F0A85C 0%, #C98F6F 40%, #6E8F5C 100%)",
+  night: "linear-gradient(180deg, #2B3A55 0%, #3E5240 45%, #37502F 100%)",
+};
+
+type Weather = "sunny" | "rainy" | "rainbow";
+
+/** 一次進頁面抽一次天氣：大部分時候晴天，偶爾下雨，白天才有機會出彩虹 */
+function rollWeather(timeOfDay: TimeOfDay): Weather {
+  const roll = Math.random();
+  if (roll < 0.15) return "rainy";
+  if ((timeOfDay === "day" || timeOfDay === "dawn") && roll < 0.27) return "rainbow";
+  return "sunny";
+}
+
 /**
- * 草地本體 + 所有小雞 + 背景飄動的雲。小雞的隨機漫步邏輯全部包在
- * <WanderingChicken> 裡（見那個元件開頭的說明），這裡只負責畫布局跟
- * 背景裝飾。
+ * 草地本體 + 所有小雞 + 背景飄動的雲 + 天氣 + 找蟲子小遊戲 + 裝飾用的
+ * 蟲蟲/食物物件。小雞的隨機漫步邏輯全部包在 <WanderingChicken> 裡
+ * （見那個元件開頭的說明），這裡負責畫布局跟所有背景/前景裝飾層。
  */
 function PastureField({
   chickens,
   onSelectChicken,
   findMeSignal,
+  interactionSignal,
+  bugCatchRemaining,
+  onCatchBug,
 }: {
   chickens: PastureChickenData[];
   onSelectChicken: (chicken: PastureChickenData) => void;
   findMeSignal: number;
+  interactionSignal: { uid: string; kind: string; seq: number } | null;
+  bugCatchRemaining: number;
+  onCatchBug: () => boolean;
 }) {
   const decorations = useMemo(
     () =>
@@ -389,11 +515,62 @@ function PastureField({
     []
   );
 
+  // 天氣/時段：只在這個元件掛載時算一次，不會每次 re-render 重抽，
+  // 不然雨會一直忽有忽無很奇怪。
+  const timeOfDay = useMemo(() => getTimeOfDay(), []);
+  const weather = useMemo(() => rollWeather(timeOfDay), [timeOfDay]);
+  const isNight = timeOfDay === "night";
+
+  const raindrops = useMemo(
+    () =>
+      weather === "rainy"
+        ? Array.from({ length: 24 }, (_, i) => ({
+            id: i,
+            left: Math.round((Math.sin(i * 17.3) * 0.5 + 0.5) * 100),
+            duration: 0.7 + Math.random() * 0.5,
+            delay: Math.random() * 2,
+          }))
+        : [],
+    [weather]
+  );
+
   return (
     <div
       className="relative h-[70vh] min-h-[420px] w-full overflow-hidden rounded-3xl border-4 border-[#8FBF6F] shadow-inner"
-      style={{ background: "linear-gradient(180deg, #A8D97F 0%, #8FBF6F 55%, #7CAE5E 100%)" }}
+      style={{ background: TIME_OF_DAY_GRADIENT[timeOfDay] }}
     >
+      {/* 夜晚加一輪月亮、白天/清晨加太陽，純裝飾角落小圖示 */}
+      <span className="pointer-events-none absolute right-4 top-3 select-none text-2xl opacity-80" aria-hidden="true">
+        {isNight ? "🌙" : timeOfDay === "dusk" ? "🌇" : "☀️"}
+      </span>
+
+      {weather === "rainbow" ? (
+        <span
+          className="pointer-events-none absolute left-1/2 top-2 -translate-x-1/2 select-none text-4xl opacity-70"
+          aria-hidden="true"
+        >
+          🌈
+        </span>
+      ) : null}
+
+      {weather === "rainy" ? (
+        <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-60" aria-hidden="true">
+          {raindrops.map((drop) => (
+            <span
+              key={drop.id}
+              className="absolute top-[-5%] text-xs text-[#CFE8FF]"
+              style={{
+                left: `${drop.left}%`,
+                animation: `pasture-rain-fall ${drop.duration}s linear infinite`,
+                animationDelay: `${drop.delay}s`,
+              }}
+            >
+              💧
+            </span>
+          ))}
+        </div>
+      ) : null}
+
       {/* 背景飄動的雲，純裝飾，跟小雞的漫步邏輯完全獨立 */}
       {clouds.map((cloud) => (
         <span
@@ -423,6 +600,13 @@ function PastureField({
         </span>
       ))}
 
+      {/* 純裝飾用的蟲蟲/食物物件：緩慢漂浮的蝴蝶、掉落的穀粒，不能點，
+          外觀刻意跟下面「可以點來抓」的找蟲子小遊戲做出區隔。 */}
+      <DecorativeCritters />
+
+      {/* 找蟲子小遊戲：會冒出可以點的蟲，點到給飼料，每天有次數上限 */}
+      <BugHuntLayer remaining={bugCatchRemaining} onCatch={onCatchBug} />
+
       {chickens.length === 0 ? (
         <p className="absolute inset-0 flex items-center justify-center text-sm font-bold text-white/80">
           這間牧場還沒有其他小雞 🐣
@@ -434,6 +618,7 @@ function PastureField({
             chicken={chicken}
             onSelect={() => onSelectChicken(chicken)}
             findMeSignal={chicken.isSelf ? findMeSignal : 0}
+            interactionSignal={interactionSignal?.uid === chicken.uid ? interactionSignal : null}
           />
         ))
       )}
@@ -447,8 +632,175 @@ function PastureField({
             transform: translateX(130vw) scale(var(--cloud-scale, 1));
           }
         }
+        @keyframes pasture-rain-fall {
+          from {
+            transform: translateY(0);
+          }
+          to {
+            transform: translateY(75vh);
+          }
+        }
+        @keyframes pasture-drift-float {
+          0% {
+            transform: translate(0, 0) rotate(0deg);
+          }
+          50% {
+            transform: translate(6px, -10px) rotate(8deg);
+          }
+          100% {
+            transform: translate(-6px, 0) rotate(-4deg);
+          }
+        }
+        @keyframes pasture-bug-wiggle {
+          0%,
+          100% {
+            transform: translate(0, 0);
+          }
+          25% {
+            transform: translate(3px, -2px);
+          }
+          75% {
+            transform: translate(-3px, 2px);
+          }
+        }
       `}</style>
     </div>
+  );
+}
+
+/** 純裝飾、不能點的漂浮蝴蝶 + 掉落穀粒，跟找蟲子小遊戲的蟲外觀刻意不同 */
+function DecorativeCritters() {
+  const critters = useMemo(
+    () =>
+      Array.from({ length: 5 }, (_, i) => ({
+        id: i,
+        left: 5 + ((i * 19) % 90),
+        top: 8 + ((i * 23) % 70),
+        emoji: ["🦋", "🌾", "🍃", "🌾", "🦋"][i],
+        duration: 4 + (i % 3),
+        delay: i * 0.6,
+      })),
+    []
+  );
+
+  return (
+    <>
+      {critters.map((c) => (
+        <span
+          key={c.id}
+          className="pointer-events-none absolute select-none text-sm opacity-50"
+          style={{
+            left: `${c.left}%`,
+            top: `${c.top}%`,
+            animation: `pasture-drift-float ${c.duration}s ease-in-out infinite`,
+            animationDelay: `${c.delay}s`,
+          }}
+          aria-hidden="true"
+        >
+          {c.emoji}
+        </span>
+      ))}
+    </>
+  );
+}
+
+const BUG_EMOJIS = ["🐛", "🦗", "🐞"];
+const BUG_LIFETIME_MS = 6000;
+const BUG_RESPAWN_DELAY_MS = 2500;
+
+interface ActiveBug {
+  id: number;
+  left: number;
+  top: number;
+  emoji: string;
+}
+
+/**
+ * 找蟲子小遊戲：草地上每隔一段時間冒出一隻可以點的蟲，點到呼叫
+ * onCatch()（實際發不發飼料由 store 那邊的每日次數上限決定），蟲會
+ * 立刻消失並播放一個小動畫，過一段時間在別的地方重新冒出來。今天
+ * 次數用完之後蟲就不會再冒出來了（remaining <= 0）。
+ */
+function BugHuntLayer({ remaining, onCatch }: { remaining: number; onCatch: () => boolean }) {
+  const [bug, setBug] = useState<ActiveBug | null>(null);
+  const [caughtEffect, setCaughtEffect] = useState<{ left: number; top: number; seq: number } | null>(null);
+  const bugIdRef = useRef(0);
+
+  useEffect(() => {
+    if (remaining <= 0) {
+      setBug(null);
+      return;
+    }
+
+    let lifeTimer: ReturnType<typeof setTimeout>;
+    let respawnTimer: ReturnType<typeof setTimeout>;
+
+    function spawnBug() {
+      bugIdRef.current += 1;
+      setBug({
+        id: bugIdRef.current,
+        left: 10 + Math.random() * 80,
+        top: 15 + Math.random() * 70,
+        emoji: BUG_EMOJIS[Math.floor(Math.random() * BUG_EMOJIS.length)],
+      });
+      lifeTimer = setTimeout(() => {
+        setBug(null);
+        respawnTimer = setTimeout(spawnBug, BUG_RESPAWN_DELAY_MS);
+      }, BUG_LIFETIME_MS);
+    }
+
+    const initialDelay = setTimeout(spawnBug, 1200);
+
+    return () => {
+      clearTimeout(initialDelay);
+      clearTimeout(lifeTimer);
+      clearTimeout(respawnTimer);
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [remaining <= 0]);
+
+  function handleClick() {
+    if (!bug) return;
+    const success = onCatch();
+    if (success) {
+      setCaughtEffect({ left: bug.left, top: bug.top, seq: Date.now() });
+      setTimeout(() => setCaughtEffect(null), 900);
+    }
+    setBug(null);
+  }
+
+  return (
+    <>
+      {bug ? (
+        <button
+          type="button"
+          onClick={handleClick}
+          className="absolute z-10 -translate-x-1/2 -translate-y-1/2 select-none text-2xl drop-shadow"
+          style={{
+            left: `${bug.left}%`,
+            top: `${bug.top}%`,
+            animation: "pasture-bug-wiggle 0.6s ease-in-out infinite",
+          }}
+          aria-label="抓蟲"
+        >
+          {bug.emoji}
+        </button>
+      ) : null}
+
+      {caughtEffect ? (
+        <span
+          key={caughtEffect.seq}
+          className="pointer-events-none absolute z-10 -translate-x-1/2 select-none text-xs font-bold text-[#5B8C5A]"
+          style={{
+            left: `${caughtEffect.left}%`,
+            top: `${caughtEffect.top}%`,
+            animation: "pasture-float-up 0.9s ease-out forwards",
+          }}
+        >
+          +{PASTURE_BUG_CATCH_REWARD_FOOD} 🌾
+        </span>
+      ) : null}
+    </>
   );
 }
 
@@ -465,16 +817,29 @@ function WanderingChicken({
   chicken,
   onSelect,
   findMeSignal,
+  interactionSignal,
 }: {
   chicken: PastureChickenData;
   onSelect: () => void;
   findMeSignal: number;
+  interactionSignal: { uid: string; kind: string; seq: number } | null;
 }) {
   const wrapperRef = useRef<HTMLButtonElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const [jobImageFailed, setJobImageFailed] = useState(false);
   const [bubbleText, setBubbleText] = useState<string | null>(null);
   const [isHighlighted, setIsHighlighted] = useState(false);
+  const [floatingEffect, setFloatingEffect] = useState<{ symbol: string; seq: number } | null>(null);
+
+  // 拍拍 / 送表情：對應到這隻小雞的互動訊號進來時，播放一次飄浮動畫
+  // （拍拍固定飄愛心，送表情就飄那個表情本身）。
+  useEffect(() => {
+    if (!interactionSignal) return;
+    const symbol = interactionSignal.kind === "pat" ? "💕" : interactionSignal.kind;
+    setFloatingEffect({ symbol, seq: interactionSignal.seq });
+    const timer = setTimeout(() => setFloatingEffect(null), 1100);
+    return () => clearTimeout(timer);
+  }, [interactionSignal]);
 
   const { src: resolvedSrc, isJobImage } = getPetDisplaySrc(
     chicken.stage,
@@ -598,6 +963,17 @@ function WanderingChicken({
         </span>
       ) : null}
 
+      {floatingEffect ? (
+        <span
+          key={floatingEffect.seq}
+          className="pointer-events-none absolute -top-2 left-1/2 select-none text-lg"
+          style={{ animation: "pasture-float-up 1.1s ease-out forwards" }}
+          aria-hidden="true"
+        >
+          {floatingEffect.symbol}
+        </span>
+      ) : null}
+
       {chicken.isSelf ? (
         <span className="absolute -top-2 h-3 w-3 animate-pulse rounded-full bg-[#E8B84B] ring-2 ring-white" />
       ) : null}
@@ -638,8 +1014,19 @@ function WanderingChicken({
   );
 }
 
-/** 點小雞跳出來的資訊卡片：職業、成長階段、健康狀態、累計解題數、轉生次數 */
-function ChickenInfoCard({ chicken, onClose }: { chicken: PastureChickenData; onClose: () => void }) {
+/** 點小雞跳出來的資訊卡片：職業、成長階段、健康狀態、累計解題數、轉生次數，
+ *  外加拍拍 / 送表情兩個互動按鈕（拍別人的小雞或送表情都會算一次牧場互動）。 */
+function ChickenInfoCard({
+  chicken,
+  onClose,
+  onPat,
+  onSendEmoji,
+}: {
+  chicken: PastureChickenData;
+  onClose: () => void;
+  onPat: (chicken: PastureChickenData) => void;
+  onSendEmoji: (chicken: PastureChickenData, emoji: string) => void;
+}) {
   const jobEntry = chicken.currentAppearanceId ? getCatalogEntryById(chicken.currentAppearanceId) : null;
   const { src: petImageSrc } = getPetDisplaySrc(chicken.stage, chicken.healthStatus, chicken.currentAppearanceId);
 
@@ -685,10 +1072,36 @@ function ChickenInfoCard({ chicken, onClose }: { chicken: PastureChickenData; on
           </div>
         </div>
 
+        <div className="mt-4 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => onPat(chicken)}
+            className="flex-1 rounded-2xl bg-[#E8B84B] px-3 py-2.5 text-sm font-bold text-[#5C3D0A] shadow-sm transition-transform active:scale-95"
+          >
+            🤚 拍拍
+          </button>
+        </div>
+
+        <div className="mt-2 flex items-center justify-center gap-1.5">
+          {PASTURE_POKE_EMOJIS.map((emoji) => (
+            <button
+              key={emoji}
+              type="button"
+              onClick={() => onSendEmoji(chicken, emoji)}
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-white/70 text-lg shadow-sm transition-transform active:scale-90"
+            >
+              {emoji}
+            </button>
+          ))}
+        </div>
+        <p className="mt-1 text-[10px] text-[#1A1A2E]/40">
+          {chicken.isSelf ? "自己的小雞拍好玩的，不算牧場互動" : "拍拍或送表情都算一次牧場互動"}
+        </p>
+
         <button
           type="button"
           onClick={onClose}
-          className="mt-4 w-full rounded-2xl bg-[#5C3D0A] px-4 py-2.5 text-sm font-bold text-[#FDF6E8] shadow-sm transition-transform active:scale-95"
+          className="mt-3 w-full rounded-2xl bg-[#5C3D0A] px-4 py-2.5 text-sm font-bold text-[#FDF6E8] shadow-sm transition-transform active:scale-95"
         >
           關閉
         </button>

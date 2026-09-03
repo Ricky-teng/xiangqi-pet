@@ -23,7 +23,13 @@ import {
   type ItemCategory,
 } from "@/lib/shopItems";
 import { getBadgeById, type BadgeDefinition } from "@/lib/badges/badges";
-import { PASTURE_ENTRY_FEE, PASTURE_HOURLY_INCOME, PASTURE_DAILY_INCOME_CAP } from "@/lib/pasture";
+import {
+  PASTURE_ENTRY_FEE,
+  PASTURE_HOURLY_INCOME,
+  PASTURE_DAILY_INCOME_CAP,
+  PASTURE_BUG_CATCH_REWARD_FOOD,
+  PASTURE_BUG_CATCH_DAILY_LIMIT,
+} from "@/lib/pasture";
 
 // 定義我們遊戲總機裡面有哪些資料與開關
 interface GameStoreState {
@@ -153,6 +159,28 @@ interface GameStoreState {
    * 同一小時內重複呼叫不會重複發放。
    */
   claimPastureIncome: () => { incomeGained: number; incomeClaimedToday: number };
+
+  /**
+   * 牧場互動當天進度（拍拍或送表情都算，見
+   * UserDoc.dailyPastureInteractProgress），給 /tasks 頁面顯示進度、
+   * 給 claimDailyTask 驗證 pasture_interact 任務用。
+   */
+  getDailyPastureInteractCount: () => number;
+
+  /**
+   * 記錄一次牧場互動（拍拍 / 送表情共用這個function）。targetUid 是
+   * 自己的話直接忽略（不計入任務進度，也不必要通知自己）。同一隻
+   * 小雞當天重複互動不會重複計算，isNew 用來讓呼叫端知道要不要顯示
+   * 「今天已經互動過」之類的提示。
+   */
+  recordPastureInteraction: (targetUid: string) => { isNew: boolean; countToday: number };
+
+  /**
+   * 找蟲子小遊戲：抓到一隻蟲。當天次數達到 PASTURE_BUG_CATCH_DAILY_LIMIT
+   * 就不會再發飼料（success=false），前端可以照樣播放抓蟲動畫，只是
+   * 不會再增加飼料。
+   */
+  catchPastureBug: () => { success: boolean; foodGained: number; remainingToday: number };
 
   /** 購買消耗道具（背景、棋盤造型都改為抽獎取得，不再走這個函式） */
   buyShopItem: (itemId: string, price: number, category: ItemCategory) => { success: boolean; message: string };
@@ -604,6 +632,18 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       }
     }
 
+    // 驗證 pasture_interact 任務是否達標
+    if (task.taskType === "pasture_interact") {
+      const prog = user.dailyPastureInteractProgress;
+      const todayCount = prog?.date === today ? prog.interactedUids.length : 0;
+      if (todayCount < (task.requiredCount ?? 1)) {
+        return {
+          success: false,
+          message: `今天還需要再跟 ${(task.requiredCount ?? 1) - todayCount} 隻不同的小雞互動才能領取！`,
+        };
+      }
+    }
+
     const now = Date.now();
     const updatedDailyTaskProgress = {
       date: today,
@@ -952,6 +992,88 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     });
 
     return { incomeGained, incomeClaimedToday: updatedEconomy.incomeClaimedToday };
+  },
+
+  getDailyPastureInteractCount: () => {
+    const { user } = get();
+    if (!user) return 0;
+    const today = getTodayDateString();
+    const prog = user.dailyPastureInteractProgress;
+    return prog?.date === today ? prog.interactedUids.length : 0;
+  },
+
+  recordPastureInteraction: (targetUid) => {
+    const { user } = get();
+    if (!user) return { isNew: false, countToday: 0 };
+
+    // 拍自己的小雞不算——牧場每日任務的用意是鼓勵跟同學互動。
+    if (targetUid === user.uid) {
+      return { isNew: false, countToday: get().getDailyPastureInteractCount() };
+    }
+
+    const today = getTodayDateString();
+    const prevProg = user.dailyPastureInteractProgress;
+    const prevUids = prevProg?.date === today ? prevProg.interactedUids : [];
+
+    if (prevUids.includes(targetUid)) {
+      return { isNew: false, countToday: prevUids.length };
+    }
+
+    const newUids = [...prevUids, targetUid];
+    const newProg = { date: today, interactedUids: newUids };
+    const now = Date.now();
+
+    const updatedUser: UserDoc = { ...user, dailyPastureInteractProgress: newProg, updatedAt: now };
+    set({ user: updatedUser });
+
+    updateDoc(doc(db, "users", user.uid), {
+      dailyPastureInteractProgress: newProg,
+      updatedAt: now,
+    }).catch((error) => {
+      console.error("[useGameStore] recordPastureInteraction 同步寫回 Firestore 失敗：", error);
+    });
+
+    return { isNew: true, countToday: newUids.length };
+  },
+
+  catchPastureBug: () => {
+    const { user } = get();
+    if (!user) return { success: false, foodGained: 0, remainingToday: 0 };
+
+    const today = getTodayDateString();
+    const prevProg = user.dailyBugCatchProgress;
+    const prevCount = prevProg?.date === today ? prevProg.count : 0;
+
+    if (prevCount >= PASTURE_BUG_CATCH_DAILY_LIMIT) {
+      return { success: false, foodGained: 0, remainingToday: 0 };
+    }
+
+    const newCount = prevCount + 1;
+    const newProg = { date: today, count: newCount };
+    const foodCount = user.foodCount + PASTURE_BUG_CATCH_REWARD_FOOD;
+    const now = Date.now();
+
+    const updatedUser: UserDoc = {
+      ...user,
+      foodCount,
+      dailyBugCatchProgress: newProg,
+      updatedAt: now,
+    };
+    set({ user: updatedUser });
+
+    updateDoc(doc(db, "users", user.uid), {
+      foodCount,
+      dailyBugCatchProgress: newProg,
+      updatedAt: now,
+    }).catch((error) => {
+      console.error("[useGameStore] catchPastureBug 同步寫回 Firestore 失敗：", error);
+    });
+
+    return {
+      success: true,
+      foodGained: PASTURE_BUG_CATCH_REWARD_FOOD,
+      remainingToday: PASTURE_BUG_CATCH_DAILY_LIMIT - newCount,
+    };
   },
 
   buyShopItem: (itemId, price, category) => {

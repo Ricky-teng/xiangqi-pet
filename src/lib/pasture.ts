@@ -18,3 +18,14 @@ export const MAX_PASTURE_MEMBERS = 20;
 export const PASTURE_ENTRY_FEE = 50;
 export const PASTURE_HOURLY_INCOME = 20;
 export const PASTURE_DAILY_INCOME_CAP = 200;
+
+/**
+ * 找蟲子小遊戲：草地上會冒出可以點的蟲，點到給 PASTURE_BUG_CATCH_REWARD_FOOD
+ * 飼料，每天最多抓 PASTURE_BUG_CATCH_DAILY_LIMIT 次，達到上限後蟲子
+ * 還是會出現，但點了不會再有效果（前端會停止生成新的蟲）。
+ */
+export const PASTURE_BUG_CATCH_REWARD_FOOD = 5;
+export const PASTURE_BUG_CATCH_DAILY_LIMIT = 5;
+
+/** 送表情可以選的幾個表情，純娛樂用，跟拍拍一樣算一次牧場互動 */
+export const PASTURE_POKE_EMOJIS = ["👋", "❤️", "😄", "👍", "🎉"] as const;
