@@ -151,6 +151,16 @@ function FeedPageContent() {
         </div>
       </header>
 
+      <div className="mx-auto mt-2 w-full max-w-sm shrink-0 px-6 text-right">
+        <button
+          type="button"
+          onClick={() => router.push("/feed/ar")}
+          className="inline-flex items-center gap-1 rounded-full bg-white/70 px-3 py-1.5 text-xs font-bold text-[#1A1A2E] shadow-sm transition-transform active:scale-95"
+        >
+          📷 AR 拍照
+        </button>
+      </div>
+
       {/* 飽食度 */}
       <div className="mx-auto mt-4 w-full max-w-sm shrink-0 px-6">
         <div className="mb-1 flex justify-between text-xs font-medium text-[#1A1A2E]/60">

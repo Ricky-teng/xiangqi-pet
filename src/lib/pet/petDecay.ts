@@ -51,6 +51,33 @@ export const LOW_FULLNESS_THRESHOLD = 20;
  */
 export const SICKNESS_ESCALATION_HOURS = 4;
 
+/** 垃圾/大便：每過幾分鐘多冒一個（純前端用「現在時間 - lastCleanedTime」
+ * 算，不需要額外存「目前幾個」，跟 fullness 用同一套「靠時間戳算」的
+ * 設計哲學）。 */
+export const POOP_INTERVAL_MINUTES = 60;
+const POOP_INTERVAL_MS = POOP_INTERVAL_MINUTES * 60 * 1000;
+
+/** 垃圾累積到這個數量（也就是這麼多個 POOP_INTERVAL_MINUTES 沒清）
+ * 會觸發生小病，跟飽食度歸零共用同一套 slightly_sick 機制。 */
+export const POOP_SICKNESS_THRESHOLD_COUNT = 10;
+
+/** 清理垃圾費用：第 N 次清理 = N × PET_CLEAN_BASE_COST（100、200、300...
+ * 累加，不是倍數），每天 00:00 重置（見 UserDoc.dailyPetCleanProgress）。 */
+export const PET_CLEAN_BASE_COST = 100;
+
+/**
+ * 依「上次清理時間」跟「現在時間」算目前小雞旁邊有幾個垃圾/大便，
+ * 封頂在 POOP_SICKNESS_THRESHOLD_COUNT（超過這個數字意義上就是「已經
+ * 生病了」，不需要繼續往上顯示更多垃圾）。lastCleanedTime 是
+ * undefined（舊帳號還沒補值）時視為 0 個垃圾。
+ */
+export function getPoopCount(lastCleanedTime: number | undefined, now: number): number {
+  if (!lastCleanedTime) return 0;
+  const elapsedMs = now - lastCleanedTime;
+  if (elapsedMs <= 0) return 0;
+  return Math.min(POOP_SICKNESS_THRESHOLD_COUNT, Math.floor(elapsedMs / POOP_INTERVAL_MS));
+}
+
 // ============================================================
 // 2. 套用結果型別
 // ============================================================
@@ -79,6 +106,13 @@ export function applyPetTimeDecay(pet: PetDoc, now: number): PetDecayResult {
   const notifications: string[] = [];
   let next: PetDoc = { ...pet };
   let changed = false;
+
+  // ---- 0. 舊帳號沒有 lastCleanedTime 欄位：補一個「現在」當起點，
+  //      避免補完欄位後被誤判成「已經很久沒清」而立刻生病。 ----
+  if (pet.lastCleanedTime == null) {
+    next.lastCleanedTime = now;
+    changed = true;
+  }
 
   // ---- 1. 飽食度隨時間下降（死掉就不再繼續扣，沒有意義） ----
   const isFullnessProtected =
@@ -134,12 +168,42 @@ export function applyPetTimeDecay(pet: PetDoc, now: number): PetDecayResult {
     }
   }
 
+  // ---- 2.6 垃圾太久沒清，觸發生病 ----
+  // 跟上面「飽食度歸零」是兩條獨立的觸發途徑，共用同一個
+  // healthStatus/sickStartTime，誰先觸發就先讓小雞生病，之後的
+  // 生大病/死亡完全沿用同一套 SICKNESS_ESCALATION_HOURS 邏輯，
+  // 不需要另外寫一套「垃圾病情」的加重規則。
+  if (
+    next.healthStatus === "normal" &&
+    next.sickStartTime === null &&
+    getPoopCount(next.lastCleanedTime, now) >= POOP_SICKNESS_THRESHOLD_COUNT
+  ) {
+    next.healthStatus = "slightly_sick";
+    next.sickStartTime = now;
+    changed = true;
+    if (!pet.notifiedFlags.slightlySick) {
+      notifications.push("🤢 小雞旁邊的垃圾太久沒清，開始生病了！快去清理環境！");
+      next.notifiedFlags = { ...next.notifiedFlags, slightlySick: true };
+    }
+  }
+
   // ---- 3. 生病加重邏輯 ----
-  if (pet.healthStatus === "slightly_sick" && pet.sickStartTime !== null) {
-    const hoursSick = (now - pet.sickStartTime) / HOUR_MS;
-    if (hoursSick >= SICKNESS_ESCALATION_HOURS) {
+  // 這裡故意用「理論上應該加重的時間點」（sickStartTime + 4小時）來
+  // 設下一階段的起算時間，而不是直接用 now。原本的 bug：如果使用者
+  // 很久沒登入（比如離線 10 小時），severeSickStartTime 被設成「現在
+  // 登入的時間」，等於把離線期間的經過時間直接歸零重算，小雞本來
+  // 應該已經死了卻只停在生大病、而且還有整整 4 小時可以活。
+  // 另外原本是 if / else if（只認 pet.healthStatus 這個「本次計算前」
+  // 的狀態），一次最多只會加重一階，離線很久、中間其實跨過不只一個
+  // 階段的話會卡住。改成兩個獨立的 if、都檢查 next.healthStatus
+  // （本次計算「目前為止」的狀態），第一個 if 觸發生大病之後，第二個
+  // if 馬上接著用剛剛算出來的 severeSickStartTime 檢查要不要直接
+  // 死掉，一次補完離線期間該發生的所有階段。
+  if (next.healthStatus === "slightly_sick" && next.sickStartTime !== null) {
+    const severeStartTime = next.sickStartTime + SICKNESS_ESCALATION_HOURS * HOUR_MS;
+    if (now >= severeStartTime) {
       next.healthStatus = "severely_sick";
-      next.severeSickStartTime = now;
+      next.severeSickStartTime = severeStartTime;
       next.sickStartTime = null;
       changed = true;
       if (!pet.notifiedFlags.severelySick) {
@@ -149,9 +213,10 @@ export function applyPetTimeDecay(pet: PetDoc, now: number): PetDecayResult {
         next.notifiedFlags = { ...next.notifiedFlags, severelySick: true, slightlySick: false };
       }
     }
-  } else if (pet.healthStatus === "severely_sick" && pet.severeSickStartTime !== null) {
-    const hoursSevere = (now - pet.severeSickStartTime) / HOUR_MS;
-    if (hoursSevere >= SICKNESS_ESCALATION_HOURS) {
+  }
+  if (next.healthStatus === "severely_sick" && next.severeSickStartTime !== null) {
+    const deathTime = next.severeSickStartTime + SICKNESS_ESCALATION_HOURS * HOUR_MS;
+    if (now >= deathTime) {
       next.healthStatus = "dead";
       changed = true;
       if (!pet.notifiedFlags.dead) {

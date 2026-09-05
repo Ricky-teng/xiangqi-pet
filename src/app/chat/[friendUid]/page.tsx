@@ -25,12 +25,13 @@ import {
   query,
   setDoc,
   updateDoc,
+  where,
 } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase";
 import { useGameStore } from "@/stores/useGameStore";
 import RequireAuth from "@/components/RequireAuth";
 import { useAppBackground } from "@/lib/useAppBackground";
-import { getChatId, CHAT_MESSAGE_MAX_LENGTH, CHAT_QUICK_EMOJIS } from "@/lib/chat";
+import { getChatId, CHAT_MESSAGE_MAX_LENGTH, CHAT_QUICK_EMOJIS, CHAT_HISTORY_RETENTION_MS } from "@/lib/chat";
 import type { ChatDoc, ChatMessageDoc, UserDoc } from "@/types/database";
 
 async function getAuthHeader(): Promise<Record<string, string>> {
@@ -111,6 +112,11 @@ function ChatConversationContent({ friendUid }: { friendUid: string }) {
 
       const messagesQuery = query(
         collection(db, "chats", chatId, "messages"),
+        // 只保留半年內的訊息（見 CHAT_HISTORY_RETENTION_MS 說明）——
+        // 越聊越久的兩人，原本沒有這個篩選會一次讀進全部歷史訊息，
+        // 讀取量隨著聊天記錄一直長。舊訊息還在 Firestore 裡，只是
+        // 不撈出來顯示，不會真的刪除。
+        where("createdAt", ">=", Date.now() - CHAT_HISTORY_RETENTION_MS),
         orderBy("createdAt", "asc")
       );
       unsubscribe = onSnapshot(

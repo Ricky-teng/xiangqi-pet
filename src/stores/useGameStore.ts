@@ -4,7 +4,7 @@ import { doc, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { UserDoc, PetDoc, DailyTaskDoc } from "@/types/database";
 import { resolveStageForXp } from "@/lib/pet/petGrowth";
-import { LOW_FULLNESS_THRESHOLD as SICKNESS_CURE_MIN_FULLNESS } from "@/lib/pet/petDecay";
+import { LOW_FULLNESS_THRESHOLD as SICKNESS_CURE_MIN_FULLNESS, getPoopCount, PET_CLEAN_BASE_COST } from "@/lib/pet/petDecay";
 import { CATALOG_ENTRIES, getNextCatalogEntry, getXpNeededForNextJob, isMaxJobLevel } from "@/lib/pet/catalog";
 import { getTodayDateString, getTodaysCompletedTaskIds } from "@/lib/tasks/dailyTasks";
 import {
@@ -52,9 +52,25 @@ interface GameStoreState {
    */
   petAlertMessage: string | null;
   setPetAlertMessage: (message: string | null) => void;
+
+  /**
+   * 即時天氣（見 lib/weather.ts），純前端記憶體狀態，不寫進
+   * Firestore、也不跟著使用者帳號走——只是給 GlobalRainOverlay 之類
+   * 的全站特效讀取用，重新整理頁面就會重新抓一次。
+   */
+  weather: import("@/lib/weather").WeatherSnapshot | null;
+  setWeather: (weather: import("@/lib/weather").WeatherSnapshot | null) => void;
   
   // 學生本地即時互動邏輯（在寫入 Firebase 之前，前端畫面先動）
   feedPet: () => void;
+
+  /**
+   * 清理小雞旁邊的垃圾/大便：把 pet.lastCleanedTime 重設成現在，重新
+   * 開始算垃圾累積（見 lib/pet/petDecay.ts 的 getPoopCount）。費用是
+   * 「今天第 N 次清理 = N × PET_CLEAN_BASE_COST」，每天 00:00 重置。
+   * 只是清理環境，不會治好已經在生的病——生病了還是要買藥水醫治。
+   */
+  cleanPetMess: () => { success: boolean; message: string; cost: number };
   buyMedicine: (type: "slightly" | "severely") => { success: boolean; message: string };
   /**
    * 觸發小雞生病（連續答錯 3 次時呼叫）。
@@ -247,6 +263,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   petAlertMessage: null,
   setPetAlertMessage: (petAlertMessage) => set({ petAlertMessage }),
 
+  weather: null,
+  setWeather: (weather) => set({ weather }),
+
   // 1. 立即餵食按鈕邏輯
   feedPet: () => {
     const { user, pet } = get();
@@ -300,6 +319,56 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     ]).catch((error) => {
       console.error("[useGameStore] feedPet 同步寫回 Firestore 失敗：", error);
     });
+  },
+
+  cleanPetMess: () => {
+    const { user, pet } = get();
+    if (!user || !pet) return { success: false, message: "找不到資料", cost: 0 };
+    if (pet.healthStatus === "dead") {
+      return { success: false, message: "小雞已經不在了，沒有東西可以清理。", cost: 0 };
+    }
+
+    const today = getTodayDateString();
+    const prevProg = user.dailyPetCleanProgress;
+    const prevCount = prevProg?.date === today ? prevProg.count : 0;
+    const cost = (prevCount + 1) * PET_CLEAN_BASE_COST;
+
+    if (user.foodCount < cost) {
+      return { success: false, message: `這次清理需要 ${cost} 飼料，飼料不夠喔！`, cost };
+    }
+
+    const now = Date.now();
+    const foodCount = user.foodCount - cost;
+    const totalFoodSpent = (user.totalFoodSpent ?? 0) + cost;
+    const newProg = { date: today, count: prevCount + 1 };
+
+    const updatedUser: UserDoc = {
+      ...user,
+      foodCount,
+      totalFoodSpent,
+      dailyPetCleanProgress: newProg,
+      updatedAt: now,
+    };
+    const updatedPet: PetDoc = { ...pet, lastCleanedTime: now, updatedAt: now };
+
+    set({ user: updatedUser, pet: updatedPet });
+
+    Promise.all([
+      updateDoc(doc(db, "users", user.uid), {
+        foodCount,
+        totalFoodSpent,
+        dailyPetCleanProgress: newProg,
+        updatedAt: now,
+      }),
+      updateDoc(doc(db, "pets", user.uid), {
+        lastCleanedTime: now,
+        updatedAt: now,
+      }),
+    ]).catch((error) => {
+      console.error("[useGameStore] cleanPetMess 同步寫回 Firestore 失敗：", error);
+    });
+
+    return { success: true, message: `🧹 清理完成！花了 ${cost} 飼料。`, cost };
   },
 
   // 2. 商店買藥水邏輯
@@ -507,6 +576,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       sickStartTime: null,
       severeSickStartTime: null,
       lastFedTime: now,
+      lastCleanedTime: now,
       notifiedFlags: { lowFullness: false, slightlySick: false, severelySick: false, dead: false },
       currentAppearanceId: null,
       updatedAt: now,
@@ -529,6 +599,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         sickStartTime: null,
         severeSickStartTime: null,
         lastFedTime: now,
+        lastCleanedTime: now,
         notifiedFlags: updatedPet.notifiedFlags,
         currentAppearanceId: null,
         updatedAt: now,
@@ -581,6 +652,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       sickStartTime: null,
       severeSickStartTime: null,
       lastFedTime: now,
+      lastCleanedTime: now,
       notifiedFlags: { lowFullness: false, slightlySick: false, severelySick: false, dead: false },
       currentAppearanceId: null,
       updatedAt: now,
@@ -604,6 +676,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         sickStartTime: null,
         severeSickStartTime: null,
         lastFedTime: now,
+        lastCleanedTime: now,
         notifiedFlags: updatedPet.notifiedFlags,
         currentAppearanceId: null,
         updatedAt: now,

@@ -268,6 +268,15 @@ export interface UserDoc {
   };
 
   /**
+   * 今天已經清理小雞垃圾/大便幾次，每天 00:00 重置。第 N 次清理費用
+   * 是 N × PET_CLEAN_BASE_COST（100、200、300...累加，不是倍數）。
+   */
+  dailyPetCleanProgress?: {
+    date: string;
+    count: number;
+  };
+
+  /**
    * 每日任務完成進度（可選欄位：舊帳號沒有這個欄位時，視為「今天還沒
    * 完成任何任務」，見 @/lib/tasks/dailyTasks.ts 的 getTodaysCompletedTaskIds）。
    * date 用本地（瀏覽器所在時區）的 YYYY-MM-DD 字串記錄「上次更新是哪一天」，
@@ -343,6 +352,16 @@ export interface PetDoc {
   
   // 關鍵計時時間戳記 (Epoch ms) -> 供 Vercel Cron 排程計算時間差
   lastFedTime: number;                // 上次餵食時間（用來算飽食度扣多少）
+
+  /**
+   * 上次清理小雞旁邊垃圾/大便的時間戳。純前端算「現在幾個垃圾」：
+   * 每過 60 分鐘多一個，累積到 POOP_SICKNESS_THRESHOLD_COUNT（10 個，
+   * 也就是 10 小時沒清）會觸發生小病，跟飽食度歸零觸發生小病共用
+   * 同一套 healthStatus 病情機制（見 lib/pet/petDecay.ts 的
+   * getPoopCount）。舊帳號沒有這個欄位時，第一次算 decay 會補一個
+   * 「現在」當起點，不會補完欄位就立刻被判定生病。
+   */
+  lastCleanedTime?: number;
   sickStartTime: number | null;       // 開始生小病的時間點（過 4 小時未醫治則變大病）
   severeSickStartTime: number | null; // 開始生大病的時間點（過 4 小時未醫治則死掉）
   

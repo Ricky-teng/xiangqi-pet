@@ -130,6 +130,8 @@ function PastureContent() {
   const router = useRouter();
   const bgStyle = useAppBackground();
   const user = useGameStore((s) => s.user);
+  const pet = useGameStore((s) => s.pet);
+  const isRaining = useGameStore((s) => s.weather?.isRaining ?? false);
   const setUser = useGameStore((s) => s.setUser);
   const payPastureEntry = useGameStore((s) => s.payPastureEntry);
   const claimPastureIncome = useGameStore((s) => s.claimPastureIncome);
@@ -154,6 +156,12 @@ function PastureContent() {
   // Firestore 讀取），改顯示規則說明 + 付費入場的畫面。
   const hasEnteredToday = !!user?.pastureEconomy && user.pastureEconomy.date === getTodayDateString();
   const todaysPastureIncome = hasEnteredToday ? user!.pastureEconomy!.incomeClaimedToday : null;
+
+  // 小雞生病（或死掉）不能進牧場：只擋牧場這一個功能，其他解題/對弈/
+  // 餵食都不受影響。已經入場、但期間變生病的話，下次重新整理/進頁面
+  // 這裡重算一次就會被擋下來——這是純前端 App 沒有背景排程的已知
+  // 限制（跟 petDecay.ts 說明的限制一致），不是漏做。
+  const isPetSick = !!pet && pet.healthStatus !== "normal";
 
   // 今天已經抓過幾隻蟲，一開始就從 user 資料算好，之後每抓一隻就
   // 在本地遞減，不用重新整理頁面也能即時看到剩餘次數。
@@ -241,7 +249,7 @@ function PastureContent() {
 
   // 已經入場的狀態下，進頁面順便結算一次被動收入（背景累積的部分）。
   useEffect(() => {
-    if (!user || !hasEnteredToday) return;
+    if (!user || !hasEnteredToday || isPetSick) return;
     const result = claimPastureIncome();
     if (result.incomeGained > 0) {
       setEconomyMessage(
@@ -249,10 +257,10 @@ function PastureContent() {
       );
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.uid, hasEnteredToday]);
+  }, [user?.uid, hasEnteredToday, isPetSick]);
 
   useEffect(() => {
-    if (!user || !hasEnteredToday) return;
+    if (!user || !hasEnteredToday || isPetSick) return;
     let isCancelled = false;
 
     async function loadPasture() {
@@ -294,20 +302,25 @@ function PastureContent() {
           userDataByUid.set(d.id, d.data() as UserDoc);
         });
 
-        const list: PastureChickenData[] = petsSnap.docs.map((d) => {
-          const pet = d.data() as PetDoc;
-          const userData = userDataByUid.get(d.id);
-          return {
-            uid: d.id,
-            displayName: userData?.displayName ?? "同學",
-            stage: pet.stage,
-            healthStatus: pet.healthStatus,
-            currentAppearanceId: pet.currentAppearanceId ?? null,
-            totalSolved: userData?.stats?.totalSolved ?? 0,
-            rebirthCount: userData?.rebirthCount ?? 0,
-            isSelf: d.id === user!.uid,
-          };
-        });
+        const list: PastureChickenData[] = petsSnap.docs
+          .map((d) => {
+            const pet = d.data() as PetDoc;
+            const userData = userDataByUid.get(d.id);
+            return {
+              uid: d.id,
+              displayName: userData?.displayName ?? "同學",
+              stage: pet.stage,
+              healthStatus: pet.healthStatus,
+              currentAppearanceId: pet.currentAppearanceId ?? null,
+              totalSolved: userData?.stats?.totalSolved ?? 0,
+              rebirthCount: userData?.rebirthCount ?? 0,
+              isSelf: d.id === user!.uid,
+            };
+          })
+          // 生病（或死掉）的小雞不會出現在牧場草地上——這是「進去後才
+          // 生病要退出」在純前端架構下能做到的實作方式：每次重新載入
+          // 牧場成員名單時重新篩一次，見上面 isPetSick 的說明。
+          .filter((chicken) => chicken.healthStatus === "normal");
 
         setChickens(list);
         setStatus("success");
@@ -324,7 +337,7 @@ function PastureContent() {
       isCancelled = true;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.uid, hasEnteredToday]);
+  }, [user?.uid, hasEnteredToday, isPetSick]);
 
   return (
     <main className="min-h-screen pb-10" style={bgStyle}>
@@ -341,7 +354,9 @@ function PastureContent() {
           <span className="w-[68px]" aria-hidden="true" />
         </header>
 
-        {!hasEnteredToday ? (
+        {isPetSick ? (
+          <PastureSickBlock healthStatus={pet!.healthStatus} />
+        ) : !hasEnteredToday ? (
           <PastureEntryGate
             foodCount={user?.foodCount ?? 0}
             isPaying={isPaying}
@@ -389,6 +404,7 @@ function PastureContent() {
                   interactionSignal={interactionSignal}
                   bugCatchRemaining={bugCatchRemaining}
                   onCatchBug={handleCatchBug}
+                  isRaining={isRaining}
                 />
               )}
             </div>
@@ -429,6 +445,24 @@ function PastureContent() {
  * 取代整個牧場草地——先讓學生看清楚規則（入場費多少、被動收入怎麼
  * 算、什麼時候重置），按下去才真的扣飼料、正式入場。
  */
+/**
+ * 小雞生病（或死掉）擋牧場：只擋這個功能，不影響解題/對弈/餵食。
+ * 已經付過今天的入場費也一樣會被擋下來——這是「進去後才生病要退出」
+ * 在純前端架構下的實作方式，見 isPetSick 那段註解。
+ */
+function PastureSickBlock({ healthStatus }: { healthStatus: string }) {
+  const label = healthStatus === "severely_sick" ? "生大病" : healthStatus === "dead" ? "已經死掉" : "生小病";
+  return (
+    <div className="mt-4 rounded-3xl bg-white/80 px-5 py-8 text-center shadow-sm">
+      <p className="text-3xl">🤒🐣</p>
+      <h2 className="mt-2 text-base font-extrabold text-[#1A1A2E]">小雞現在不能進牧場</h2>
+      <p className="mt-2 text-xs text-[#1A1A2E]/60">
+        小雞目前的狀態是「{label}」，先回去治療（買藥水醫治，或先復活）再來牧場找同學玩吧！
+      </p>
+    </div>
+  );
+}
+
 function PastureEntryGate({
   foodCount,
   isPaying,
@@ -506,16 +540,6 @@ const TIME_OF_DAY_GRADIENT: Record<TimeOfDay, string> = {
   night: "linear-gradient(180deg, #2B3A55 0%, #3E5240 45%, #37502F 100%)",
 };
 
-type Weather = "sunny" | "rainy" | "rainbow";
-
-/** 一次進頁面抽一次天氣：大部分時候晴天，偶爾下雨，白天才有機會出彩虹 */
-function rollWeather(timeOfDay: TimeOfDay): Weather {
-  const roll = Math.random();
-  if (roll < 0.15) return "rainy";
-  if ((timeOfDay === "day" || timeOfDay === "dawn") && roll < 0.27) return "rainbow";
-  return "sunny";
-}
-
 /**
  * 草地本體 + 所有小雞 + 背景飄動的雲 + 天氣 + 找蟲子小遊戲 + 裝飾用的
  * 蟲蟲/食物物件。小雞的隨機漫步邏輯全部包在 <WanderingChicken> 裡
@@ -528,6 +552,7 @@ function PastureField({
   interactionSignal,
   bugCatchRemaining,
   onCatchBug,
+  isRaining,
 }: {
   chickens: PastureChickenData[];
   onSelectChicken: (chicken: PastureChickenData) => void;
@@ -535,6 +560,7 @@ function PastureField({
   interactionSignal: { uid: string; kind: string; seq: number } | null;
   bugCatchRemaining: number;
   onCatchBug: () => boolean;
+  isRaining: boolean;
 }) {
   const decorations = useMemo(
     () =>
@@ -559,23 +585,27 @@ function PastureField({
     []
   );
 
-  // 天氣/時段：只在這個元件掛載時算一次，不會每次 re-render 重抽，
-  // 不然雨會一直忽有忽無很奇怪。
+  // 時段：只在這個元件掛載時算一次，避免每次 re-render 重算讓草地
+  // 顏色忽明忽暗。是否下雨改成用真實天氣（見 lib/weather.ts +
+  // useWeatherBootstrap），不再是進頁面隨機抽。彩虹則保留成純裝飾的
+  // 小驚喜，只在「白天/清晨、而且沒下雨」時才有機會出現。
   const timeOfDay = useMemo(() => getTimeOfDay(), []);
-  const weather = useMemo(() => rollWeather(timeOfDay), [timeOfDay]);
   const isNight = timeOfDay === "night";
+  const showRainbow = useMemo(() => {
+    if (isRaining) return false;
+    if (timeOfDay !== "day" && timeOfDay !== "dawn") return false;
+    return Math.random() < 0.12;
+  }, [isRaining, timeOfDay]);
 
   const raindrops = useMemo(
     () =>
-      weather === "rainy"
-        ? Array.from({ length: 24 }, (_, i) => ({
-            id: i,
-            left: Math.round((Math.sin(i * 17.3) * 0.5 + 0.5) * 100),
-            duration: 0.7 + Math.random() * 0.5,
-            delay: Math.random() * 2,
-          }))
-        : [],
-    [weather]
+      Array.from({ length: 24 }, (_, i) => ({
+        id: i,
+        left: Math.round((Math.sin(i * 17.3) * 0.5 + 0.5) * 100),
+        duration: 0.7 + ((i * 37) % 50) / 100,
+        delay: ((i * 53) % 200) / 100,
+      })),
+    []
   );
 
   return (
@@ -588,7 +618,7 @@ function PastureField({
         {isNight ? "🌙" : timeOfDay === "dusk" ? "🌇" : "☀️"}
       </span>
 
-      {weather === "rainbow" ? (
+      {showRainbow ? (
         <span
           className="pointer-events-none absolute left-1/2 top-2 -translate-x-1/2 select-none text-4xl opacity-70"
           aria-hidden="true"
@@ -597,7 +627,7 @@ function PastureField({
         </span>
       ) : null}
 
-      {weather === "rainy" ? (
+      {isRaining ? (
         <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-60" aria-hidden="true">
           {raindrops.map((drop) => (
             <span
@@ -674,14 +704,6 @@ function PastureField({
           }
           to {
             transform: translateX(130vw) scale(var(--cloud-scale, 1));
-          }
-        }
-        @keyframes pasture-rain-fall {
-          from {
-            transform: translateY(0);
-          }
-          to {
-            transform: translateY(75vh);
           }
         }
         @keyframes pasture-drift-float {

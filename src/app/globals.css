@@ -17,3 +17,14 @@
     transform: translate(-50%, -40px) scale(1.2);
   }
 }
+
+/* 全站下雨背景特效（GlobalRainOverlay）跟牧場草地本來各自的下雨
+   動畫共用同一個 keyframe，所以也放在全域樣式表。 */
+@keyframes pasture-rain-fall {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(110vh);
+  }
+}

@@ -29,7 +29,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { collection, doc, getDocs, limit, onSnapshot, orderBy, query, updateDoc, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
@@ -41,7 +41,7 @@ import { JobChangeAnnouncementModal } from "@/components/JobChangeAnnouncementMo
 import { ResetCompensationModal } from "@/components/ResetCompensationModal";
 import { hasUnreadAnnouncement } from "@/lib/announcements";
 import { STAGE_XP_THRESHOLDS } from "@/lib/pet/petGrowth";
-import { SICKNESS_ESCALATION_HOURS } from "@/lib/pet/petDecay";
+import { SICKNESS_ESCALATION_HOURS, getPoopCount, PET_CLEAN_BASE_COST } from "@/lib/pet/petDecay";
 import { getPetImagePath, getPetDisplaySrc } from "@/lib/pet/petImagePath";
 import { getNextCatalogEntry, getXpNeededForNextJob, getMasterJobProgressPercent, isMaxJobLevel } from "@/lib/pet/catalog";
 import { hasUnclaimedDailyTask, getTodayDateString } from "@/lib/tasks/dailyTasks";
@@ -280,10 +280,12 @@ function LivingPetDisplay({
   stage,
   healthStatus,
   currentAppearanceId,
+  poopCount,
 }: {
   stage: string;
   healthStatus: string;
   currentAppearanceId: string | null;
+  poopCount: number;
 }) {
   const isAlive = healthStatus !== "dead";
   const [isJumping, setIsJumping] = useState(false);
@@ -324,8 +326,30 @@ function LivingPetDisplay({
     return () => clearTimeout(timeoutId);
   }, [isAlive, healthStatus]);
 
+  const poopPositions = useMemo(
+    () =>
+      Array.from({ length: 10 }, (_, i) => ({
+        left: 8 + Math.round((Math.sin(i * 12.9) * 0.5 + 0.5) * 84),
+        bottom: Math.round((Math.sin(i * 7.3) * 0.5 + 0.5) * 18),
+        emoji: i % 2 === 0 ? "💩" : "🗑️",
+      })),
+    []
+  );
+
   return (
     <div className="relative flex h-40 w-full items-end justify-center">
+      {isAlive && poopCount > 0
+        ? poopPositions.slice(0, poopCount).map((p, i) => (
+            <span
+              key={i}
+              className="pointer-events-none absolute select-none text-lg"
+              style={{ left: `${p.left}%`, bottom: `${p.bottom}%` }}
+              aria-hidden="true"
+            >
+              {p.emoji}
+            </span>
+          ))
+        : null}
       {dialogueText ? (
         <div className="pointer-events-none absolute top-0 z-10 max-w-[80%] rounded-2xl bg-white px-3 py-2 text-xs font-semibold text-[#1A1A2E] shadow-md">
           {dialogueText}
@@ -356,12 +380,27 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
 
   const pet = useGameStore((s) => s.pet);
   const claimDailyGrant = useGameStore((s) => s.claimDailyGrant);
+  const cleanPetMess = useGameStore((s) => s.cleanPetMess);
   const setUser = useGameStore((s) => s.setUser);
 
   const [showCheckinModal, setShowCheckinModal] = useState(false);
   // 主導覽 9 宮格預設收合，平常不佔首頁空間，點「更多功能」才展開
   const [isNavExpanded, setIsNavExpanded] = useState(false);
   const [dailyGrantMessage, setDailyGrantMessage] = useState<string | null>(null);
+  const [cleanMessage, setCleanMessage] = useState<string | null>(null);
+
+  // 目前有幾個垃圾/大便（每 60 分鐘一個，累積到 10 個會生病），純前端
+  // 用「現在 - 上次清理時間」算，不用另外存「目前幾個」這種欄位。
+  const poopCount = pet ? getPoopCount(pet.lastCleanedTime, Date.now()) : 0;
+  const today = getTodayDateString();
+  const cleanedToday = user.dailyPetCleanProgress?.date === today ? user.dailyPetCleanProgress.count : 0;
+  const nextCleanCost = (cleanedToday + 1) * PET_CLEAN_BASE_COST;
+
+  function handleCleanMess() {
+    const result = cleanPetMess();
+    setCleanMessage(result.message);
+    setTimeout(() => setCleanMessage(null), 3000);
+  }
 
   // ---- 每日任務：只為了首頁的「有未領取任務」紅點提示，抓一次啟用中
   // 的任務列表就好，不需要任務的完整內容（那是 /tasks 頁面的事）。
@@ -705,6 +744,7 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
             stage={pet.stage}
             healthStatus={pet.healthStatus}
             currentAppearanceId={pet.currentAppearanceId}
+            poopCount={poopCount}
           />
 
           {/* 生病加重倒數提示 */}
@@ -736,6 +776,28 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
           >
             🍱 餵食小雞
           </button>
+
+          {/* 清理按鈕：垃圾/大便滿 10 個會生小病，見 lib/pet/petDecay.ts
+              的 getPoopCount。費用逐次遞增，每天 00:00 重置。 */}
+          {poopCount > 0 ? (
+            <button
+              type="button"
+              onClick={handleCleanMess}
+              disabled={user.foodCount < nextCleanCost || pet.healthStatus === "dead"}
+              className={[
+                "mt-2 rounded-2xl px-8 py-2.5 text-sm font-bold shadow-md transition-transform active:scale-95",
+                user.foodCount < nextCleanCost || pet.healthStatus === "dead"
+                  ? "cursor-not-allowed bg-[#1A1A2E]/10 text-[#1A1A2E]/40"
+                  : "bg-[#5B8C5A] text-white",
+              ].join(" ")}
+            >
+              🧹 清理環境（-{nextCleanCost} 飼料）
+            </button>
+          ) : null}
+
+          {cleanMessage ? (
+            <p className="mt-2 text-xs font-bold text-[#5B8C5A]">{cleanMessage}</p>
+          ) : null}
         </section>
 
         {/* ============================================================

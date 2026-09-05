@@ -12,6 +12,10 @@
  *      小雞的飽食度/生病時間衰退，不用重新整理頁面才會更新。
  *   3. 渲染 <PetAlertBanner />：全站共用的小雞狀態警示彈窗
  *      （太久沒醫治、餓過頭等通知）。
+ *   4. useWeatherBootstrap()：抓一次即時天氣（見 lib/weather.ts），
+ *      之後每 30 分鐘重新抓一次，結果存進 useGameStore.weather。
+ *   5. 渲染 <GlobalRainOverlay />：只要目前天氣真的在下雨，全站
+ *      每一頁背景都會疊一層下雨特效。
  *
  * 為什麼要獨立成一個 Client Component，而不是直接在 layout.tsx
  * 裡呼叫這些 Hook：
@@ -28,13 +32,16 @@ import { useAuthBootstrap } from "@/hooks/useAuth";
 import { usePetTimeDecayTicker } from "@/hooks/usePetTimeDecayTicker";
 import { useChallengeRoomRedirect } from "@/hooks/useChallengeRoomRedirect";
 import { useAutoRegisterPush } from "@/hooks/useAutoRegisterPush";
+import { useWeatherBootstrap } from "@/hooks/useWeatherBootstrap";
 import { useGameStore } from "@/stores/useGameStore";
 import PetAlertBanner from "@/components/PetAlertBanner";
+import GlobalRainOverlay from "@/components/GlobalRainOverlay";
 
 export default function AuthProvider({ children }: { children: ReactNode }) {
   useAuthBootstrap();
   usePetTimeDecayTicker();
   useChallengeRoomRedirect();
+  useWeatherBootstrap();
 
   const uid = useGameStore((s) => s.user?.uid);
   const role = useGameStore((s) => s.user?.role);
@@ -43,6 +50,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     <>
       {children}
       <PetAlertBanner />
+      <GlobalRainOverlay />
     </>
   );
 }

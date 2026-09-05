@@ -110,6 +110,7 @@ function createDefaultPetDoc(uid: string): PetDoc {
     currentWrongPuzzleId: null,
     consecutiveWrongCount: 0,
     lastFedTime: now,
+    lastCleanedTime: now,
     sickStartTime: null,
     severeSickStartTime: null,
     notifiedFlags: {
@@ -193,6 +194,7 @@ export function useAuthBootstrap(): void {
             updateDoc(petRef, {
               fullness: petDoc.fullness,
               lastFedTime: petDoc.lastFedTime,
+              lastCleanedTime: petDoc.lastCleanedTime,
               healthStatus: petDoc.healthStatus,
               sickStartTime: petDoc.sickStartTime,
               severeSickStartTime: petDoc.severeSickStartTime,
