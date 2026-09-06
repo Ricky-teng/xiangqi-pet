@@ -293,6 +293,25 @@ function ArCameraContent() {
 
   return (
     <main className="fixed inset-0 flex flex-col bg-black" style={{ touchAction: "none" }}>
+      {/* 相機畫面：故意「永遠掛載」在這裡，不隨 status 條件式卸載/重建。
+          原本的 bug 就出在這——video 標籤只有 status === "ready" 才會
+          渲染，但我們是在拿到 stream「當下」就想把 srcObject 設到
+          videoRef.current 上，這時候 status 還是 "requesting"、video
+          標籤根本還沒被 React 掛上去，videoRef.current 是 null，
+          srcObject 的賦值就這樣被默默跳過，畫面就會一直是黑的。
+          現在改成 video 一開始就在 DOM 裡（用 z-index 墊在最底層，
+          requesting/denied/unavailable 這些狀態疊在上面蓋住它），
+          effect 執行的當下 ref 一定已經存在。 */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        <video
+          ref={videoRef}
+          autoPlay
+          muted
+          playsInline
+          className="absolute inset-0 h-full w-full object-cover"
+        />
+      </div>
+
       <header className="z-10 flex shrink-0 items-center justify-between bg-black/40 px-4 py-3">
         <button
           type="button"
@@ -308,29 +327,29 @@ function ArCameraContent() {
       </header>
 
       {status === "requesting" ? (
-        <div className="flex flex-1 items-center justify-center">
+        <div className="z-10 flex flex-1 items-center justify-center bg-black/60">
           <p className="text-sm text-white/70">正在開啟相機…</p>
         </div>
       ) : status === "denied" ? (
-        <div className="flex flex-1 flex-col items-center justify-center gap-3 px-8 text-center">
+        <div className="z-10 flex flex-1 flex-col items-center justify-center gap-3 bg-black/80 px-8 text-center">
           <p className="text-3xl">🚫📷</p>
           <p className="text-sm text-white/80">
             沒有取得相機權限，沒辦法使用 AR 模式。請到瀏覽器設定允許相機權限後再回來試試看。
           </p>
         </div>
       ) : status === "unavailable" ? (
-        <div className="flex flex-1 flex-col items-center justify-center gap-3 px-8 text-center">
+        <div className="z-10 flex flex-1 flex-col items-center justify-center gap-3 bg-black/80 px-8 text-center">
           <p className="text-3xl">🖥️🚫</p>
           <p className="text-sm text-white/80">這個裝置或瀏覽器不支援相機功能，沒辦法使用 AR 模式。</p>
         </div>
       ) : capturedImage ? (
         <>
-          <div className="flex flex-1 items-center justify-center overflow-hidden">
+          <div className="z-10 flex flex-1 items-center justify-center overflow-hidden bg-black">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={capturedImage} alt="AR 合成照片" className="max-h-full max-w-full object-contain" />
           </div>
           {shareMessage ? (
-            <p className="px-4 pb-1 text-center text-xs text-white/70">{shareMessage}</p>
+            <p className="z-10 bg-black px-4 pb-1 text-center text-xs text-white/70">{shareMessage}</p>
           ) : null}
           <div className="z-10 flex shrink-0 items-center justify-center gap-3 bg-black/40 px-4 py-4">
             <button
@@ -358,15 +377,7 @@ function ArCameraContent() {
         </>
       ) : (
         <>
-          <div ref={containerRef} className="relative flex-1 overflow-hidden">
-            <video
-              ref={videoRef}
-              autoPlay
-              muted
-              playsInline
-              className="absolute inset-0 h-full w-full object-cover"
-            />
-
+          <div ref={containerRef} className="relative z-10 flex-1 overflow-hidden">
             {needsManualPlay ? (
               <button
                 type="button"
