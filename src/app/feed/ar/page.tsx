@@ -5,7 +5,8 @@
  * AR——網頁做不到 ARKit/ARCore 那種貼合地板/牆壁的追蹤，iPhone
  * Safari 對 WebXR 支援也很不穩定，所以改用比較務實可行的做法）：
  *   1. 開手機相機（優先用後鏡頭 facingMode: "environment"）當背景。
- *   2. 小雞圖案疊在畫面上，可以用手指拖曳調整位置、按鈕調整大小。
+ *   2. 小雞圖案疊在畫面上，可以用手指拖曳調整位置、雙指縮放（pinch）
+ *      調整大小；底下也保留 +/- 按鈕給單手/桌機使用者。
  *   3. 可以直接在這裡餵食：把底下的飼料拖到小雞身上放開，跟
  *      /feed 頁面同一套飼料經濟（useGameStore.feedPet），只是換成
  *      相機背景 + 疊圖的呈現方式。
@@ -90,6 +91,7 @@ function ArCameraContent() {
     user.foodCount >= FOOD_PER_FEED &&
     (pet.fullness ?? 0) < 100;
   const foodShown = user ? Math.min(MAX_FOOD_SHOWN, Math.floor(user.foodCount / FOOD_PER_FEED)) : 0;
+  const fullnessPercent = pet ? Math.min(100, Math.max(0, pet.fullness)) : 0;
 
   async function tryPlayVideo() {
     const videoEl = videoRef.current;
@@ -146,7 +148,20 @@ function ArCameraContent() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ---- 拖曳小雞疊圖：用百分比座標，跟畫面尺寸無關，方便合成到 canvas 時換算 ----
+  // ---- 拖曳小雞疊圖 + 雙指縮放：用百分比座標，跟畫面尺寸無關，方便
+  // 合成到 canvas 時換算。雙指縮放（pinch）用 pointerdown 記錄同時
+  // 按下的指標數，兩指時改成算兩指距離的變化比例來調整 overlayScale，
+  // 這樣就不用依賴瀏覽器的 gesture 事件（Safari 才有）。 ----
+  const activePointersRef = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const pinchStartRef = useRef<{ distance: number; scale: number } | null>(null);
+
+  function getPinchDistance(): number | null {
+    const points = Array.from(activePointersRef.current.values());
+    if (points.length < 2) return null;
+    const [a, b] = points;
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  }
+
   useEffect(() => {
     if (!isDraggingOverlay) return;
 
@@ -160,19 +175,48 @@ function ArCameraContent() {
     }
 
     function onMove(e: PointerEvent) {
+      // 只要這根手指有被記錄到，就先更新它的位置（縮放要用）
+      if (activePointersRef.current.has(e.pointerId)) {
+        activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      }
+
+      // 兩指以上 => 縮放模式，不移動位置，避免縮放時小雞亂跑
+      const distance = getPinchDistance();
+      if (distance !== null) {
+        if (!pinchStartRef.current) {
+          pinchStartRef.current = { distance, scale: overlayScale };
+        } else {
+          const ratio = distance / pinchStartRef.current.distance;
+          const nextScale = Math.min(
+            OVERLAY_SIZE_MAX,
+            Math.max(OVERLAY_SIZE_MIN, pinchStartRef.current.scale * ratio)
+          );
+          setOverlayScale(nextScale);
+        }
+        return;
+      }
+
+      // 單指 => 一般拖曳移動
       const next = toPercent(e.clientX, e.clientY);
       if (next) setOverlayPos(next);
     }
-    function onUp() {
-      setIsDraggingOverlay(false);
+
+    function onUp(e: PointerEvent) {
+      activePointersRef.current.delete(e.pointerId);
+      // 手指少於兩根就結束這一輪縮放，下次兩指按下時重新起算基準
+      if (activePointersRef.current.size < 2) pinchStartRef.current = null;
+      if (activePointersRef.current.size === 0) setIsDraggingOverlay(false);
     }
 
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
+    window.addEventListener("pointercancel", onUp);
     return () => {
       window.removeEventListener("pointermove", onMove);
       window.removeEventListener("pointerup", onUp);
+      window.removeEventListener("pointercancel", onUp);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isDraggingOverlay]);
 
   // ---- 拖曳飼料餵食：跟 /feed 頁面同一套「window 監聽 + ref 判斷是否
@@ -322,7 +366,7 @@ function ArCameraContent() {
         </button>
         <h1 className="text-sm font-bold text-white">📷 AR 模式</h1>
         <div className="flex items-center gap-1 rounded-full bg-white/20 px-3 py-1.5 text-xs font-bold text-[#FCE6A0]">
-          🟪 {user?.foodCount ?? 0}
+          🌾 {user?.foodCount ?? 0}
         </div>
       </header>
 
@@ -378,6 +422,21 @@ function ArCameraContent() {
       ) : (
         <>
           <div ref={containerRef} className="relative z-10 flex-1 overflow-hidden">
+            {/* 飽食度：疊在相機畫面上方，讓學生在 AR 模式也看得到餵食
+                進度（不用切回 /feed 頁面才知道餵飽了沒） */}
+            <div className="pointer-events-none absolute left-1/2 top-3 z-10 w-[78%] -translate-x-1/2 rounded-2xl bg-black/45 px-3 py-2">
+              <div className="mb-1 flex justify-between text-[11px] font-bold text-white/80">
+                <span>飽食度</span>
+                <span className="tabular-nums">{fullnessPercent.toFixed(0)}/100</span>
+              </div>
+              <div className="h-2.5 w-full overflow-hidden rounded-full bg-white/25">
+                <div
+                  className="h-full rounded-full bg-[#7BC46C] transition-all duration-500"
+                  style={{ width: `${fullnessPercent}%` }}
+                />
+              </div>
+            </div>
+
             {needsManualPlay ? (
               <button
                 type="button"
@@ -399,6 +458,7 @@ function ArCameraContent() {
                 }}
                 onPointerDown={(e) => {
                   e.preventDefault();
+                  activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
                   setIsDraggingOverlay(true);
                 }}
                 className={[
@@ -423,7 +483,7 @@ function ArCameraContent() {
                   : (user?.foodCount ?? 0) < FOOD_PER_FEED
                     ? "飼料不足（需要 10 個）"
                     : "小雞已吃飽！"
-                : "拖曳小雞可以調整位置，拖飼料到小雞身上餵食"}
+                : "拖曳小雞調整位置、雙指縮放調整大小，拖飼料到小雞身上餵食"}
             </p>
           </div>
 

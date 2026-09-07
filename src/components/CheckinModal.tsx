@@ -102,7 +102,7 @@ export function CheckinModal({ open, onClose, checkinTasks = [] }: CheckinModalP
             </p>
             {totalRewardFood > 0 ? (
               <div className="mt-5 flex items-center gap-2 rounded-2xl bg-[#E8B84B]/20 px-6 py-4">
-                <span className="text-3xl">🟪</span>
+                <span className="text-3xl">🌾</span>
                 <span className="text-2xl font-extrabold text-[#5C3D0A]">+{totalRewardFood} 飼料</span>
               </div>
             ) : null}

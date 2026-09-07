@@ -42,7 +42,7 @@ export function ResetCompensationModal({ open, amount, onClaim }: ResetCompensat
 
         <div className="mt-4 rounded-2xl bg-[#E8B84B]/20 px-4 py-4 text-center">
           <p className="text-xs font-semibold text-[#1A1A2E]/60">可領取</p>
-          <p className="mt-1 text-3xl font-extrabold text-[#5C3D0A]">🟪 {amount}</p>
+          <p className="mt-1 text-3xl font-extrabold text-[#5C3D0A]">🌾 {amount}</p>
         </div>
 
         <button

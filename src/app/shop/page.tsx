@@ -179,7 +179,7 @@ function ShopContent() {
           </button>
           <h1 className="text-base font-bold text-[#1A1A2E]">🏪 商店</h1>
           <div className="flex items-center gap-1 rounded-full bg-white/70 px-3 py-1.5 text-xs font-bold text-[#8B5FBF]">
-            🟪 {user.foodCount}
+            🌾 {user.foodCount}
           </div>
         </header>
 
@@ -223,7 +223,7 @@ function ShopContent() {
                     className={["shrink-0 rounded-xl px-3 py-2 text-[11px] font-bold leading-tight transition-transform active:scale-95",
                       canAfford ? "bg-[#8B5FBF] text-white" : "cursor-not-allowed bg-[#1A1A2E]/10 text-[#1A1A2E]/30",
                     ].join(" ")}>
-                    {boughtToday ? "已買過" : canAfford ? `🟪${item.price}` : "不足"}
+                    {boughtToday ? "已買過" : canAfford ? `🌾${item.price}` : "不足"}
                   </button>
                 </div>
               );
@@ -245,14 +245,14 @@ function ShopContent() {
                 className={["mt-2 w-full rounded-xl py-2.5 text-sm font-bold transition-transform active:scale-95",
                   canAffordGacha && !isDrawing && !isDrawingTen ? "bg-[#8B5FBF] text-white" : "cursor-not-allowed bg-[#1A1A2E]/10 text-[#1A1A2E]/30",
                 ].join(" ")}>
-                {isDrawing ? "抽獎中…" : canAffordGacha ? `抽一次 🟪 ${BACKGROUND_GACHA_COST}` : "飼料不足"}
+                {isDrawing ? "抽獎中…" : canAffordGacha ? `抽一次 🌾 ${BACKGROUND_GACHA_COST}` : "飼料不足"}
               </button>
 
               <button type="button" onClick={handleDrawTen} disabled={!canAffordGachaTen || isDrawing || isDrawingTen}
                 className={["mt-2 w-full rounded-xl py-2.5 text-sm font-bold transition-transform active:scale-95",
                   canAffordGachaTen && !isDrawing && !isDrawingTen ? "bg-[#E8B84B] text-[#5C3D0A]" : "cursor-not-allowed bg-[#1A1A2E]/10 text-[#1A1A2E]/30",
                 ].join(" ")}>
-                {isDrawingTen ? "十連抽中…" : canAffordGachaTen ? `十連抽 🟪 ${BACKGROUND_GACHA_TEN_COST}` : "飼料不足（十連抽）"}
+                {isDrawingTen ? "十連抽中…" : canAffordGachaTen ? `十連抽 🌾 ${BACKGROUND_GACHA_TEN_COST}` : "飼料不足（十連抽）"}
               </button>
             </div>
 
@@ -324,14 +324,14 @@ function ShopContent() {
                 className={["mt-2 w-full rounded-xl py-2.5 text-sm font-bold transition-transform active:scale-95",
                   canAffordSkinGacha && !isDrawingSkin && !isDrawingSkinTen ? "bg-[#8B5FBF] text-white" : "cursor-not-allowed bg-[#1A1A2E]/10 text-[#1A1A2E]/30",
                 ].join(" ")}>
-                {isDrawingSkin ? "抽獎中…" : canAffordSkinGacha ? `抽一次 🟪 ${BOARD_SKIN_GACHA_COST}` : "飼料不足"}
+                {isDrawingSkin ? "抽獎中…" : canAffordSkinGacha ? `抽一次 🌾 ${BOARD_SKIN_GACHA_COST}` : "飼料不足"}
               </button>
 
               <button type="button" onClick={handleDrawSkinTen} disabled={!canAffordSkinGachaTen || isDrawingSkin || isDrawingSkinTen}
                 className={["mt-2 w-full rounded-xl py-2.5 text-sm font-bold transition-transform active:scale-95",
                   canAffordSkinGachaTen && !isDrawingSkin && !isDrawingSkinTen ? "bg-[#E8B84B] text-[#5C3D0A]" : "cursor-not-allowed bg-[#1A1A2E]/10 text-[#1A1A2E]/30",
                 ].join(" ")}>
-                {isDrawingSkinTen ? "十連抽中…" : canAffordSkinGachaTen ? `十連抽 🟪 ${BOARD_SKIN_GACHA_TEN_COST}` : "飼料不足（十連抽）"}
+                {isDrawingSkinTen ? "十連抽中…" : canAffordSkinGachaTen ? `十連抽 🌾 ${BOARD_SKIN_GACHA_TEN_COST}` : "飼料不足（十連抽）"}
               </button>
             </div>
 

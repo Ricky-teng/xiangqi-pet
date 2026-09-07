@@ -277,7 +277,7 @@ function SettingsContent() {
               </p>
             </div>
             <div className="rounded-2xl bg-[#FDF6E8] px-3 py-2">
-              <p className="text-[10px] font-semibold text-[#1A1A2E]/50">🟪 目前飼料</p>
+              <p className="text-[10px] font-semibold text-[#1A1A2E]/50">🌾 目前飼料</p>
               <p className="text-base font-extrabold text-[#1A1A2E]">{user.foodCount}</p>
             </div>
             <div className="rounded-2xl bg-[#FDF6E8] px-3 py-2">

@@ -3,7 +3,7 @@
  *
  * 學生排行榜
  * ------------------------------------------------------------
- * 提供五種排行依據（解題數／轉職次數／對電腦勝率／對戰勝率／消費排行），
+ * 提供五種排行依據（解題數／轉職次數／對電腦勝場／對戰勝率／消費排行），
  * 讓不同強項的學生都有機會看到自己名次靠前，增加好勝心跟回頭率，不是只比
  * 單一指標。目前使用者的那一列會特別標示出來，即使沒有排進
  * 列表可視範圍，也會在底下另外顯示「你的名次」。
@@ -33,10 +33,10 @@ import { useGameStore } from "@/stores/useGameStore";
 import RequireAuth from "@/components/RequireAuth";
 import type { UserDoc } from "@/types/database";
 import { useAppBackground } from "@/lib/useAppBackground";
-import { getVsComputerWinRate, getBattleWinRate } from "@/lib/stats";
+import { getBattleWinRate } from "@/lib/stats";
 
 type FetchStatus = "loading" | "success" | "error";
-type SortKey = "totalSolved" | "totalJobChanges" | "vsComputerWinRate" | "battleWinRate" | "totalFoodSpent";
+type SortKey = "totalSolved" | "totalJobChanges" | "vsComputerWins" | "battleWinRate" | "totalFoodSpent";
 
 interface SortOption {
   key: SortKey;
@@ -48,9 +48,9 @@ interface SortOption {
 const SORT_OPTIONS: SortOption[] = [
   { key: "totalSolved",       label: "解題數",     icon: "🧩", unit: "題" },
   { key: "totalJobChanges",   label: "轉職次數",   icon: "✨", unit: "次" },
-  { key: "vsComputerWinRate", label: "對電腦勝率", icon: "🤖", unit: "%" },
+  { key: "vsComputerWins",    label: "對電腦勝場", icon: "🤖", unit: "場" },
   { key: "battleWinRate",     label: "對戰勝率",   icon: "⚔️", unit: "%" },
-  { key: "totalFoodSpent",    label: "消費排行",   icon: "🟪", unit: "飼料" },
+  { key: "totalFoodSpent",    label: "消費排行",   icon: "🌾", unit: "飼料" },
 ];
 
 const RANK_MEDAL: Record<number, string> = {
@@ -63,7 +63,7 @@ function getSortValue(student: UserDoc, key: SortKey): number {
   switch (key) {
     case "totalSolved":       return student.stats.totalSolved;
     case "totalJobChanges":   return student.totalJobChanges ?? 0;
-    case "vsComputerWinRate": return getVsComputerWinRate(student);
+    case "vsComputerWins":    return student.stats.vsComputerWins ?? 0;
     case "battleWinRate":     return getBattleWinRate(student);
     case "totalFoodSpent":    return student.totalFoodSpent ?? 0;
   }
@@ -72,10 +72,6 @@ function getSortValue(student: UserDoc, key: SortKey): number {
 /** 顯示時補充局數說明，讓百分比更有意義 */
 function getRateLabel(student: UserDoc, key: SortKey): string {
   switch (key) {
-    case "vsComputerWinRate": {
-      const total = (student.stats.vsComputerWins ?? 0) + (student.stats.vsComputerLosses ?? 0) + (student.stats.vsComputerDraws ?? 0);
-      return total > 0 ? `${getVsComputerWinRate(student)}%（${total}局）` : "—";
-    }
     case "battleWinRate": {
       const total = (student.stats.battleWins ?? 0) + (student.stats.battleLosses ?? 0) + (student.stats.battleDraws ?? 0);
       return total > 0 ? `${getBattleWinRate(student)}%（${total}場）` : "—";
@@ -207,7 +203,7 @@ function LeaderboardContent() {
                         </span>
                       </div>
                       <span className="text-sm font-extrabold text-[#5C3D0A] tabular-nums">
-                        {["vsComputerWinRate","battleWinRate"].includes(sortKey)
+                        {sortKey === "battleWinRate"
                           ? getRateLabel(student, sortKey)
                           : `${getSortValue(student, sortKey)}${activeSortOption.unit}`}
                       </span>
@@ -229,7 +225,7 @@ function LeaderboardContent() {
                     </span>
                   </div>
                   <span className="text-sm font-extrabold text-[#5C3D0A] tabular-nums">
-                    {["vsComputerWinRate","battleWinRate"].includes(sortKey)
+                    {sortKey === "battleWinRate"
                       ? getRateLabel(currentUser, sortKey)
                       : `${getSortValue(currentUser, sortKey)}${activeSortOption.unit}`}
                   </span>

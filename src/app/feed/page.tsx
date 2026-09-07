@@ -147,7 +147,7 @@ function FeedPageContent() {
         </button>
         <h1 className="text-sm font-bold text-[#1A1A2E]">🍱 餵食</h1>
         <div className="flex items-center gap-1 rounded-full bg-white/70 px-3 py-1.5 text-xs font-bold text-[#8B5FBF] shadow-sm">
-          🟪 {user.foodCount}
+          🌾 {user.foodCount}
         </div>
       </header>
 

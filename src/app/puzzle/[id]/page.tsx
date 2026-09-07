@@ -369,7 +369,7 @@ function PuzzleHeader({
 
         <div className="flex items-center gap-3 text-sm font-semibold">
           <span className="flex items-center gap-1 text-[#8B5FBF]">
-            <span aria-hidden="true">🟪</span>
+            <span aria-hidden="true">🌾</span>
             <span className="tabular-nums">{foodCount}</span>
           </span>
         </div>

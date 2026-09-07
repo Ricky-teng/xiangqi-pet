@@ -656,7 +656,7 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
           </p>
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1 text-sm font-semibold text-[#8B5FBF]">
-              <span aria-hidden="true">🟪</span>
+              <span aria-hidden="true">🌾</span>
               <span className="tabular-nums">{user.foodCount}</span>
             </div>
             <button
