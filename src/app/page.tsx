@@ -326,15 +326,21 @@ function LivingPetDisplay({
     return () => clearTimeout(timeoutId);
   }, [isAlive, healthStatus]);
 
-  const poopPositions = useMemo(
-    () =>
-      Array.from({ length: 10 }, (_, i) => ({
-        left: 8 + Math.round((Math.sin(i * 12.9) * 0.5 + 0.5) * 84),
-        bottom: Math.round((Math.sin(i * 7.3) * 0.5 + 0.5) * 18),
-        emoji: i % 2 === 0 ? "💩" : "🗑️",
-      })),
-    []
-  );
+  const poopPositions = useMemo(() => {
+    // 每個位置給一種不重複的髒東西。故意不用 🗑️ 垃圾桶——那是「丟垃圾
+    // 的容器」，是解決方案不是問題本身，放在小雞旁邊看起來像貼心準備
+    // 好的收納，完全沒有「髒亂該清理」的感覺。
+    // 陣列長度要跟 POOP_SICKNESS_THRESHOLD_COUNT（10）一致，這樣滿版
+    // 時每種各出現一次、不會有複製貼上感；順序也刻意由輕到重，前幾個
+    // 是落葉果皮之類的小髒亂，越後面越誇張（蒼蠅、蜘蛛網、臭味），
+    // 讓「越來越髒」在視覺上有層次，不只是數量變多而已。
+    const MESS_EMOJIS = ["🍂", "🍌", "🥚", "🪶", "🦴", "🍗", "💩", "🕸️", "🪰", "🤢"];
+    return MESS_EMOJIS.map((emoji, i) => ({
+      left: 8 + Math.round((Math.sin(i * 12.9) * 0.5 + 0.5) * 84),
+      bottom: Math.round((Math.sin(i * 7.3) * 0.5 + 0.5) * 18),
+      emoji,
+    }));
+  }, []);
 
   return (
     <div className="relative flex h-40 w-full items-end justify-center">
