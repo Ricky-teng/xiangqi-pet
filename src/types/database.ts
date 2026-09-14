@@ -13,6 +13,14 @@ export interface UserDoc {
   chessLevel: PuzzleLevel;
 
   /**
+   * 這個學生「已經被採用」的投稿題目數量。用來自動幫題目命名
+   * （王小明1、王小明2…，見 /api/puzzle/submissions/review）。
+   * 用計數器而不是每次去 count 查詢，是因為審核那段包在 transaction
+   * 裡，多一次集合查詢會讓交易變重、也比較容易撞到重試。
+   */
+  approvedPuzzleCount?: number;
+
+  /**
    * 棋力積分：往「下一級」累積的進度（見 lib/chessRank.ts）。
    * 解題／贏電腦／贏對戰都會加分，累積到門檻就自動升級並扣掉門檻分數，
    * 所以這個數字永遠是「這一級之內的進度」，不是歷史總分。
@@ -795,6 +803,19 @@ export interface PuzzleSubmissionDoc {
   rejectReason?: string;
   /** 通過後產生的正式題目 id，方便追溯 */
   createdPuzzleId?: string;
+  /** 通過後自動產生的題目名稱（學生名字+序號，例如「王小明1」） */
+  createdPuzzleTitle?: string;
   /** 通過時依難度發放的飼料獎勵 */
   awardedFood?: number;
+
+  /**
+   * 審核結果是否已經通知過學生。審核當下設成 false，學生下次開 App
+   * 時會跳彈窗告知結果（通過/駁回都會通知），看完再由
+   * /api/puzzle/submissions/ack 標記成 true。
+   *
+   * 用「審核時才寫入 false」而不是投稿時就寫，是為了讓查詢單純：
+   * 待通知的條件就是 notifiedToStudent == false，還在等審核的投稿
+   * 因為根本沒有這個欄位，不會被這個查詢撈到。
+   */
+  notifiedToStudent?: boolean;
 }

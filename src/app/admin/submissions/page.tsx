@@ -42,7 +42,6 @@ function SubmissionsContent() {
   // 目前展開審核中的那一筆，以及老師填的題目內容
   const [activeId, setActiveId] = useState<string | null>(null);
   const [level, setLevel] = useState<PuzzleLevel>(1);
-  const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [movesText, setMovesText] = useState("");
   // 其他解法：一行一條，每行是一整條走法序列（見 PuzzleDoc.alternativeLines）
@@ -81,7 +80,6 @@ function SubmissionsContent() {
         const [mainLine, ...alternatives] = lines;
         setMovesText(mainLine.moves.join(" "));
         setAltLinesText(alternatives.map((l) => l.moves.join(" ")).join("\n"));
-        if (!title.trim()) setTitle(`紅方 ${mainLine.mateIn} 步殺`);
         // 難度用殺法步數當預設值：步數越多越難，但夾在 1-10 之間
         setLevel(Math.min(10, Math.max(1, mainLine.mateIn)) as PuzzleLevel);
       }
@@ -119,7 +117,6 @@ function SubmissionsContent() {
   function openReview(submission: PuzzleSubmissionDoc) {
     setActiveId(submission.id);
     setLevel(1);
-    setTitle("");
     setDescription(submission.note ?? "");
     setMovesText("");
     setAltLinesText("");
@@ -146,10 +143,6 @@ function SubmissionsContent() {
   async function handleApprove(submission: PuzzleSubmissionDoc) {
     // 走法用換行或空白分隔，過濾掉空字串
     const moves = movesText.split(/[\s\n]+/).map((m) => m.trim()).filter(Boolean);
-    if (!title.trim()) {
-      setMessage("請填寫題目標題。");
-      return;
-    }
     if (moves.length === 0) {
       setMessage("請填寫正解走法序列。");
       return;
@@ -168,7 +161,6 @@ function SubmissionsContent() {
         submissionId: submission.id,
         action: "approve",
         level,
-        title,
         description,
         moves,
         alternativeLines,
@@ -343,15 +335,10 @@ function SubmissionsContent() {
                         </select>
                       </div>
 
-                      <div>
-                        <label className="text-[10px] font-bold text-[#1A1A2E]/50">題目標題</label>
-                        <input
-                          value={title}
-                          onChange={(e) => setTitle(e.target.value)}
-                          placeholder="例如：馬後炮絕殺"
-                          className={INPUT_CLASS}
-                        />
-                      </div>
+                      <p className="rounded-xl bg-[#FDF6E8] px-3 py-2 text-[10px] text-[#1A1A2E]/60">
+                        題目名稱會自動命名為「投稿學生的名字＋序號」
+                        （例如 {submission.studentName}1、{submission.studentName}2），不用自己填。
+                      </p>
 
                       <div>
                         <label className="text-[10px] font-bold text-[#1A1A2E]/50">題目說明</label>

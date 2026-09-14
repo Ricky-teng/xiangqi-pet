@@ -706,6 +706,7 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
             { href: "/chat", icon: "💬", label: "聊天", badge: unreadChatCount > 0 },
             { href: "/announcements", icon: "📢", label: "公告", badge: hasUnreadAnnouncement(user, latestAnnouncementCreatedAt) },
             { href: "/pasture", icon: "🚜", label: "牧場" },
+            { href: "/my-submissions", icon: "📮", label: "我的投稿" },
           ];
           const hasAnyBadge = navItems.some((item) => item.badge);
 

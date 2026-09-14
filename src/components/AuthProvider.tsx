@@ -16,6 +16,8 @@
  *      之後每 30 分鐘重新抓一次，結果存進 useGameStore.weather。
  *   5. 渲染 <GlobalRainOverlay />：只要目前天氣真的在下雨，全站
  *      每一頁背景都會疊一層下雨特效。
+ *   6. 渲染 <SubmissionResultModal />：學生投稿題目的審核結果通知，
+ *      審核完成後學生下次開 App 會跳彈窗告知（通過/駁回都會通知）。
  *
  * 為什麼要獨立成一個 Client Component，而不是直接在 layout.tsx
  * 裡呼叫這些 Hook：
@@ -36,6 +38,7 @@ import { useWeatherBootstrap } from "@/hooks/useWeatherBootstrap";
 import { useGameStore } from "@/stores/useGameStore";
 import PetAlertBanner from "@/components/PetAlertBanner";
 import GlobalRainOverlay from "@/components/GlobalRainOverlay";
+import SubmissionResultModal from "@/components/SubmissionResultModal";
 
 export default function AuthProvider({ children }: { children: ReactNode }) {
   useAuthBootstrap();
@@ -51,6 +54,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
       {children}
       <PetAlertBanner />
       <GlobalRainOverlay />
+      <SubmissionResultModal />
     </>
   );
 }

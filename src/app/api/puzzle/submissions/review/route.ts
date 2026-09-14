@@ -74,6 +74,8 @@ export async function POST(request: Request) {
           reviewedAt: Date.now(),
           reviewedBy: uid,
           rejectReason: typeof body.rejectReason === "string" ? body.rejectReason.slice(0, 200) : "",
+          // 駁回也要讓學生知道，下次開 App 會跳彈窗
+          notifiedToStudent: false,
         });
         return { success: true };
       });
@@ -81,12 +83,9 @@ export async function POST(request: Request) {
     }
 
     // ---- approve ----
-    const { level, title, description, moves, alternativeLines } = body;
+    const { level, description, moves, alternativeLines } = body;
     if (typeof level !== "number" || level < 1 || level > 10) {
       return NextResponse.json({ error: "請設定 1-10 的題目難度" }, { status: 400 });
-    }
-    if (typeof title !== "string" || title.trim() === "") {
-      return NextResponse.json({ error: "請填寫題目標題" }, { status: 400 });
     }
     if (!Array.isArray(moves) || moves.length === 0 || moves.some((m) => typeof m !== "string")) {
       return NextResponse.json({ error: "請填寫正解走法序列" }, { status: 400 });
@@ -115,10 +114,17 @@ export async function POST(request: Request) {
       const awardedFood = getSubmissionReward(level as 1);
       const puzzleRef = db.collection("puzzles").doc();
 
+      // 題目自動命名：投稿學生的名字 + 他的第幾題（王小明1、王小明2…）。
+      // 序號用 users 文件上的計數器往上加，在同一個 transaction 內讀寫，
+      // 所以就算老師連續快速審核多筆也不會產生重複的編號。
+      const approvedCount = (studentSnapshot.data()?.approvedPuzzleCount as number) ?? 0;
+      const puzzleNumber = approvedCount + 1;
+      const autoTitle = `${submission.studentName}${puzzleNumber}`;
+
       tx.set(puzzleRef, {
         id: puzzleRef.id,
         level,
-        title: title.trim(),
+        title: autoTitle,
         description: typeof description === "string" ? description.trim() : "",
         initialFen: submission.fen,
         moves,
@@ -138,15 +144,19 @@ export async function POST(request: Request) {
         reviewedAt: now,
         reviewedBy: uid,
         createdPuzzleId: puzzleRef.id,
+        createdPuzzleTitle: autoTitle,
         awardedFood,
+        // 下次開 App 跳彈窗告知通過＋拿到多少飼料
+        notifiedToStudent: false,
       });
 
       tx.update(studentRef, {
         foodCount: FieldValue.increment(awardedFood),
+        approvedPuzzleCount: FieldValue.increment(1),
         updatedAt: now,
       });
 
-      return { success: true, puzzleId: puzzleRef.id, awardedFood };
+      return { success: true, puzzleId: puzzleRef.id, awardedFood, title: autoTitle };
     });
 
     return NextResponse.json(result);
