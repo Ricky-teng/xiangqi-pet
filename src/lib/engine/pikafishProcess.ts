@@ -151,6 +151,17 @@ export interface SearchResult {
    *這方可以在 N 步內將死對方；負數＝這方會在 |N| 步內被將死。
    * null＝目前看到的搜尋資訊裡沒有偵測到強制將死。 */
   mateIn: number | null;
+  /**
+   * 完整的主要變例（principal variation）：引擎認為接下來雙方會怎麼
+   * 一路走下去，元素是 Pikafish 格式的走法字串（不是這個 App 的四字元
+   * 記法，要用 fromPikafishMove 轉）。第 0 個元素就是 move 欄位。
+   *
+   * 原本只有抓 PV 的第一步（move），但「自動判斷投稿局面能不能速勝」
+   * 需要的是整條殺法序列——同一次搜尋引擎本來就會把整條線印出來，
+   * 不抓的話就得一步一步重跑搜尋（每步約 8.5 秒，10 步要 1 分半，
+   * Vercel 逾時），抓下來就只要跑一次。
+   */
+  pv?: string[];
 }
 
 /**
@@ -243,7 +254,9 @@ async function runPikafishSearch(
         if (isScoreLine) {
           const multipvMatch = line.match(/multipv (\d+)/);
           const depthMatch = line.match(/depth (\d+)/);
-          const pvMatch = line.match(/ pv (\S+)/);
+          // 抓「整條」PV 而不是只抓第一步：pv 一定是 info 行的最後一段，
+          // 所以直接吃到行尾再用空白切開。
+          const pvMatch = line.match(/ pv (.+)$/);
           const cpMatch = line.match(/score cp (-?\d+)/);
           const mateMatch = line.match(/score mate (-?\d+)/);
 
@@ -261,11 +274,14 @@ async function runPikafishSearch(
                   ? 30000 - mateIn
                   : -30000 - mateIn;
 
+            const pvTokens = pvMatch[1].trim().split(/\s+/).filter(Boolean);
+
             candidatesByRank.set(Number(multipvMatch[1]), {
-              move: pvMatch[1],
+              move: pvTokens[0],
               scoreCp,
               depth: Number(depthMatch[1]),
               mateIn,
+              pv: pvTokens,
             });
           }
         }
@@ -446,4 +462,115 @@ export async function judgeDeviatedPuzzleMove(
     return { move: fromPikafishMove(top.move), scoreCp: top.scoreCp, depth: top.depth, mateIn: top.mateIn };
   }
   return { move: fromPikafishMove(bestmoveToken), scoreCp: 0, depth: 0, mateIn: null };
+}
+
+// ============================================================
+// 速勝判定（給「學生投稿題目」的自動審核用）
+// ============================================================
+
+/**
+ * 判斷速勝用的搜尋設定：比對弈等級10（8.5 秒）短一些，因為「有沒有
+ * 強制殺」通常在比較淺的搜尋就會被找到，而且 Vercel 的
+ * maxDuration 有上限，不能跑太久。找不到殺的局面會跑滿 movetime，
+ * 所以這個數字同時也是最壞情況的耗時。
+ */
+const MATE_SEARCH_CONFIG = { depth: 24, movetimeMs: 6000 };
+
+/** 一條完整的殺法線 */
+export interface MateLine {
+  /** 幾步殺 */
+  mateIn: number;
+  /** 完整殺法序列，已經轉成這個 App 的四字元記法（例如 ["h2e2", ...]） */
+  moves: string[];
+}
+
+export interface MateSearchResult {
+  /** 有沒有找到「輪走方」的強制殺 */
+  hasMate: boolean;
+  /**
+   * 最快的那條殺法線的步數；沒找到殺時，如果是「輪走方會被將死」會是
+   * 負數（給呼叫端顯示更精確的訊息用），其餘情況是 null。
+   */
+  mateIn: number | null;
+  /**
+   * 所有找到的殺法線，依「步數由少到多」排序（第一條就是最快的，
+   * 適合當主線正解，其餘的可以存成 PuzzleDoc.alternativeLines）。
+   * PV 被截斷、不完整的線會被濾掉，不會出現在這裡。
+   */
+  lines: MateLine[];
+  /**
+   * 引擎有回報強制殺、但「所有」線的 PV 都被搜尋中斷截斷，湊不出完整
+   * 序列。這時 lines 是空的，呼叫端要提示老師重試或自行填寫，直接拿
+   * 不完整的序列當答案會做出錯的題目。
+   */
+  hasMateButIncomplete: boolean;
+}
+
+/**
+ * 同一個局面最多找幾條不同的殺法線（MultiPV 的數量）。
+ * MultiPV 的每一個排名對應「不同的第一步」，所以這等於「最多找出幾種
+ * 不同的正解走法」，剛好可以拿來填 PuzzleDoc.alternativeLines。
+ * 設 5 是取平衡：太多會拖慢搜尋收斂速度，而且一題有 5 種解法對學生
+ * 來說已經非常夠用了。
+ */
+const MATE_SEARCH_MULTI_PV = 5;
+
+/**
+ * 找出某個局面「輪走方」有沒有 maxMateIn 步以內的強制殺，有的話把
+ * 「所有」找到的殺法線連同完整序列一起回傳。給老師審核學生投稿的
+ * 局面時自動判斷用：有速勝就自動填答案（含多解），沒有就建議駁回。
+ *
+ * 只跑「一次」搜尋然後讀各條 PV，不是一步一步重跑——後者每步要幾
+ * 秒，10 步殺會直接讓 API 逾時。
+ */
+export async function findMateSequence(
+  appFen: string,
+  sideToMove: "w" | "b",
+  maxMateIn: number
+): Promise<MateSearchResult> {
+  const { candidatesByRank } = await runPikafishSearch(
+    appFen,
+    sideToMove,
+    MATE_SEARCH_CONFIG,
+    MATE_SEARCH_MULTI_PV
+  );
+
+  const candidates = Array.from(candidatesByRank.values());
+
+  // mateIn 是正數才是「輪走方能將死對方」；負數代表反而會被將死
+  const mateCandidates = candidates.filter(
+    (c) => c.mateIn !== null && c.mateIn > 0 && c.mateIn <= maxMateIn
+  );
+
+  if (mateCandidates.length === 0) {
+    // 沒有速勝。如果最佳線顯示的是負的 mateIn，代表輪走方會被將死，
+    // 把這個資訊往上傳，讓老師看到更精確的駁回理由。
+    const top = candidatesByRank.get(1);
+    return {
+      hasMate: false,
+      mateIn: top?.mateIn ?? null,
+      lines: [],
+      hasMateButIncomplete: false,
+    };
+  }
+
+  const lines: MateLine[] = [];
+  for (const candidate of mateCandidates) {
+    const mateIn = candidate.mateIn!;
+    const pvTokens = candidate.pv ?? [candidate.move];
+    // N 步殺的完整 PV 應該有 2N-1 個半步（我方走 N 步、對方回應 N-1 步）
+    const expectedPlies = mateIn * 2 - 1;
+    if (pvTokens.length < expectedPlies) continue; // PV 被截斷，這條不可靠，丟掉
+    lines.push({ mateIn, moves: pvTokens.slice(0, expectedPlies).map(fromPikafishMove) });
+  }
+
+  // 步數少的排前面，最快的那條當主線正解
+  lines.sort((a, b) => a.mateIn - b.mateIn);
+
+  return {
+    hasMate: lines.length > 0,
+    mateIn: lines[0]?.mateIn ?? mateCandidates[0].mateIn,
+    lines,
+    hasMateButIncomplete: lines.length === 0,
+  };
 }

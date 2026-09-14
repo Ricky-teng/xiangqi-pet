@@ -48,6 +48,7 @@ import ChessBoard from "@/components/ChessBoard";
 import { parseFen } from "@/lib/xiangqi/fen";
 import { toChineseNotation } from "@/lib/xiangqi/chineseNotation";
 import { usePositionAnalysis, toRedPerspectiveScore, toRedPerspectiveMateIn, getScoreDisplay, SCORE_DISPLAY_STYLES } from "@/hooks/usePositionAnalysis";
+import { getChessRankLabel } from "@/lib/chessRank";
 
 type FetchStatus = "loading" | "success" | "error";
 
@@ -124,17 +125,25 @@ function DashboardContent() {
     setIsSavingLevel(true);
     setLevelSaveMessage(null);
     try {
+      // 一併把棋力積分歸零：等級現在會自動成長（見 lib/chessRank.ts），
+      // 老師手動改完之後如果留著舊積分，學生可能下一題就被舊進度推升
+      // 一級，等於老師的調整立刻被蓋掉。
       await updateDoc(doc(db, "users", student.uid), {
         chessLevel: pendingLevel,
+        chessLevelPoints: 0,
         updatedAt: Date.now(),
       });
       // 同步更新本地列表，不用重新整理整個頁面才會看到新等級
       setStudents((prev) =>
         prev.map((existing) =>
-          existing.uid === student.uid ? { ...existing, chessLevel: pendingLevel } : existing
+          existing.uid === student.uid
+            ? { ...existing, chessLevel: pendingLevel, chessLevelPoints: 0 }
+            : existing
         )
       );
-      setLevelSaveMessage(`已將「${student.displayName}」的等級更新為 ${pendingLevel} 級！`);
+      setLevelSaveMessage(
+        `已將「${student.displayName}」的等級更新為 Lv${pendingLevel}（${getChessRankLabel(pendingLevel)}），棋力積分已歸零。`
+      );
     } catch (error) {
       console.error("[admin/dashboard] 更新學生等級失敗：", error);
       setLevelSaveMessage("更新失敗，請稍後再試。");
@@ -292,7 +301,7 @@ function DashboardContent() {
                         <div>
                           <p className="text-sm font-bold text-[#1A1A2E]">{student.displayName}</p>
                           <p className="text-[11px] text-[#1A1A2E]/50">
-                            等級 Lv.{student.chessLevel} ・
+                            等級 Lv.{student.chessLevel}（{getChessRankLabel(student.chessLevel)}）・
                             {pet ? HEALTH_STATUS_LABEL[pet.healthStatus] ?? pet.healthStatus : "無寵物資料"}
                           </p>
                         </div>

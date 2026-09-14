@@ -42,6 +42,8 @@ import { ResetCompensationModal } from "@/components/ResetCompensationModal";
 import { hasUnreadAnnouncement } from "@/lib/announcements";
 import { STAGE_XP_THRESHOLDS } from "@/lib/pet/petGrowth";
 import { SICKNESS_ESCALATION_HOURS, getPoopCount, PET_CLEAN_BASE_COST } from "@/lib/pet/petDecay";
+import { getPrestigeBonusPercent } from "@/lib/pet/prestige";
+import { getChessRankLabel, getPointsForNextLevel, getChessLevelProgressPercent } from "@/lib/chessRank";
 import { getPetImagePath, getPetDisplaySrc } from "@/lib/pet/petImagePath";
 import { getNextCatalogEntry, getXpNeededForNextJob, getMasterJobProgressPercent, isMaxJobLevel } from "@/lib/pet/catalog";
 import { hasUnclaimedDailyTask, getTodayDateString } from "@/lib/tasks/dailyTasks";
@@ -226,6 +228,16 @@ function TeacherHomeContent({ user }: { user: UserDoc }) {
             <span className="text-3xl" aria-hidden="true">📢</span>
             <span className="text-base font-extrabold text-[#1A1A2E]">公告管理</span>
             <span className="text-xs font-medium text-[#1A1A2E]/60">發布、編輯、刪除公告（可附圖）</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => router.push("/admin/submissions")}
+            className="flex flex-col items-center gap-1 rounded-3xl bg-white/70 px-4 py-6 shadow-sm transition-transform active:scale-95"
+          >
+            <span className="text-3xl" aria-hidden="true">📮</span>
+            <span className="text-base font-extrabold text-[#1A1A2E]">學生投稿審核</span>
+            <span className="text-xs font-medium text-[#1A1A2E]/60">審核學生投稿的局面，通過就發布成題目</span>
           </button>
         </div>
       </div>
@@ -832,11 +844,38 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
             </div>
             <div className="rounded-xl bg-white/80 px-2 py-1.5">
               <div className="text-base" aria-hidden="true">
-                🛡️
+                ✨
               </div>
               <div className="text-xs font-semibold text-[#1A1A2E]">
-                {user.rebirthCount} 隻
+                {user.rebirthCount} 枚
               </div>
+              {user.rebirthCount > 0 ? (
+                <div className="text-[9px] font-bold text-[#5B8C5A]">
+                  經驗 +{getPrestigeBonusPercent(user.rebirthCount)}%
+                </div>
+              ) : null}
+            </div>
+          </div>
+
+          {/* 棋力段位進度條：這是整個 App 唯一「下棋本身」的成長線，
+              刻意放在飽食度上面，讓學生一進大廳先看到自己的棋力。
+              解題／贏電腦／贏對戰都會推進（見 lib/chessRank.ts）。 */}
+          <div className="mt-3 w-full">
+            <div className="mb-1 flex justify-between text-xs font-medium text-[#1A1A2E]/70">
+              <span>
+                ♟️ 棋力　<span className="font-extrabold text-[#5C3D0A]">{getChessRankLabel(user.chessLevel)}</span>
+              </span>
+              <span className="tabular-nums">
+                {getPointsForNextLevel(user.chessLevel) === null
+                  ? "已達最高段位"
+                  : `${user.chessLevelPoints ?? 0}/${getPointsForNextLevel(user.chessLevel)}`}
+              </span>
+            </div>
+            <div className="h-2.5 w-full overflow-hidden rounded-full bg-[#E5DFCB]">
+              <div
+                className="h-full rounded-full bg-[#E8B84B] transition-all duration-300"
+                style={{ width: `${getChessLevelProgressPercent(user)}%` }}
+              />
             </div>
           </div>
 
@@ -886,6 +925,14 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
                 <p className="text-sm font-bold text-[#5C3D0A]">🦚 小雞已經轉職成鳳凰雞了！</p>
                 <p className="mt-0.5 text-xs text-[#5C3D0A]/70">
                   轉生會讓小雞重新從蛋開始成長，準備下一輪轉職旅程（圖鑑蒐集紀錄不會消失）。
+                </p>
+                {/* 明確告訴學生轉生「會拿到什麼」，不然只看到「重新從蛋
+                    開始」會覺得是懲罰，就沒人想轉生了 */}
+                <p className="mt-1 rounded-xl bg-white/50 px-2 py-1.5 text-xs font-bold text-[#5C3D0A]">
+                  ✨ 轉生可獲得第 {user.rebirthCount + 1} 枚轉生印記
+                  <br />
+                  餵食經驗值 +{getPrestigeBonusPercent(user.rebirthCount)}% → +
+                  {getPrestigeBonusPercent(user.rebirthCount + 1)}%，下一輪會長得更快！
                 </p>
                 <button
                   type="button"

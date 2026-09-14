@@ -11,6 +11,14 @@ export interface UserDoc {
   
   // 學生目前的象棋等級 (1-10 級)
   chessLevel: PuzzleLevel;
+
+  /**
+   * 棋力積分：往「下一級」累積的進度（見 lib/chessRank.ts）。
+   * 解題／贏電腦／贏對戰都會加分，累積到門檻就自動升級並扣掉門檻分數，
+   * 所以這個數字永遠是「這一級之內的進度」，不是歷史總分。
+   * 舊帳號沒有這個欄位時視為 0，不影響既有的等級。
+   */
+  chessLevelPoints?: number;
   
   // 核心資源
   foodCount: number; // 飼料庫存數量
@@ -328,6 +336,18 @@ export interface SolvedPuzzleRecord {
    * 給老師監控後台用：可以看出這個學生這道題卡了多久才解出來。
    */
   wrongAttemptsBeforeSolving: number;
+
+  /**
+   * 這題總共解過幾次（第一次解 = 1）。舊紀錄沒有這個欄位時視為 1。
+   *
+   * 重複解題是刻意開放的：象棋本來就講究反覆練習殺法定式，而且題庫
+   * 是有限的，只算第一次會讓學生很快就無題可解。但重複解只給遞減的
+   * 獎勵（見 lib/puzzleRepeat.ts），避免變成重刷同一題的刷分漏洞。
+   */
+  solveCount?: number;
+
+  /** 最後一次解出這題的時間戳（第一次解時等於 solvedAt） */
+  lastSolvedAt?: number;
 }
 
 /**
@@ -735,4 +755,46 @@ export interface PastureDoc {
   memberUids: string[];
   memberCount: number;
   createdAt: number;
+}
+
+/**
+ * 13. 學生投稿題目 (路徑: puzzleSubmissions/{id})
+ * ------------------------------------------------------------
+ * 學生從自己的對弈回放（/play/review/{gameId}）挑一個覺得精彩的局面
+ * 投稿，老師在 /admin/submissions 審核。通過的話老師補上答案跟難度，
+ * 系統就把它轉成正式的 puzzles 文件，並依難度發飼料獎勵給投稿的學生。
+ *
+ * 為什麼學生不用自己填答案：小學生要正確寫出完整殺法序列太難，錯誤
+ * 率會很高，反而增加老師的審核負擔。所以學生只負責「發現好局面」，
+ * 答案由老師（可搭配後台既有的 Pikafish 分析工具）補上——出題的教學
+ * 價值在於「辨認出這是個好題目」，這部分學生還是有做到。
+ *
+ * 獎勵在「審核通過」的當下才發放，避免有人洗大量投稿刷飼料。
+ */
+export type PuzzleSubmissionStatus = "pending" | "approved" | "rejected";
+
+export interface PuzzleSubmissionDoc {
+  id: string;
+  studentUid: string;
+  studentName: string;
+  /** 投稿的局面 FEN（從對弈紀錄的 fenHistory 挑出來的某一步） */
+  fen: string;
+  /** 來源對局，方便老師回頭看完整棋譜 */
+  sourceGameId: string;
+  /** 這個局面是該對局的第幾步（fenHistory 的索引） */
+  sourceStep: number;
+  /** 學生寫的推薦理由（選填），例如「這裡我發現一個雙將殺」 */
+  note: string;
+  status: PuzzleSubmissionStatus;
+  submittedAt: number;
+
+  /** 以下是老師審核後才會有的欄位 */
+  reviewedAt?: number;
+  reviewedBy?: string;
+  /** 老師駁回時寫的原因，會顯示給學生看 */
+  rejectReason?: string;
+  /** 通過後產生的正式題目 id，方便追溯 */
+  createdPuzzleId?: string;
+  /** 通過時依難度發放的飼料獎勵 */
+  awardedFood?: number;
 }

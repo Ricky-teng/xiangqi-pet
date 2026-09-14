@@ -60,7 +60,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { doc, increment, setDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, increment, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useGameStore } from "@/stores/useGameStore";
 import type { PuzzleDoc, SolvedPuzzleRecord } from "@/types/database";
@@ -68,6 +68,8 @@ import type { BoardGrid, SolverState } from "@/types/xiangqi";
 import { parseFen, toFen } from "@/lib/xiangqi/fen";
 import { applyMoveNotation, isMoveMatchingExpected, parseMoveNotation } from "@/lib/xiangqi/move";
 import { useRulesEngine } from "@/hooks/useRulesEngine";
+import { getPuzzleSolvePoints } from "@/lib/chessRank";
+import { getEffectiveFood, getEffectiveRankPoints } from "@/lib/puzzleRepeat";
 
 // ============================================================
 // 1. 常數設定
@@ -114,7 +116,14 @@ function calculateFoodReward(userLevel: number, puzzleLevel: number): number {
 /** 解題完成後，獎勵結算的結果狀態，供 UI 顯示對應訊息 */
 export type RewardOutcome =
   | { status: "pending" }
-  | { status: "granted"; earnedFood: number }
+  | {
+      status: "granted";
+      earnedFood: number;
+      /** 這題之前已經解過（複習），獎勵是遞減後的數字 */
+      isRepeat: boolean;
+      /** 這題順便升段的話帶新段位名稱（例如「七級」），沒升段是 null */
+      rankLevelUp: string | null;
+    }
   | { status: "already_claimed" }
   | { status: "error"; message: string };
 
@@ -168,6 +177,7 @@ export function usePuzzleSolver(puzzle: PuzzleDoc): UsePuzzleSolverResult {
   const setUser = useGameStore((s) => s.setUser);
   const setPet = useGameStore((s) => s.setPet);
   const triggerSickness = useGameStore((s) => s.triggerSickness);
+  const addChessLevelPoints = useGameStore((s) => s.addChessLevelPoints);
 
   // ---- 規則引擎：偏離已知正解線時，判斷合法性/終局狀態要靠這個 ----
   const { engine } = useRulesEngine();
@@ -288,27 +298,47 @@ export function usePuzzleSolver(puzzle: PuzzleDoc): UsePuzzleSolverResult {
     const solvedRecordRef = doc(db, "users", user.uid, "solvedPuzzles", puzzle.id);
 
     try {
+      // 先查有沒有解過這一題：重複解題是刻意開放的（象棋需要反覆練習
+      // 殺法定式，而且題庫有限），但獎勵要遞減，不然重刷同一題就變成
+      // 刷分漏洞（見 lib/puzzleRepeat.ts）。
+      const existingSnapshot = await getDoc(solvedRecordRef);
+      const isRepeat = existingSnapshot.exists();
+      const previousSolveCount = isRepeat
+        ? (existingSnapshot.data() as SolvedPuzzleRecord).solveCount ?? 1
+        : 0;
+
       const baseFood = calculateFoodReward(user.chessLevel, puzzle.level);
       const isDoubleActive = (user.doubleRewardExpiry ?? 0) > Date.now();
-      const earnedFood = isDoubleActive ? baseFood * 2 : baseFood;
+      const foodBeforeDouble = getEffectiveFood(baseFood, isRepeat);
+      const earnedFood = isDoubleActive ? foodBeforeDouble * 2 : foodBeforeDouble;
       const now = Date.now();
 
       const solvedRecord: SolvedPuzzleRecord = {
         puzzleId: puzzle.id,
-        solvedAt: now,
+        // solvedAt 保留「第一次解出」的時間不覆蓋，重解只更新
+        // lastSolvedAt，這樣老師後台還看得出學生第一次何時學會這題。
+        solvedAt: isRepeat
+          ? (existingSnapshot.data() as SolvedPuzzleRecord).solvedAt ?? now
+          : now,
+        lastSolvedAt: now,
+        solveCount: previousSolveCount + 1,
         puzzleLevelAtSolve: puzzle.level,
         userLevelAtSolve: user.chessLevel,
         earnedFood,
         wrongAttemptsBeforeSolving: solverState.totalWrongAttempts,
       };
 
+      // 重複解題不計入 stats.totalSolved——那是排行榜的「解題數」指標，
+      // 讓重解也累加的話，刷同一題就能衝排行榜。
+      const userUpdates: Record<string, unknown> = {
+        foodCount: increment(earnedFood),
+        updatedAt: now,
+      };
+      if (!isRepeat) userUpdates["stats.totalSolved"] = increment(1);
+
       await Promise.all([
         setDoc(solvedRecordRef, solvedRecord),
-        updateDoc(doc(db, "users", user.uid), {
-          foodCount: increment(earnedFood),
-          "stats.totalSolved": increment(1),
-          updatedAt: now,
-        }),
+        updateDoc(doc(db, "users", user.uid), userUpdates),
       ]);
 
       setUser({
@@ -316,10 +346,20 @@ export function usePuzzleSolver(puzzle: PuzzleDoc): UsePuzzleSolverResult {
         foodCount: user.foodCount + earnedFood,
         stats: {
           ...user.stats,
-          totalSolved: user.stats.totalSolved + 1,
+          totalSolved: user.stats.totalSolved + (isRepeat ? 0 : 1),
         },
         updatedAt: now,
       });
+
+      // 棋力積分：依「題目難度 - 自己的等級」加權（見 lib/chessRank.ts）；
+      // 重複解題固定只給很少的複習分。放在 setUser 之後呼叫，
+      // addChessLevelPoints 會讀取剛更新完的 user 狀態再往上疊，
+      // 不會蓋掉上面的飼料/解題數。
+      const rankPoints = getEffectiveRankPoints(
+        getPuzzleSolvePoints(user.chessLevel, puzzle.level),
+        isRepeat
+      );
+      const rankResult = addChessLevelPoints(rankPoints);
 
       if (pet) {
         setPet({
@@ -329,7 +369,12 @@ export function usePuzzleSolver(puzzle: PuzzleDoc): UsePuzzleSolverResult {
         });
       }
 
-      setRewardOutcome({ status: "granted", earnedFood });
+      setRewardOutcome({
+        status: "granted",
+        earnedFood,
+        isRepeat,
+        rankLevelUp: rankResult.levelsGained > 0 ? rankResult.newRankLabel : null,
+      });
     } catch (error) {
       console.error("[usePuzzleSolver] 解題獎勵結算失敗：", error);
       setRewardOutcome({
@@ -337,7 +382,7 @@ export function usePuzzleSolver(puzzle: PuzzleDoc): UsePuzzleSolverResult {
         message: error instanceof Error ? error.message : "結算獎勵時發生未知錯誤。",
       });
     }
-  }, [user, pet, puzzle.id, puzzle.level, setUser, setPet, solverState.totalWrongAttempts]);
+  }, [user, pet, puzzle.id, puzzle.level, setUser, setPet, addChessLevelPoints, solverState.totalWrongAttempts]);
 
   /** 答錯共用處理：重置棋盤、累計連續答錯次數，達上限觸發生病 */
   const commitWrongAnswer = useCallback(

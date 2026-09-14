@@ -66,6 +66,7 @@ import {
   PASTURE_EMOJI_DAILY_LIMIT,
 } from "@/lib/pasture";
 import { getTodayDateString } from "@/lib/tasks/dailyTasks";
+import { getPrestigeMarkLabel } from "@/lib/pet/prestige";
 import type { PastureDoc, PetDoc, UserDoc } from "@/types/database";
 
 interface PastureChickenData {
@@ -1162,8 +1163,12 @@ function ChickenInfoCard({
             <p className="font-bold text-[#1A1A2E]">{chicken.totalSolved} 題</p>
           </div>
           <div className="col-span-2 rounded-xl bg-white/70 px-3 py-2">
-            <p className="text-[10px] text-[#1A1A2E]/50">轉生次數</p>
-            <p className="font-bold text-[#1A1A2E]">{chicken.rebirthCount} 次</p>
+            <p className="text-[10px] text-[#1A1A2E]/50">轉生印記</p>
+            <p className="font-bold text-[#1A1A2E]">
+              {chicken.rebirthCount > 0
+                ? `${getPrestigeMarkLabel(chicken.rebirthCount)} ${chicken.rebirthCount} 枚`
+                : "還沒有"}
+            </p>
           </div>
         </div>
 

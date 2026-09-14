@@ -51,6 +51,7 @@ import { parseFen } from "@/lib/xiangqi/fen";
 import type { BattleRoomDoc, MatchmakingQueueEntry, PuzzleDoc } from "@/types/database";
 import { useAppBackground } from "@/lib/useAppBackground";
 import { getActiveBoardSkinSrc, getBoardLineColor } from "@/lib/shopItems";
+import { BATTLE_WIN_POINTS } from "@/lib/chessRank";
 
 const BATTLE_ENTRY_COST = 20;
 const BATTLE_WIN_REWARD = 50;
@@ -85,6 +86,7 @@ function BattlePageContent() {
   const bgStyle = useAppBackground();
   const pet = useGameStore((s) => s.pet);
   const setUser = useGameStore((s) => s.setUser);
+  const addChessLevelPoints = useGameStore((s) => s.addChessLevelPoints);
   const { engine } = useRulesEngine();
 
   const [phase, setPhase] = useState<PagePhase>(directRoomId ? "matched" : "queuing");
@@ -577,6 +579,9 @@ function BattlePageContent() {
       updatedAt: now,
     }).catch(console.error);
 
+    // 棋力積分：真人對戰獲勝加分（見 lib/chessRank.ts）。放在 setUser
+    // 之後呼叫，addChessLevelPoints 會讀取剛更新完的 user 再往上疊。
+    if (isWin) addChessLevelPoints(BATTLE_WIN_POINTS);
   }
 
   // ---- 結算畫面 ----

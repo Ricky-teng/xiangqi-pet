@@ -32,6 +32,7 @@ import { useGameStore } from "@/stores/useGameStore";
 import type { PuzzleDoc } from "@/types/database";
 import type { PuzzleLevel } from "@/types/xiangqi";
 import { useAppBackground } from "@/lib/useAppBackground";
+import { getChessRankLabel } from "@/lib/chessRank";
 
 const ALL_LEVELS: PuzzleLevel[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 
@@ -134,7 +135,7 @@ function PuzzleLevelPickerContent() {
           <section className="mt-4 rounded-3xl bg-white/60 px-4 py-6 shadow-sm">
             <h2 className="text-center text-sm font-bold text-[#1A1A2E]">選擇挑戰等級</h2>
             <p className="mt-1 text-center text-xs text-[#1A1A2E]/60">
-              {user ? `你目前是 ${user.chessLevel} 級。` : ""}
+              {user ? `你目前的棋力是「${getChessRankLabel(user.chessLevel)}」（對應難度 Lv${user.chessLevel}）。` : ""}
               選好等級後會隨機出一題，不會事先看到題目內容，挑戰比自己等級高的題目飼料更多。
             </p>
             <div className="mt-4 grid grid-cols-2 gap-2">

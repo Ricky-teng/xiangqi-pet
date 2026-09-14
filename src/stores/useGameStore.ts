@@ -7,6 +7,8 @@ import { resolveStageForXp } from "@/lib/pet/petGrowth";
 import { LOW_FULLNESS_THRESHOLD as SICKNESS_CURE_MIN_FULLNESS, getPoopCount, PET_CLEAN_BASE_COST } from "@/lib/pet/petDecay";
 import { CATALOG_ENTRIES, getNextCatalogEntry, getXpNeededForNextJob, isMaxJobLevel } from "@/lib/pet/catalog";
 import { getTodayDateString, getTodaysCompletedTaskIds } from "@/lib/tasks/dailyTasks";
+import { getPrestigeXpMultiplier, getPrestigeBonusPercent } from "@/lib/pet/prestige";
+import { applyChessLevelPoints, getChessRankLabel, getVsComputerWinPoints } from "@/lib/chessRank";
 import {
   calculateWinRewardFood,
   LOSE_PENALTY_FOOD,
@@ -179,6 +181,13 @@ interface GameStoreState {
   claimPastureIncome: () => { incomeGained: number; incomeClaimedToday: number };
 
   /**
+   * 加棋力積分並結算升級（見 lib/chessRank.ts）。解題／贏電腦／贏對戰
+   * 三個地方共用這一個入口，避免升級邏輯散落在各處。
+   * 回傳 levelsGained > 0 代表這次有升級，呼叫端可以據此顯示升級慶祝。
+   */
+  addChessLevelPoints: (points: number) => { levelsGained: number; newLevel: number; newRankLabel: string };
+
+  /**
    * 牧場互動當天進度（拍拍或送表情都算，見
    * UserDoc.dailyPastureInteractProgress），給 /tasks 頁面顯示進度、
    * 給 claimDailyTask 驗證 pasture_interact 任務用。
@@ -282,8 +291,10 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       updatedAt: now,
     };
 
-    // 飽食度 +5 (上限 100)，XP +10
-    const newXp = pet.xp + 10;
+    // 飽食度 +5 (上限 100)，XP +10（再乘上轉生印記加成，見
+    // lib/pet/prestige.ts：每轉生一次餵食 XP +10%，上限 +100%）
+    const xpGain = Math.round(10 * getPrestigeXpMultiplier(user.rebirthCount ?? 0));
+    const newXp = pet.xp + xpGain;
     // 修正：XP 累積到門檻時，要實際推進孵化／進化階段，
     // 不能只加 XP 數字卻讓 stage 原地不動（之前這裡有留 TODO 註解，
     // 現在補上：依新的累計 xp 重新判斷該停留在哪一階）。
@@ -608,7 +619,12 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       console.error("[useGameStore] rebirthPet 同步寫回 Firestore 失敗：", error);
     });
 
-    return { success: true, message: "轉生成功！小雞重新回到蛋，準備從小兵雞開始新一輪的旅程！" };
+    return {
+      success: true,
+      message: `轉生成功！獲得第 ${newRebirthCount} 枚轉生印記 ✨，餵食經驗值 +${getPrestigeBonusPercent(
+        newRebirthCount
+      )}%！小雞重新回到蛋，這一輪會長得比上一輪更快！`,
+    };
   },
 
   // 5. 復活（跟轉生不同：理由見 GameStoreState 介面裡 resurrectPet 的註解）
@@ -939,7 +955,22 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
           ? `和棋，獲得 ${DRAW_REWARD_FOOD} 飼料安慰獎。`
           : `這局輸了，扣 ${LOSE_PENALTY_FOOD} 飼料，再接再厲！`;
 
-    return { success: true, message, foodDelta };
+    // 棋力積分：只有贏才加分（和棋/輸不扣分，見 chessRank.ts 的只升不降）。
+    // 放在 set() 之後呼叫，addChessLevelPoints 會讀取剛更新完的 user
+    // 再往上疊，不會蓋掉上面的飼料/戰績。
+    let rankLevelUp: string | null = null;
+    if (outcome === "win") {
+      const rankResult = get().addChessLevelPoints(
+        getVsComputerWinPoints(user.chessLevel, opponentLevel)
+      );
+      if (rankResult.levelsGained > 0) rankLevelUp = rankResult.newRankLabel;
+    }
+
+    return {
+      success: true,
+      message: rankLevelUp ? `${message}\n⬆️ 棋力升級！你現在是「${rankLevelUp}」了！` : message,
+      foodDelta,
+    };
   },
 
   claimDailyGrant: () => {
@@ -1164,6 +1195,42 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       success: true,
       foodGained: PASTURE_BUG_CATCH_REWARD_FOOD,
       remainingToday: PASTURE_BUG_CATCH_DAILY_LIMIT - newCount,
+    };
+  },
+
+  addChessLevelPoints: (points) => {
+    const { user } = get();
+    if (!user || points <= 0) {
+      return {
+        levelsGained: 0,
+        newLevel: user?.chessLevel ?? 1,
+        newRankLabel: getChessRankLabel(user?.chessLevel ?? 1),
+      };
+    }
+
+    const result = applyChessLevelPoints(user.chessLevel, user.chessLevelPoints ?? 0, points);
+    const now = Date.now();
+
+    const updatedUser: UserDoc = {
+      ...user,
+      chessLevel: result.chessLevel as UserDoc["chessLevel"],
+      chessLevelPoints: result.chessLevelPoints,
+      updatedAt: now,
+    };
+    set({ user: updatedUser });
+
+    updateDoc(doc(db, "users", user.uid), {
+      chessLevel: result.chessLevel,
+      chessLevelPoints: result.chessLevelPoints,
+      updatedAt: now,
+    }).catch((error) => {
+      console.error("[useGameStore] addChessLevelPoints 同步寫回 Firestore 失敗：", error);
+    });
+
+    return {
+      levelsGained: result.levelsGained,
+      newLevel: result.chessLevel,
+      newRankLabel: getChessRankLabel(result.chessLevel),
     };
   },
 

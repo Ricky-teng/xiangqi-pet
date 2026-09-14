@@ -24,7 +24,7 @@
 import { use, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { db, auth } from "@/lib/firebase";
 import { useGameStore } from "@/stores/useGameStore";
 import RequireAuth from "@/components/RequireAuth";
 import ChessBoard from "@/components/ChessBoard";
@@ -101,6 +101,46 @@ function ReviewContent({ gameId }: { gameId: string }) {
 
   const [step, setStep] = useState(0);
   const [mode, setMode] = useState<"replay" | "explore">("replay");
+
+  // ---- 投稿題目相關狀態（見 PuzzleSubmissionDoc）----
+  const [submitNote, setSubmitNote] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitMessage, setSubmitMessage] = useState<{ text: string; isError: boolean } | null>(null);
+
+  async function handleSubmitPuzzle() {
+    if (!game) return;
+    const fen = game.fenHistory[step];
+    if (!fen) {
+      setSubmitMessage({ text: "找不到這一步的局面資料。", isError: true });
+      return;
+    }
+
+    setIsSubmitting(true);
+    setSubmitMessage(null);
+    try {
+      const token = await auth.currentUser?.getIdToken();
+      const response = await fetch("/api/puzzle/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ fen, sourceGameId: gameId, sourceStep: step, note: submitNote }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        setSubmitMessage({ text: data.error ?? "投稿失敗，請稍後再試。", isError: true });
+        return;
+      }
+      setSubmitMessage({ text: "✅ 投稿成功！等老師審核，通過就會拿到飼料獎勵。", isError: false });
+      setSubmitNote("");
+    } catch (error) {
+      console.error("[play/review] 投稿失敗：", error);
+      setSubmitMessage({ text: "投稿失敗，請稍後再試。", isError: true });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   // 推演模式專用狀態：從某一步分支出去之後，維護獨立的局面/輪走方/
   // 走過的路線，不影響原始的回放紀錄（game.fenHistory 完全不會被改）。
@@ -280,6 +320,44 @@ function ReviewContent({ gameId }: { gameId: string }) {
           {OUTCOME_LABEL[game.outcome]}・對手 Lv.{game.opponentLevel}（自身 Lv.{game.studentLevelAtPlay}）・
           {game.moveHistory.length} 手
         </section>
+
+        {/* 投稿題目：學生覺得目前這一步的局面很精彩，可以投稿給老師
+            審核（見 PuzzleSubmissionDoc）。只在「回放模式」出現——
+            探索模式下的局面是學生自己亂走出來的，不是真實對局的一步，
+            投稿那種局面沒有意義。 */}
+        {mode === "replay" ? (
+          <section className="mt-2 rounded-2xl bg-[#E8B84B]/15 px-4 py-3">
+            <p className="text-xs font-bold text-[#5C3D0A]">
+              💡 覺得第 {step} 步的局面很精彩嗎？投稿給老師，通過審核就能變成全班的題目！
+            </p>
+            {submitMessage ? (
+              <p
+                className={[
+                  "mt-1 text-xs font-bold",
+                  submitMessage.isError ? "text-[#C0392B]" : "text-[#5B8C5A]",
+                ].join(" ")}
+              >
+                {submitMessage.text}
+              </p>
+            ) : null}
+            <textarea
+              value={submitNote}
+              onChange={(e) => setSubmitNote(e.target.value)}
+              placeholder="（選填）跟老師說說這個局面哪裡精彩，例如：這裡有個雙將殺"
+              maxLength={200}
+              rows={2}
+              className="mt-2 w-full resize-none rounded-xl border border-[#E5DFCB] bg-white px-3 py-2 text-xs text-[#1A1A2E] outline-none focus:border-[#E8B84B]"
+            />
+            <button
+              type="button"
+              onClick={handleSubmitPuzzle}
+              disabled={isSubmitting}
+              className="mt-2 w-full rounded-xl bg-[#E8B84B] px-4 py-2 text-xs font-bold text-[#5C3D0A] shadow-sm transition-transform active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isSubmitting ? "投稿中…" : "📮 把這個局面投稿成題目"}
+            </button>
+          </section>
+        ) : null}
 
         {/* 每步好壞標記：改成按需分析（見 handleAnalyzeWholeGame 的
             說明），還沒分析過/分析失敗都顯示按鈕，分析中顯示進度，

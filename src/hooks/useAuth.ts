@@ -67,6 +67,7 @@ function createDefaultUserDoc(
     displayName,
     role,
     chessLevel: 1,
+    chessLevelPoints: 0,
     foodCount: 20,
     stats: {
       totalSolved: 0,

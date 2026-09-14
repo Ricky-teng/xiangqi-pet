@@ -41,6 +41,7 @@ import { parseFen, STANDARD_START_FEN } from "@/lib/xiangqi/fen";
 import type { ChessMatchRoomDoc, ChessMatchQueueEntry, ChessMatchEndReason } from "@/types/database";
 import { useAppBackground } from "@/lib/useAppBackground";
 import { getActiveBoardSkinSrc, getBoardLineColor } from "@/lib/shopItems";
+import { BATTLE_WIN_POINTS } from "@/lib/chessRank";
 
 const BATTLE_ENTRY_COST = 20; // 跟 /battle 頁面同一套經濟模型，故意同名同值
 const BATTLE_WIN_REWARD = 50;
@@ -79,6 +80,7 @@ function MatchPageContent() {
   const bgStyle = useAppBackground();
   const user = useGameStore((s) => s.user);
   const setUser = useGameStore((s) => s.setUser);
+  const addChessLevelPoints = useGameStore((s) => s.addChessLevelPoints);
   const { engine } = useRulesEngine();
 
   const [phase, setPhase] = useState<PagePhase>(directRoomId ? "playing" : "queuing");
@@ -298,7 +300,11 @@ function MatchPageContent() {
       [`stats.${Object.keys(statsDelta)[0]}`]: Object.values(statsDelta)[0],
       updatedAt: now,
     }).catch(console.error);
-  }, [room, user, mySide, myUid, setUser]);
+
+    // 棋力積分：真人對戰獲勝加分（見 lib/chessRank.ts）。放在 setUser
+    // 之後呼叫，addChessLevelPoints 會讀取剛更新完的 user 再往上疊。
+    if (isWin) addChessLevelPoints(BATTLE_WIN_POINTS);
+  }, [room, user, mySide, myUid, setUser, addChessLevelPoints]);
 
   // ---- 走棋 ----
   function handleMove(notation: string) {

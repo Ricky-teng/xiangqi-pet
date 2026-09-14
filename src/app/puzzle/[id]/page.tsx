@@ -665,11 +665,20 @@ function PuzzleSolverSection({
             <p className="rounded-2xl bg-[#5B8C5A]/10 px-4 py-3 text-center text-sm font-bold text-[#5B8C5A]">
               🎉 恭喜過關！
               {rewardOutcome?.status === "granted"
-                ? `獲得了 ${rewardOutcome.earnedFood} 個飼料！`
+                ? rewardOutcome.isRepeat
+                  ? `這題你之前解過了，複習獎勵 ${rewardOutcome.earnedFood} 個飼料！`
+                  : `獲得了 ${rewardOutcome.earnedFood} 個飼料！`
                 : rewardOutcome?.status === "error"
                   ? "但結算獎勵時發生錯誤，請稍後查看飼料數量是否有更新。"
                   : "正在結算獎勵…"}
             </p>
+
+            {/* 升段慶祝：解題順便升級時才出現，給學生「我變強了」的即時回饋 */}
+            {rewardOutcome?.status === "granted" && rewardOutcome.rankLevelUp ? (
+              <p className="rounded-2xl bg-gradient-to-b from-[#F6D87A] to-[#E8B84B] px-4 py-3 text-center text-sm font-extrabold text-[#5C3D0A] shadow-md">
+                ⬆️ 棋力升級！你現在是「{rewardOutcome.rankLevelUp}」了！
+              </p>
+            ) : null}
             <button
               type="button"
               onClick={handleNextPuzzle}

@@ -41,6 +41,7 @@ import { recordVsComputerGame } from "@/lib/engine/gameRecording";
 import type { UserDoc } from "@/types/database";
 import { useAppBackground } from "@/lib/useAppBackground";
 import { getActiveBoardSkinSrc, getBoardLineColor } from "@/lib/shopItems";
+import { getChessRankLabel } from "@/lib/chessRank";
 
 type GamePhase = "choosing_difficulty" | "student_turn" | "computer_thinking" | "game_over";
 
@@ -458,7 +459,7 @@ function DifficultyPicker({
     <section className="mt-4 rounded-3xl bg-white/60 px-4 py-6 shadow-sm">
       <h2 className="text-center text-sm font-bold text-[#1A1A2E]">選擇對手等級</h2>
       <p className="mt-1 text-center text-xs text-[#1A1A2E]/60">
-        你目前是 {user.chessLevel} 級。挑戰比自己高的等級，贏了飼料更多（最高 100）；
+        你目前的棋力是「{getChessRankLabel(user.chessLevel)}」（對應難度 Lv{user.chessLevel}）。挑戰比自己高的等級，贏了飼料更多（最高 100）；
         挑戰比自己低的等級，贏了飼料較少（最低 10）。輸了固定扣 {LOSE_PENALTY_FOOD} 飼料，
         和棋給 {DRAW_REWARD_FOOD} 飼料安慰獎。
       </p>
