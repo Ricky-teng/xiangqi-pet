@@ -194,6 +194,10 @@ interface GameStoreState {
    */
   getDailyPastureInteractCount: () => number;
 
+  /** 當天已投稿幾題殘局（給 /tasks 顯示進度、claimDailyTask 驗證用）。
+   *  進度由伺服器端的 /api/puzzle/submit 寫入，這裡只負責讀。 */
+  getDailyPuzzleSubmitCount: () => number;
+
   /**
    * 記錄一次牧場互動（拍拍 / 送表情共用這個 function，用 kind 區分）。
    * targetUid 是自己的話直接擋掉（allowed=false, reason="self"）——
@@ -728,6 +732,18 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       }
     }
 
+    // 驗證 puzzle_submit 任務是否達標
+    if (task.taskType === "puzzle_submit") {
+      const prog = user.dailyPuzzleSubmitProgress;
+      const todayCount = prog?.date === today ? prog.count : 0;
+      if (todayCount < (task.requiredCount ?? 1)) {
+        return {
+          success: false,
+          message: `今天還需要再投稿 ${(task.requiredCount ?? 1) - todayCount} 題才能領取！`,
+        };
+      }
+    }
+
     // 驗證 pasture_interact 任務是否達標
     if (task.taskType === "pasture_interact") {
       const prog = user.dailyPastureInteractProgress;
@@ -1111,6 +1127,14 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const today = getTodayDateString();
     const prog = user.dailyPastureInteractProgress;
     return prog?.date === today ? prog.interactedUids.length : 0;
+  },
+
+  getDailyPuzzleSubmitCount: () => {
+    const { user } = get();
+    if (!user) return 0;
+    const today = getTodayDateString();
+    const prog = user.dailyPuzzleSubmitProgress;
+    return prog?.date === today ? prog.count : 0;
   },
 
   recordPastureInteraction: (targetUid, kind) => {

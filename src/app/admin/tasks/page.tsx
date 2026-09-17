@@ -170,7 +170,10 @@ function AdminTasksContent() {
     const payload: DailyTaskDoc = {
       id: trimmedId,
       taskType,
-      requiredCount: taskType === "vs_computer" || taskType === "pasture_interact" ? requiredCount : 1,
+      requiredCount:
+        taskType === "vs_computer" || taskType === "pasture_interact" || taskType === "puzzle_submit"
+          ? requiredCount
+          : 1,
       title: trimmedTitle,
       description: description.trim(),
       icon: trimmedIcon,
@@ -291,11 +294,24 @@ function AdminTasksContent() {
                 <option value="checkin">📅 每日簽到</option>
                 <option value="vs_computer">🤖 對弈電腦</option>
                 <option value="pasture_interact">🐣 牧場互動</option>
+                <option value="puzzle_submit">📮 投稿殘局</option>
               </select>
             </Field>
 
             {taskType === "vs_computer" ? (
               <Field label="需要對弈幾局">
+                <input
+                  type="number"
+                  min={1}
+                  value={requiredCount}
+                  onChange={(e) => setRequiredCount(Number(e.target.value))}
+                  className={INPUT_CLASS_NAME}
+                />
+              </Field>
+            ) : null}
+
+            {taskType === "puzzle_submit" ? (
+              <Field label="需要投稿幾題殘局">
                 <input
                   type="number"
                   min={1}

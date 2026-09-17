@@ -34,6 +34,7 @@ function TasksContent() {
   const claimDailyTask = useGameStore((s) => s.claimDailyTask);
   const getDailyVsComputerCount = useGameStore((s) => s.getDailyVsComputerCount);
   const getDailyPastureInteractCount = useGameStore((s) => s.getDailyPastureInteractCount);
+  const getDailyPuzzleSubmitCount = useGameStore((s) => s.getDailyPuzzleSubmitCount);
   const checkin = useGameStore((s) => s.checkin);
   const [showCheckinModal, setShowCheckinModal] = useState(false);
 
@@ -133,12 +134,16 @@ function TasksContent() {
                 const required = task.requiredCount ?? 1;
                 const vsReady = task.taskType === "vs_computer" && vsCount >= required;
                 const pastureReady = task.taskType === "pasture_interact" && pastureCount >= required;
+                // 投稿任務進度
+                const submitCount = task.taskType === "puzzle_submit" ? getDailyPuzzleSubmitCount() : 0;
+                const submitReady = task.taskType === "puzzle_submit" && submitCount >= required;
 
                 // 是否可以領取
                 const canClaim =
                   !isCompleted &&
                   (task.taskType !== "vs_computer" || vsReady) &&
-                  (task.taskType !== "pasture_interact" || pastureReady);
+                  (task.taskType !== "pasture_interact" || pastureReady) &&
+                  (task.taskType !== "puzzle_submit" || submitReady);
 
                 return (
                   <div
@@ -160,6 +165,11 @@ function TasksContent() {
                       {task.taskType === "vs_computer" && !isCompleted ? (
                         <p className="mt-0.5 text-xs font-semibold text-[#5B8C5A]">
                           進度：{vsCount}/{required} 局
+                        </p>
+                      ) : null}
+                      {task.taskType === "puzzle_submit" && !isCompleted ? (
+                        <p className="mt-0.5 text-xs font-semibold text-[#5B8C5A]">
+                          進度：{submitCount}/{required} 題
                         </p>
                       ) : null}
                       {task.taskType === "pasture_interact" && !isCompleted ? (

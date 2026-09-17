@@ -15,6 +15,17 @@ import { NextResponse } from "next/server";
 import { verifyRequestAuth, AuthError } from "@/lib/server/verifyAuth";
 import { getAdminDb } from "@/lib/server/firebaseAdmin";
 import { MAX_PENDING_SUBMISSIONS_PER_STUDENT } from "@/lib/puzzleSubmission";
+import { findMateSequence } from "@/lib/engine/pikafishProcess";
+import { getTaipeiDateString } from "@/lib/server/serverDate";
+
+// 投稿時會同步跑一次 Pikafish 分析（約 6 秒搜尋＋子程序啟動開銷）。
+// 放在請求裡同步做是刻意的：Vercel 的 serverless 在回應送出後就會
+// 終止程序，沒辦法可靠地「先回應、再背景分析」。學生多等幾秒，換到
+// 的是立刻知道自己挑的局面行不行，老師那邊也不用再等分析。
+export const maxDuration = 30;
+
+/** 題目最多接受幾步殺（跟 /api/puzzle/verify-mate 保持一致） */
+const MAX_MATE_IN = 10;
 
 export async function POST(request: Request) {
   let uid: string;
@@ -76,6 +87,34 @@ export async function POST(request: Request) {
     const userSnapshot = await db.collection("users").doc(uid).get();
     const studentName = (userSnapshot.data()?.displayName as string) ?? "同學";
 
+    // ---- AI 自動分析：投稿當下就跑完，老師打開審核頁直接看結果 ----
+    // 結果寫進「只有老師能讀」的 puzzleSubmissionAnalysis 集合，不放在
+    // 投稿文件裡——學生讀得到自己的投稿，放一起等於讓他提前知道會不會過。
+    // 分析失敗不該讓整筆投稿失敗（引擎有可能忙線或逾時），所以包在
+    // 自己的 try 裡，失敗就留空，審核頁會退回手動分析的流程。
+    let aiAnalysis: Record<string, unknown> | undefined;
+    try {
+      const result = await findMateSequence(fen.trim(), "w", MAX_MATE_IN);
+      const [mainLine] = result.lines;
+      aiAnalysis = {
+        hasMate: result.hasMate,
+        mateIn: result.hasMate ? mainLine.mateIn : result.mateIn,
+        lines: result.lines,
+        message: result.hasMateButIncomplete
+          ? `偵測到 ${result.mateIn} 步殺，但引擎沒有回報完整的殺法序列，請按「重新分析」或自行填寫答案。`
+          : result.hasMate
+            ? `✅ 紅方 ${mainLine.mateIn} 步殺${
+                result.lines.length > 1 ? `，共找到 ${result.lines.length} 種解法` : ""
+              }。`
+            : result.mateIn !== null && result.mateIn < 0
+              ? `紅方在這個局面反而會被黑方在 ${Math.abs(result.mateIn)} 步內將死，建議駁回。`
+              : `紅方在 ${MAX_MATE_IN} 步內找不到強制勝，建議駁回。`,
+        analyzedAt: Date.now(),
+      };
+    } catch (error) {
+      console.error("[api/puzzle/submit] AI 分析失敗（不影響投稿本身）：", error);
+    }
+
     const docRef = db.collection("puzzleSubmissions").doc();
     await docRef.set({
       id: docRef.id,
@@ -89,7 +128,35 @@ export async function POST(request: Request) {
       submittedAt: Date.now(),
     });
 
-    return NextResponse.json({ success: true, submissionId: docRef.id });
+    if (aiAnalysis) {
+      await db
+        .collection("puzzleSubmissionAnalysis")
+        .doc(docRef.id)
+        .set({ submissionId: docRef.id, ...aiAnalysis });
+    }
+
+    // ---- 每日任務「投稿殘局」的進度 ----
+    // 在伺服器端遞增，不讓 client 自己寫，否則不投稿也能把進度改成達標。
+    // 日期一定要用台北時區算（見 serverDate.ts）：Vercel 伺服器是 UTC，
+    // 直接用本地時區會跟學生端差 8 小時，導致任務進度對不起來。
+    const today = getTaipeiDateString();
+    const prevProgress = userSnapshot.data()?.dailyPuzzleSubmitProgress as
+      | { date: string; count: number }
+      | undefined;
+    const newCount = prevProgress?.date === today ? prevProgress.count + 1 : 1;
+    const dailyPuzzleSubmitProgress = { date: today, count: newCount };
+    await db.collection("users").doc(uid).update({
+      dailyPuzzleSubmitProgress,
+      updatedAt: Date.now(),
+    });
+
+    // 回應刻意「不」帶任何 AI 分析的內容：審核結果要等老師決定，
+    // 學生不該在投稿當下就知道自己會不會過。
+    return NextResponse.json({
+      success: true,
+      submissionId: docRef.id,
+      dailyPuzzleSubmitProgress,
+    });
   } catch (error) {
     console.error("[api/puzzle/submit] 投稿失敗：", error);
     return NextResponse.json({ error: "投稿失敗，請稍後再試。" }, { status: 500 });

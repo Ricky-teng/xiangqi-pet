@@ -284,6 +284,16 @@ export interface UserDoc {
   };
 
   /**
+   * 今天已經投稿幾題殘局，每天 00:00 重置（給 puzzle_submit 每日任務
+   * 判斷達標用）。這個數字由伺服器端的 /api/puzzle/submit 遞增，不是
+   * client 自己寫——否則學生可以不投稿就直接把進度改成達標。
+   */
+  dailyPuzzleSubmitProgress?: {
+    date: string;
+    count: number;
+  };
+
+  /**
    * 今天已經清理小雞垃圾/大便幾次，每天 00:00 重置。第 N 次清理費用
    * 是 N × PET_CLEAN_BASE_COST（100、200、300...累加，不是倍數）。
    */
@@ -460,13 +470,14 @@ export interface PuzzleDoc {
  * 自己新增/編輯/刪除任務。現在改成跟 PuzzleDoc 一樣存在 Firestore，
  * 老師透過 /admin/tasks 後台管理，學生端從這個 collection 動態讀取。
  */
-export type DailyTaskType = "checkin" | "vs_computer" | "pasture_interact";
+export type DailyTaskType = "checkin" | "vs_computer" | "pasture_interact" | "puzzle_submit";
 
 export interface DailyTaskDoc {
   id: string;
   /** 任務類型：checkin = 簽到，vs_computer = 當天對弈電腦 N 局，
    *  pasture_interact = 當天在牧場跟 N 隻不同的小雞互動（拍拍或送
-   *  表情都算，見 UserDoc.dailyPastureInteractProgress） */
+   *  表情都算，見 UserDoc.dailyPastureInteractProgress），
+   *  puzzle_submit = 當天投稿 N 題殘局（見 UserDoc.dailyPuzzleSubmitProgress） */
   taskType: DailyTaskType;
   title: string;
   description: string;
@@ -476,6 +487,7 @@ export interface DailyTaskDoc {
    * 任務完成門檻：
    * vs_computer：當天對弈幾局才算完成，預設 1
    * pasture_interact：當天要跟幾隻不同的小雞互動才算完成，預設 1
+   * puzzle_submit：當天要投稿幾題才算完成，預設 1
    * checkin：固定 1，不用設定
    */
   requiredCount: number;
@@ -818,4 +830,30 @@ export interface PuzzleSubmissionDoc {
    * 因為根本沒有這個欄位，不會被這個查詢撈到。
    */
   notifiedToStudent?: boolean;
+}
+
+/**
+ * 14. 投稿題目的 AI 分析結果 (路徑: puzzleSubmissionAnalysis/{submissionId})
+ * ------------------------------------------------------------
+ * 投稿當下由 Pikafish 自動分析（見 /api/puzzle/submit），老師打開審核
+ * 頁就直接看到結論跟填好的答案，不用再按一次分析、也不用等 10 秒。
+ *
+ * 為什麼要獨立一個集合，而不是直接存在 PuzzleSubmissionDoc 裡：
+ * 安全規則允許學生讀「自己的」投稿（我的投稿頁面需要），而 Firestore
+ * 的規則只能控制「整份文件能不能讀」，沒有欄位級的權限。分析結果如果
+ * 跟投稿放在同一份文件，學生從 devtools 或 API 就看得到 AI 的判斷，
+ * 等於提前知道自己會不會過。放在只有老師能讀的集合才擋得住。
+ *
+ * 文件 id 直接用對應的投稿 id，方便一對一查。
+ */
+export interface PuzzleSubmissionAnalysisDoc {
+  submissionId: string;
+  hasMate: boolean;
+  /** 最快幾步殺；負數代表紅方反而會被將死；找不到殺是 null */
+  mateIn: number | null;
+  /** 注意是 { mateIn, moves }[]：Firestore 不支援「陣列裡直接放陣列」 */
+  lines: { mateIn: number; moves: string[] }[];
+  /** 給老師看的白話結論 */
+  message: string;
+  analyzedAt: number;
 }

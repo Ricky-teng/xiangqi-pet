@@ -19,13 +19,13 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { collection, getDocs, orderBy, query, where } from "firebase/firestore";
+import { collection, documentId, getDocs, orderBy, query, where } from "firebase/firestore";
 import { db, auth } from "@/lib/firebase";
 import RequireAuth from "@/components/RequireAuth";
 import ChessBoard from "@/components/ChessBoard";
 import { parseFen } from "@/lib/xiangqi/fen";
 import { getSubmissionReward } from "@/lib/puzzleSubmission";
-import type { PuzzleSubmissionDoc, PuzzleSubmissionStatus } from "@/types/database";
+import type { PuzzleSubmissionDoc, PuzzleSubmissionStatus, PuzzleSubmissionAnalysisDoc } from "@/types/database";
 import type { PuzzleLevel } from "@/types/xiangqi";
 
 const INPUT_CLASS =
@@ -36,6 +36,8 @@ function SubmissionsContent() {
 
   const [statusFilter, setStatusFilter] = useState<PuzzleSubmissionStatus>("pending");
   const [submissions, setSubmissions] = useState<PuzzleSubmissionDoc[]>([]);
+  // submissionId -> 投稿當下跑好的 AI 分析（見 PuzzleSubmissionAnalysisDoc）
+  const [analyses, setAnalyses] = useState<Map<string, PuzzleSubmissionAnalysisDoc>>(new Map());
   const [loadState, setLoadState] = useState<"loading" | "success" | "error">("loading");
   const [message, setMessage] = useState<string | null>(null);
 
@@ -102,7 +104,25 @@ function SubmissionsContent() {
           orderBy("submittedAt", "desc")
         )
       );
-      setSubmissions(snapshot.docs.map((d) => d.data() as PuzzleSubmissionDoc));
+      const list = snapshot.docs.map((d) => d.data() as PuzzleSubmissionDoc);
+      setSubmissions(list);
+
+      // 一併把 AI 分析結果撈回來（獨立集合，只有老師讀得到）。
+      // 用 documentId in [...] 一次查最多 30 筆，比一筆一筆 getDoc 省。
+      const ids = list.map((item) => item.id);
+      const analysisMap = new Map<string, PuzzleSubmissionAnalysisDoc>();
+      for (let i = 0; i < ids.length; i += 30) {
+        const chunk = ids.slice(i, i + 30);
+        if (chunk.length === 0) continue;
+        const analysisSnapshot = await getDocs(
+          query(collection(db, "puzzleSubmissionAnalysis"), where(documentId(), "in", chunk))
+        );
+        analysisSnapshot.docs.forEach((d) => {
+          const data = d.data() as PuzzleSubmissionAnalysisDoc;
+          analysisMap.set(data.submissionId, data);
+        });
+      }
+      setAnalyses(analysisMap);
       setLoadState("success");
     } catch (error) {
       console.error("[admin/submissions] 載入投稿失敗：", error);
@@ -116,13 +136,27 @@ function SubmissionsContent() {
 
   function openReview(submission: PuzzleSubmissionDoc) {
     setActiveId(submission.id);
-    setLevel(1);
     setDescription(submission.note ?? "");
-    setMovesText("");
-    setAltLinesText("");
     setRejectReason("");
     setMessage(null);
-    setVerifyResult(null);
+
+    // 投稿當下就已經跑完分析了，這裡直接拿來預填，老師不用再等 10 秒。
+    // 沒有分析結果（當時引擎失敗）才退回讓老師手動按「重新分析」。
+    const analysis = analyses.get(submission.id);
+    const lines = analysis?.lines ?? [];
+    if (lines.length > 0) {
+      const [mainLine, ...alternatives] = lines;
+      setMovesText(mainLine.moves.join(" "));
+      setAltLinesText(alternatives.map((l) => l.moves.join(" ")).join("\n"));
+      setLevel(Math.min(10, Math.max(1, mainLine.mateIn)) as PuzzleLevel);
+    } else {
+      setMovesText("");
+      setAltLinesText("");
+      setLevel(1);
+    }
+    setVerifyResult(
+      analysis ? { text: analysis.message, isGood: analysis.hasMate } : null
+    );
   }
 
   async function callReview(payload: Record<string, unknown>) {
@@ -278,6 +312,30 @@ function SubmissionsContent() {
 
                   <p className="mt-1 break-all text-[10px] text-[#1A1A2E]/40">FEN：{submission.fen}</p>
 
+                  {/* AI 結論直接顯示在卡片上，老師掃一眼就能決定發布或駁回 */}
+                  {(() => {
+                    const analysis = analyses.get(submission.id);
+                    if (!analysis) {
+                      return submission.status === "pending" ? (
+                        <p className="mt-2 rounded-xl bg-[#1A1A2E]/5 px-3 py-2 text-xs text-[#1A1A2E]/50">
+                          🤖 投稿當下的自動分析沒有成功，請展開後按「重新分析」。
+                        </p>
+                      ) : null;
+                    }
+                    return (
+                      <p
+                        className={[
+                          "mt-2 rounded-xl px-3 py-2 text-xs font-bold",
+                          analysis.hasMate
+                            ? "bg-[#5B8C5A]/15 text-[#5B8C5A]"
+                            : "bg-[#C0392B]/10 text-[#C0392B]",
+                        ].join(" ")}
+                      >
+                        🤖 {analysis.message}
+                      </p>
+                    );
+                  })()}
+
                   {submission.status === "approved" ? (
                     <p className="mt-2 text-xs font-bold text-[#5B8C5A]">
                       ✅ 已通過，發放 {submission.awardedFood} 飼料
@@ -300,13 +358,17 @@ function SubmissionsContent() {
                           直接把整條殺法填進答案欄，老師確認就好；沒有的話
                           這個局面本來就不適合當殘局題，建議直接駁回。 */}
                       <div className="rounded-xl bg-[#8B5FBF]/10 px-3 py-2">
+                        <p className="mb-2 text-[10px] text-[#1A1A2E]/60">
+                          答案已經用投稿當下的 AI 分析預先填好，確認沒問題就可以直接發布。
+                          覺得結果怪怪的才需要重新分析。
+                        </p>
                         <button
                           type="button"
                           onClick={() => handleVerifyMate(submission)}
                           disabled={isVerifying}
                           className="w-full rounded-xl bg-[#8B5FBF] px-4 py-2 text-xs font-bold text-white shadow-sm transition-transform active:scale-95 disabled:opacity-60"
                         >
-                          {isVerifying ? "AI 分析中…（約 10 秒）" : "🤖 AI 自動判斷紅方能否速勝"}
+                          {isVerifying ? "AI 分析中…（約 10 秒）" : "🔄 重新分析"}
                         </button>
                         {verifyResult ? (
                           <p
