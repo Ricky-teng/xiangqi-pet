@@ -673,12 +673,8 @@ function PuzzleSolverSection({
                   : "正在結算獎勵…"}
             </p>
 
-            {/* 升段慶祝：解題順便升級時才出現，給學生「我變強了」的即時回饋 */}
-            {rewardOutcome?.status === "granted" && rewardOutcome.rankLevelUp ? (
-              <p className="rounded-2xl bg-gradient-to-b from-[#F6D87A] to-[#E8B84B] px-4 py-3 text-center text-sm font-extrabold text-[#5C3D0A] shadow-md">
-                ⬆️ 棋力升級！你現在是「{rewardOutcome.rankLevelUp}」了！
-              </p>
-            ) : null}
+            {/* 升段的慶祝改成全站共用的滿版慶祝頁（見 RankUpCelebration），
+                由 store 的 pendingRankUp 觸發，這裡不用再顯示小字提示。 */}
             <button
               type="button"
               onClick={handleNextPuzzle}

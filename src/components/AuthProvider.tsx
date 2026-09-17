@@ -18,6 +18,8 @@
  *      每一頁背景都會疊一層下雨特效。
  *   6. 渲染 <SubmissionResultModal />：學生投稿題目的審核結果通知，
  *      審核完成後學生下次開 App 會跳彈窗告知（通過/駁回都會通知）。
+ *   7. 渲染 <RankUpCelebration />：棋力升段的滿版慶祝頁。掛在全站是
+ *      因為升段可能發生在解題、贏電腦、對戰等任何地方。
  *
  * 為什麼要獨立成一個 Client Component，而不是直接在 layout.tsx
  * 裡呼叫這些 Hook：
@@ -39,6 +41,7 @@ import { useGameStore } from "@/stores/useGameStore";
 import PetAlertBanner from "@/components/PetAlertBanner";
 import GlobalRainOverlay from "@/components/GlobalRainOverlay";
 import SubmissionResultModal from "@/components/SubmissionResultModal";
+import RankUpCelebration from "@/components/RankUpCelebration";
 
 export default function AuthProvider({ children }: { children: ReactNode }) {
   useAuthBootstrap();
@@ -55,6 +58,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
       <PetAlertBanner />
       <GlobalRainOverlay />
       <SubmissionResultModal />
+      <RankUpCelebration />
     </>
   );
 }

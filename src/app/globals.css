@@ -28,3 +28,89 @@
     transform: translateY(110vh);
   }
 }
+/* ============================================================
+   棋力升段慶祝頁（RankUpCelebration）的動畫
+   ------------------------------------------------------------
+   跟上面兩組一樣放在全域樣式表：這些 keyframes 會被同一個元件裡
+   好幾個不同的子元素用 inline style 引用，styled-jsx 的 scope hash
+   會讓 inline style 對不到，所以一律放全域。
+   ============================================================ */
+
+/* 背景放射光暈緩慢旋轉，營造「獎盃打光」的感覺 */
+@keyframes rankup-rays-spin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+/* 主徽章：先從小放大到略大，再回彈到正常大小 */
+@keyframes rankup-badge-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.3) rotate(-12deg);
+  }
+  55% {
+    opacity: 1;
+    transform: scale(1.15) rotate(4deg);
+  }
+  75% {
+    transform: scale(0.95) rotate(-2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+/* 徽章外圈的光環持續呼吸 */
+@keyframes rankup-halo-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  50% {
+    opacity: 0.85;
+    transform: translate(-50%, -50%) scale(1.12);
+  }
+}
+
+/* 文字由下往上淡入 */
+@keyframes rankup-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 彩帶從畫面上方落下並旋轉 */
+@keyframes rankup-confetti-fall {
+  from {
+    opacity: 1;
+    transform: translateY(-10vh) rotate(0deg);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(105vh) rotate(720deg);
+  }
+}
+
+/* 星星閃爍 */
+@keyframes rankup-sparkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

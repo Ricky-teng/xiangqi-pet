@@ -62,6 +62,27 @@ interface GameStoreState {
    */
   weather: import("@/lib/weather").WeatherSnapshot | null;
   setWeather: (weather: import("@/lib/weather").WeatherSnapshot | null) => void;
+
+  /**
+   * 剛剛升段、還沒播過慶祝動畫的資料。由 addChessLevelPoints 在真的
+   * 升級時寫入，全站共用的 <RankUpCelebration /> 監看到就跳出滿版慶祝
+   * 頁，關掉後設回 null。
+   *
+   * 為什麼放在 store 而不是各頁面自己處理：addChessLevelPoints 是所有
+   * 升段的唯一入口（解題、贏電腦、殘局對戰、配對對弈都經過它），寫在
+   * 這裡就自動涵蓋全部來源——原本對戰勝利升段完全沒有任何提示，就是因為
+   * 那兩頁沒有各自接升級 UI。
+   */
+  pendingRankUp: {
+    /** 升級後的段位名稱，例如「七級」 */
+    newRankLabel: string;
+    /** 升級前的段位名稱，用來顯示「八級 → 七級」的變化 */
+    previousRankLabel: string;
+    newLevel: number;
+    /** 這次一口氣升了幾級（挑戰高難度題目有可能連跳） */
+    levelsGained: number;
+  } | null;
+  clearPendingRankUp: () => void;
   
   // 學生本地即時互動邏輯（在寫入 Firebase 之前，前端畫面先動）
   feedPet: () => void;
@@ -278,6 +299,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
   weather: null,
   setWeather: (weather) => set({ weather }),
+
+  pendingRankUp: null,
+  clearPendingRankUp: () => set({ pendingRankUp: null }),
 
   // 1. 立即餵食按鈕邏輯
   feedPet: () => {
@@ -974,19 +998,14 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     // 棋力積分：只有贏才加分（和棋/輸不扣分，見 chessRank.ts 的只升不降）。
     // 放在 set() 之後呼叫，addChessLevelPoints 會讀取剛更新完的 user
     // 再往上疊，不會蓋掉上面的飼料/戰績。
-    let rankLevelUp: string | null = null;
+    // 升段的慶祝由 addChessLevelPoints 寫入 pendingRankUp、再由全站的
+    // RankUpCelebration 跳滿版慶祝頁，這裡不用再往訊息裡塞升級字串
+    // （塞了會變成小字提示跟滿版慶祝同時出現，重複又雜亂）。
     if (outcome === "win") {
-      const rankResult = get().addChessLevelPoints(
-        getVsComputerWinPoints(user.chessLevel, opponentLevel)
-      );
-      if (rankResult.levelsGained > 0) rankLevelUp = rankResult.newRankLabel;
+      get().addChessLevelPoints(getVsComputerWinPoints(user.chessLevel, opponentLevel));
     }
 
-    return {
-      success: true,
-      message: rankLevelUp ? `${message}\n⬆️ 棋力升級！你現在是「${rankLevelUp}」了！` : message,
-      foodDelta,
-    };
+    return { success: true, message, foodDelta };
   },
 
   claimDailyGrant: () => {
@@ -1250,6 +1269,18 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     }).catch((error) => {
       console.error("[useGameStore] addChessLevelPoints 同步寫回 Firestore 失敗：", error);
     });
+
+    // 真的升級了才觸發全站的滿版慶祝頁（見 pendingRankUp 的說明）
+    if (result.levelsGained > 0) {
+      set({
+        pendingRankUp: {
+          newRankLabel: getChessRankLabel(result.chessLevel),
+          previousRankLabel: getChessRankLabel(user.chessLevel),
+          newLevel: result.chessLevel,
+          levelsGained: result.levelsGained,
+        },
+      });
+    }
 
     return {
       levelsGained: result.levelsGained,
