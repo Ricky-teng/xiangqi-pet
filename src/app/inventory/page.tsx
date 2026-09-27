@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useGameStore } from "@/stores/useGameStore";
 import RequireAuth from "@/components/RequireAuth";
 import { SHOP_ITEMS, RARITY_LABELS, RARITY_COLORS } from "@/lib/shopItems";
+import EquipmentSection from "@/components/EquipmentSection";
 
 function InventoryContent() {
   const router = useRouter();
@@ -16,7 +17,9 @@ function InventoryContent() {
   const setActiveBoardSkin = useGameStore((s) => s.setActiveBoardSkin);
   const isDoubleRewardActive = useGameStore((s) => s.isDoubleRewardActive);
   const [message, setMessage] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"consumable" | "background" | "board_skin">("consumable");
+  // 裝備放第一個分頁，也是預設分頁——RPG 擴充之後裝備是這一頁
+  // 最常被打開的東西（買、合成、看背包滿了沒）。
+  const [activeTab, setActiveTab] = useState<"equipment" | "consumable" | "background" | "board_skin">("equipment");
 
   if (!user) return null;
 
@@ -86,16 +89,19 @@ function InventoryContent() {
 
         {/* 分頁按鈕：比照 /shop 的三分頁排版，避免道具/背景/棋盤三大塊
             全部往下疊、頁面拉得太長。 */}
-        <div className="mt-4 grid grid-cols-3 gap-2">
-          {(["consumable", "background", "board_skin"] as const).map((tab) => (
+        <div className="mt-4 grid grid-cols-4 gap-1.5">
+          {(["equipment", "consumable", "background", "board_skin"] as const).map((tab) => (
             <button key={tab} type="button" onClick={() => setActiveTab(tab)}
-              className={["rounded-2xl py-2.5 text-xs font-bold transition-transform active:scale-95",
+              className={["rounded-2xl py-2.5 text-[11px] font-bold transition-transform active:scale-95",
                 activeTab === tab ? "bg-[#E8B84B] text-[#5C3D0A] shadow-md" : "bg-white/60 text-[#1A1A2E]/60",
               ].join(" ")}>
-              {tab === "consumable" ? "🧪 道具" : tab === "background" ? "🎨 背景" : "♟️ 棋盤"}
+              {tab === "equipment" ? "⚔️ 裝備" : tab === "consumable" ? "🧪 道具" : tab === "background" ? "🎨 背景" : "♟️ 棋盤"}
             </button>
           ))}
         </div>
+
+        {/* 裝備（購買／背包／合成三個區塊，見 EquipmentSection） */}
+        {activeTab === "equipment" ? <EquipmentSection onMessage={showMessage} /> : null}
 
         {/* 消耗道具 */}
         {activeTab === "consumable" ? (

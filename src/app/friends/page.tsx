@@ -49,7 +49,7 @@ interface FriendProfile {
   uid: string;
   displayName: string;
   stats: UserDoc["stats"];
-  rebirthCount: number;
+  collectedPetCount: number;
   petStage: string;
 }
 
@@ -197,7 +197,7 @@ function FriendsPageContent() {
             uid,
             displayName: friendUser.displayName,
             stats: friendUser.stats,
-            rebirthCount: friendUser.rebirthCount,
+            collectedPetCount: friendUser.collectedPetCount ?? 0,
             petStage,
           } satisfies FriendProfile;
         })
@@ -651,7 +651,7 @@ function FriendsPageContent() {
                     <div className="flex-1">
                       <p className="text-sm font-bold text-[#1A1A2E]">{friend.displayName}</p>
                       <p className="text-[11px] text-[#1A1A2E]/50">
-                        解題 {friend.stats.totalSolved} 題・轉生 {friend.rebirthCount} 次
+                        解題 {friend.stats.totalSolved} 題・收藏 {friend.collectedPetCount} 隻
                         <br />
                         對電腦勝率 {getVsComputerWinRate({ stats: friend.stats } as UserDoc)}%・對戰勝率{" "}
                         {getBattleWinRate({ stats: friend.stats } as UserDoc)}%

@@ -1,5 +1,6 @@
 // src/types/database.ts
 import { PuzzleLevel, SolutionSequence } from "./xiangqi";
+import type { EquipmentItem } from "@/lib/rpg/equipment";
 
 /**
  * 1. 使用者文件 (路徑: users/{uid})
@@ -148,6 +149,85 @@ export interface UserDoc {
   lastDoubleVoucherPurchaseDate?: string | null;
 
   // ============================================================
+  // RPG 擴充（收藏小雞／裝備／探險／戰隊）
+  // ------------------------------------------------------------
+  // 全部選填，舊帳號讀到 undefined 時一律當成「空的／0」處理，
+  // 不需要資料遷移。注意「收藏小雞」本身是子集合
+  // （users/{uid}/collectedPets/{petId}），不放在這裡——數量無上限，
+  // 塞進使用者文件會讓每次讀 user 都拖一大包。
+  // ============================================================
+
+  /**
+   * 裝備背包。穿在小雞身上的裝備「不在」這個陣列裡（存在各自的
+   * CollectedPetDoc.weapon / armor）。上限見 lib/rpg/equipment.ts 的
+   * getBagCapacity(bagExpandCount)。
+   * 裝備最多幾百件，放陣列一次讀寫就好，不值得為它開子集合。
+   */
+  equipmentBag?: EquipmentItem[];
+
+  /** 背包擴充過幾次（每次 +20 格、1000 飼料，無上限） */
+  bagExpandCount?: number;
+
+  /**
+   * 收藏小雞的總數。子集合的 count 沒辦法在排行榜查詢裡排序，
+   * 所以在使用者文件上冗餘存一份，每次收藏時 +1。
+   * 排行榜的「收藏小雞數」直接讀這個欄位。
+   */
+  collectedPetCount?: number;
+
+  /**
+   * 是否看過 RPG 上線公告（判斷式沿用 hasSeenJobChangeAnnouncement
+   * 那一套：新帳號在 createDefaultUserDoc 明確設成 true，舊帳號
+   * undefined 會顯示一次，看完寫回 true）。
+   */
+  hasSeenRpgAnnouncement?: boolean;
+
+  /**
+   * 是否已經領過「RPG 上線一律送 1 隻新手雞」。跟公告分開兩個旗標，
+   * 因為公告只是看過就好，送雞是真的會寫一筆收藏小雞，必須嚴格
+   * 只發一次。
+   */
+  hasClaimedStarterPet?: boolean;
+
+  // ------------------------------------------------------------
+  // RPG 的成就計數器
+  // ------------------------------------------------------------
+  // 勳章的 check() 是「吃 UserDoc 的純函式」（見 lib/badges/badges.ts），
+  // 但探險進度、戰隊戰績分別存在別的文件裡，勳章讀不到。所以在這裡
+  // 冗餘存幾個計數器，事件發生的當下順手 +1。
+  //
+  // 這些欄位只給勳章用，不是真相來源——真正的進度以
+  // users/{uid}/rpg/explore 與 teams/{uid} 為準。對不上最多是勳章晚
+  // 一點才亮，不會影響遊戲本身。
+
+  /** 累計擊敗幾隻 Boss（每一關最後都有 Boss，所以＝通關幾關） */
+  rpgBossDefeated?: number;
+  /** 已經全破幾座塔 */
+  rpgTowersCleared?: number;
+  /** 戰隊累計勝場（跨賽季，不歸零） */
+  rpgTeamWins?: number;
+  /** 戰隊歷史最高連勝 */
+  rpgTeamBestStreak?: number;
+  /** 賽季最佳名次（數字越小越好；還沒結算過是 undefined） */
+  rpgSeasonBestRank?: number;
+  /** 賽季單季最大進步名次 */
+  rpgSeasonBestImprove?: number;
+  /** 累計合成幾次 */
+  rpgFuseCount?: number;
+  /** 合成過的最高階級（1~5） */
+  rpgMaxTier?: number;
+  /** 收藏過哪些職業（八職集齊用）。未轉職收藏的不會寫進來 */
+  collectedJobIds?: string[];
+
+  /**
+   * 探險新手教學進度。
+   * undefined / 0 = 還沒開始，1~4 = 進行中，99 = 完成（不再顯示）。
+   * 新帳號跟舊帳號都會看到——這是全新的功能，沒有人「本來就會」。
+   * 見 components/RpgTutorial.tsx。
+   */
+  rpgTutorialStep?: number;
+
+  // ============================================================
   // 好友系統
   // ------------------------------------------------------------
   // 設計上刻意不開新的 Firestore collection，全部欄位都放在使用者
@@ -294,6 +374,22 @@ export interface UserDoc {
   };
 
   /**
+   * 今天探險了幾次（每日任務 explore 用），台北時間 00:00 重置。
+   * 只算真的扣到次數的那幾場——重打已經通關的關卡不扣次數，也不該
+   * 算進任務進度，不然刷第 1 關就能完成任務。
+   */
+  dailyExploreProgress?: {
+    date: string;
+    count: number;
+  };
+
+  /** 今天戰隊挑戰了幾次（每日任務 team_battle 用），台北時間 00:00 重置 */
+  dailyTeamBattleProgress?: {
+    date: string;
+    count: number;
+  };
+
+  /**
    * 今天已經清理小雞垃圾/大便幾次，每天 00:00 重置。第 N 次清理費用
    * 是 N × PET_CLEAN_BASE_COST（100、200、300...累加，不是倍數）。
    */
@@ -420,6 +516,42 @@ export interface PetDoc {
    */
   fullnessProtectionUntil?: number | null;
 
+  // ============================================================
+  // RPG 擴充（收藏小雞／探險／戰隊）新增的兩個欄位
+  // ------------------------------------------------------------
+  // 兩個都是選填，舊帳號沒有這兩個欄位時，第一次跑 applyPetTimeDecay
+  // 會自動補上（見 lib/pet/petDecay.ts 的第 0.1 段），不需要資料遷移。
+  // ============================================================
+
+  /**
+   * 這一世生過幾次「大病」（小病加重成大病的那一刻 +1，維持在大病
+   * 狀態不會一直加）。每一次讓四項戰鬥數值永久 −1%，上限 −15%，
+   * 見 lib/rpg/stats.ts 的 getSevereSickPenalty。
+   * 死掉復活、或收藏後換成新小雞時會歸零。
+   */
+  severeSickCount?: number;
+
+  /**
+   * 這一世是什麼時候開始養的（epoch ms）。跟 createdAt 的差別：
+   * createdAt 是「小雞文件」建立的時間，整個帳號只有一次；
+   * lifeStartedAt 每次收藏／復活重新養都會重設成當下，
+   * 收藏小雞時用它來算「養了幾天」。
+   */
+  lifeStartedAt?: number;
+
+  /**
+   * 目前正在養的這一隻穿的裝備。
+   *
+   * 為什麼活著的小雞也要有裝備欄：規格上「正在養的那一隻」跟收藏
+   * 小雞一樣可以出戰（探險、戰隊），而出戰的硬性條件是「必須有
+   * 武器」——沒有這兩個欄位，正在養的那隻永遠不能出戰。
+   *
+   * 收藏的時候這兩件會一起被帶進 CollectedPetDoc（見 collectPet），
+   * 不會憑空消失，也不會留在已經變回蛋的新小雞身上。
+   */
+  weapon?: EquipmentItem | null;
+  armor?: EquipmentItem | null;
+
   createdAt: number;
   updatedAt: number;
 }
@@ -470,14 +602,22 @@ export interface PuzzleDoc {
  * 自己新增/編輯/刪除任務。現在改成跟 PuzzleDoc 一樣存在 Firestore，
  * 老師透過 /admin/tasks 後台管理，學生端從這個 collection 動態讀取。
  */
-export type DailyTaskType = "checkin" | "vs_computer" | "pasture_interact" | "puzzle_submit";
+export type DailyTaskType =
+  | "checkin"
+  | "vs_computer"
+  | "pasture_interact"
+  | "puzzle_submit"
+  | "explore"
+  | "team_battle";
 
 export interface DailyTaskDoc {
   id: string;
   /** 任務類型：checkin = 簽到，vs_computer = 當天對弈電腦 N 局，
    *  pasture_interact = 當天在牧場跟 N 隻不同的小雞互動（拍拍或送
    *  表情都算，見 UserDoc.dailyPastureInteractProgress），
-   *  puzzle_submit = 當天投稿 N 題殘局（見 UserDoc.dailyPuzzleSubmitProgress） */
+   *  puzzle_submit = 當天投稿 N 題殘局（見 UserDoc.dailyPuzzleSubmitProgress），
+   *  explore = 當天探險 N 次（見 UserDoc.dailyExploreProgress），
+   *  team_battle = 當天戰隊挑戰 N 次（見 UserDoc.dailyTeamBattleProgress） */
   taskType: DailyTaskType;
   title: string;
   description: string;
@@ -488,6 +628,8 @@ export interface DailyTaskDoc {
    * vs_computer：當天對弈幾局才算完成，預設 1
    * pasture_interact：當天要跟幾隻不同的小雞互動才算完成，預設 1
    * puzzle_submit：當天要投稿幾題才算完成，預設 1
+   * explore：當天要探險幾次才算完成，預設 3
+   * team_battle：當天要挑戰幾次才算完成，預設 1
    * checkin：固定 1，不用設定
    */
   requiredCount: number;

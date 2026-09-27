@@ -42,7 +42,8 @@ import { ResetCompensationModal } from "@/components/ResetCompensationModal";
 import { hasUnreadAnnouncement } from "@/lib/announcements";
 import { STAGE_XP_THRESHOLDS } from "@/lib/pet/petGrowth";
 import { SICKNESS_ESCALATION_HOURS, getPoopCount, PET_CLEAN_BASE_COST } from "@/lib/pet/petDecay";
-import { getPrestigeBonusPercent } from "@/lib/pet/prestige";
+import CollectPetModal from "@/components/CollectPetModal";
+import { getDaysRaised } from "@/lib/collectedPets";
 import { getChessRankLabel, getPointsForNextLevel, getChessLevelProgressPercent } from "@/lib/chessRank";
 import { getPetImagePath, getPetDisplaySrc } from "@/lib/pet/petImagePath";
 import { getNextCatalogEntry, getXpNeededForNextJob, getMasterJobProgressPercent, isMaxJobLevel } from "@/lib/pet/catalog";
@@ -580,7 +581,7 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
   }
 
   const changeJob = useGameStore((s) => s.changeJob);
-  const rebirthPet = useGameStore((s) => s.rebirthPet);
+  const collectPet = useGameStore((s) => s.collectPet);
   const resurrectPet = useGameStore((s) => s.resurrectPet);
   // ---- 轉職（圖鑑收藏系統）相關狀態 ----
   const [jobChangeMessage, setJobChangeMessage] = useState<string | null>(null);
@@ -593,15 +594,20 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
     setIsChangingJob(false);
   }
 
-  // ---- 轉生（圖鑑收藏系統）相關狀態 ----
-  const [rebirthMessage, setRebirthMessage] = useState<string | null>(null);
-  const [isRebirthing, setIsRebirthing] = useState(false);
+  // ---- 收藏（取代原本的轉生）相關狀態 ----
+  // 收藏是不可逆的，所以流程是：按「收藏」→ 彈窗取名 → 再確認一次 →
+  // 才真的寫入。isCollecting 給彈窗鎖住按鈕用，避免手殘連點兩次。
+  const [collectMessage, setCollectMessage] = useState<string | null>(null);
+  const [isCollecting, setIsCollecting] = useState(false);
+  const [showCollectModal, setShowCollectModal] = useState(false);
 
-  function handleRebirth() {
-    setIsRebirthing(true);
-    const result = rebirthPet();
-    setRebirthMessage(result.message);
-    setIsRebirthing(false);
+  async function handleCollect(name: string) {
+    setIsCollecting(true);
+    const result = await collectPet(name);
+    setCollectMessage(result.message);
+    setIsCollecting(false);
+    // 成功才關彈窗；失敗留在彈窗上，學生才看得到「小雞還在」這件事
+    if (result.success) setShowCollectModal(false);
   }
 
   // ---- 復活（死亡後的補救措施，跟轉生是兩個不同機制）相關狀態 ----
@@ -695,20 +701,43 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
             學生錯過通知。
            ============================================================ */}
         {(() => {
-          const navItems = [
-            { href: "/shop", icon: "🏪", label: "商店" },
-            { href: "/inventory", icon: "🎒", label: "物品" },
-            { href: "/tasks", icon: "📋", label: "任務", badge: hasUnclaimedDailyTask(user, activeDailyTasks) },
-            { href: "/leaderboard", icon: "🏆", label: "排行榜" },
-            { href: "/catalog", icon: "📖", label: "圖鑑" },
-            { href: "/badges", icon: "🎖️", label: "勳章" },
-            { href: "/friends", icon: "👥", label: "好友" },
-            { href: "/chat", icon: "💬", label: "聊天", badge: unreadChatCount > 0 },
-            { href: "/announcements", icon: "📢", label: "公告", badge: hasUnreadAnnouncement(user, latestAnnouncementCreatedAt) },
-            { href: "/pasture", icon: "🚜", label: "牧場" },
-            { href: "/my-submissions", icon: "📮", label: "我的投稿" },
+          // 功能選單分成三組（養成／紀錄／社交），組內維持 5 欄。
+          // 分組的理由：項目從 11 個變成 12 個之後，一整片沒有分隔的
+          // 格子很難掃視；分組之後學生找東西是「先想是哪一類」，
+          // 比在 12 個圖示裡面用眼睛掃快很多。
+          const navGroups: {
+            title: string;
+            items: { href: string; icon: string; label: string; badge?: boolean }[];
+          }[] = [
+            {
+              title: "養成",
+              items: [
+                { href: "/my-pets", icon: "🐣", label: "我的小雞" },
+                { href: "/inventory", icon: "🎒", label: "物品裝備" },
+                { href: "/shop", icon: "🏪", label: "商店" },
+                { href: "/catalog", icon: "📖", label: "圖鑑" },
+                { href: "/pasture", icon: "🚜", label: "牧場" },
+              ],
+            },
+            {
+              title: "紀錄",
+              items: [
+                { href: "/tasks", icon: "📋", label: "任務", badge: hasUnclaimedDailyTask(user, activeDailyTasks) },
+                { href: "/badges", icon: "🎖️", label: "勳章" },
+                { href: "/leaderboard", icon: "🏆", label: "排行榜" },
+                { href: "/my-submissions", icon: "📮", label: "我的投稿" },
+              ],
+            },
+            {
+              title: "社交",
+              items: [
+                { href: "/friends", icon: "👥", label: "好友" },
+                { href: "/chat", icon: "💬", label: "聊天", badge: unreadChatCount > 0 },
+                { href: "/announcements", icon: "📢", label: "公告", badge: hasUnreadAnnouncement(user, latestAnnouncementCreatedAt) },
+              ],
+            },
           ];
-          const hasAnyBadge = navItems.some((item) => item.badge);
+          const hasAnyBadge = navGroups.some((g) => g.items.some((item) => item.badge));
 
           return (
             <div className="mt-3 rounded-2xl bg-white/70 shadow-sm">
@@ -725,22 +754,29 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
               </button>
 
               {isNavExpanded ? (
-                <nav className="grid grid-cols-5 gap-0.5 px-1 pb-1">
-                  {navItems.map(({ href, icon, label, badge }) => (
-                    <button
-                      key={href}
-                      type="button"
-                      onClick={() => router.push(href)}
-                      className="relative flex flex-col items-center gap-0 rounded-lg py-1 text-[#1A1A2E] transition-transform active:scale-95 hover:bg-[#E8B84B]/20"
-                    >
-                      <span className="text-base">{icon}</span>
-                      <span className="text-[9px] font-bold">{label}</span>
-                      {badge ? (
-                        <span className="absolute right-1.5 top-0.5 h-1.5 w-1.5 rounded-full bg-[#C0392B]" />
-                      ) : null}
-                    </button>
+                <div className="px-1 pb-1">
+                  {navGroups.map((group) => (
+                    <div key={group.title} className="mt-1 first:mt-0">
+                      <p className="px-1.5 pb-0.5 text-[9px] font-bold text-[#1A1A2E]/35">{group.title}</p>
+                      <nav className="grid grid-cols-5 gap-0.5">
+                        {group.items.map(({ href, icon, label, badge }) => (
+                          <button
+                            key={href}
+                            type="button"
+                            onClick={() => router.push(href)}
+                            className="relative flex flex-col items-center gap-0 rounded-lg py-1 text-[#1A1A2E] transition-transform active:scale-95 hover:bg-[#E8B84B]/20"
+                          >
+                            <span className="text-base">{icon}</span>
+                            <span className="text-[9px] font-bold">{label}</span>
+                            {badge ? (
+                              <span className="absolute right-1.5 top-0.5 h-1.5 w-1.5 rounded-full bg-[#C0392B]" />
+                            ) : null}
+                          </button>
+                        ))}
+                      </nav>
+                    </div>
                   ))}
-                </nav>
+                </div>
               ) : null}
             </div>
           );
@@ -843,19 +879,19 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
               </div>
               <div className="text-xs font-semibold text-[#1A1A2E]">{winRatePercent}%</div>
             </div>
-            <div className="rounded-xl bg-white/80 px-2 py-1.5">
+            <button
+              type="button"
+              onClick={() => router.push("/my-pets")}
+              className="rounded-xl bg-white/80 px-2 py-1.5 text-left transition-transform active:scale-95"
+            >
               <div className="text-base" aria-hidden="true">
-                ✨
+                🐣
               </div>
               <div className="text-xs font-semibold text-[#1A1A2E]">
-                {user.rebirthCount} 枚
+                {user.collectedPetCount ?? 0} 隻
               </div>
-              {user.rebirthCount > 0 ? (
-                <div className="text-[9px] font-bold text-[#5B8C5A]">
-                  經驗 +{getPrestigeBonusPercent(user.rebirthCount)}%
-                </div>
-              ) : null}
-            </div>
+              <div className="text-[9px] font-bold text-[#5B8C5A]">我的小雞</div>
+            </button>
           </div>
 
           {/* 棋力段位進度條：這是整個 App 唯一「下棋本身」的成長線，
@@ -913,67 +949,67 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
             </div>
           </div>
 
-          {/* 轉職/轉生入口：只有大師雞（完全長大）才會出現。
-              還沒轉到鳳凰雞之前顯示「轉職」——不是按一下扣一大筆飼料，
-              是靠持續餵食累積 xp（大師雞之後 xp 不會停在 730，會一直
-              往上加），累計 xp 跨過門檻按鈕才會真的能按（見
-              @/lib/pet/catalog.ts 的 getXpNeededForNextJob）；轉到
-              鳳凰雞之後顯示「轉生」（免費，真正把小雞重置回蛋，
-              職業歸零，圖鑑蒐集紀錄不會消失）。 */}
-          {pet.stage === "master" ? (
-            isMaxJobLevel(pet.currentAppearanceId) ? (
-              <div className="mt-3 w-full rounded-2xl bg-gradient-to-b from-[#F6D87A] to-[#E8B84B] px-4 py-2.5 text-center shadow-md">
-                <p className="text-sm font-bold text-[#5C3D0A]">🦚 小雞已經轉職成鳳凰雞了！</p>
-                <p className="mt-0.5 text-xs text-[#5C3D0A]/70">
-                  轉生會讓小雞重新從蛋開始成長，準備下一輪轉職旅程（圖鑑蒐集紀錄不會消失）。
-                </p>
-                {/* 明確告訴學生轉生「會拿到什麼」，不然只看到「重新從蛋
-                    開始」會覺得是懲罰，就沒人想轉生了 */}
-                <p className="mt-1 rounded-xl bg-white/50 px-2 py-1.5 text-xs font-bold text-[#5C3D0A]">
-                  ✨ 轉生可獲得第 {user.rebirthCount + 1} 枚轉生印記
-                  <br />
-                  餵食經驗值 +{getPrestigeBonusPercent(user.rebirthCount)}% → +
-                  {getPrestigeBonusPercent(user.rebirthCount + 1)}%，下一輪會長得更快！
-                </p>
-                <button
-                  type="button"
-                  onClick={handleRebirth}
-                  disabled={isRebirthing}
-                  className="mt-2 w-full rounded-xl bg-[#5C3D0A] px-4 py-2 text-sm font-bold text-[#FDF6E8] shadow-sm transition-transform active:scale-95 disabled:opacity-60"
-                >
-                  {isRebirthing ? "轉生中…" : "✨ 轉生"}
-                </button>
-              </div>
-            ) : (
-              <div className="mt-3 w-full rounded-2xl bg-gradient-to-b from-[#F6D87A] to-[#E8B84B] px-4 py-2.5 text-center shadow-md">
-                <p className="text-sm font-bold text-[#5C3D0A]">🎉 小雞已經完全長大成熟了！</p>
-                <p className="mt-0.5 text-xs text-[#5C3D0A]/70">
-                  {nextJobEntry
-                    ? xpNeededForNextJob !== null && xpNeededForNextJob > 0
-                      ? `繼續餵食累積經驗值，還差 ${xpNeededForNextJob} 點就能轉職成${nextJobEntry.name}！`
-                      : `經驗值已經足夠了，可以轉職成${nextJobEntry.name}了！`
-                    : ""}
-                </p>
-                <button
-                  type="button"
-                  onClick={handleChangeJob}
-                  disabled={isChangingJob || xpNeededForNextJob === null || xpNeededForNextJob > 0}
-                  className="mt-2 w-full rounded-xl bg-[#5C3D0A] px-4 py-2 text-sm font-bold text-[#FDF6E8] shadow-sm transition-transform active:scale-95 disabled:opacity-60"
-                >
-                  {isChangingJob ? "轉職中…" : `⚔️ 轉職成${nextJobEntry?.name ?? ""}`}
-                </button>
-              </div>
-            )
+          {/* 轉職／收藏入口：只有大師雞（完全長大）才會出現。
+              跟舊版最大的差別：收藏「不需要」先轉職到鳳凰雞，只要長到
+              大師雞就能收。所以這裡不再是二選一，而是兩個並存——還沒
+              轉到鳳凰雞的話上面是轉職、下面是收藏，學生自己決定要現在
+              收一隻弱一點的，還是繼續養、轉到更強的職業再收（收藏當下
+              的職業就是這隻小雞的永久職業）。
+              轉職本身的規則沒變：不是按一下扣飼料，是靠持續餵食累積
+              xp，跨過門檻按鈕才會真的能按（見 @/lib/pet/catalog.ts 的
+              getXpNeededForNextJob）。 */}
+          {pet.stage === "master" && pet.healthStatus !== "dead" ? (
+            <div className="mt-3 w-full rounded-2xl bg-gradient-to-b from-[#F6D87A] to-[#E8B84B] px-4 py-2.5 text-center shadow-md">
+              {isMaxJobLevel(pet.currentAppearanceId) ? (
+                <>
+                  <p className="text-sm font-bold text-[#5C3D0A]">🦚 小雞已經轉職到最後一個職業了！</p>
+                  <p className="mt-0.5 text-xs text-[#5C3D0A]/70">
+                    已經沒有更高的職業可以轉，收藏起來讓牠上場吧。
+                  </p>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm font-bold text-[#5C3D0A]">🎉 小雞已經完全長大成熟了！</p>
+                  <p className="mt-0.5 text-xs text-[#5C3D0A]/70">
+                    {nextJobEntry
+                      ? xpNeededForNextJob !== null && xpNeededForNextJob > 0
+                        ? `繼續餵食累積經驗值，還差 ${xpNeededForNextJob} 點就能轉職成${nextJobEntry.name}！`
+                        : `經驗值已經足夠了，可以轉職成${nextJobEntry.name}了！`
+                      : ""}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleChangeJob}
+                    disabled={isChangingJob || xpNeededForNextJob === null || xpNeededForNextJob > 0}
+                    className="mt-2 w-full rounded-xl bg-[#5C3D0A] px-4 py-2 text-sm font-bold text-[#FDF6E8] shadow-sm transition-transform active:scale-95 disabled:opacity-60"
+                  >
+                    {isChangingJob ? "轉職中…" : `🔁 轉職成${nextJobEntry?.name ?? ""}`}
+                  </button>
+                </>
+              )}
+
+              {/* 收藏：大師雞就能按，不用等轉到最後一個職業 */}
+              <button
+                type="button"
+                onClick={() => setShowCollectModal(true)}
+                className="mt-2 w-full rounded-xl bg-white/80 px-4 py-2 text-sm font-extrabold text-[#5C3D0A] shadow-sm transition-transform active:scale-95"
+              >
+                🐣 收藏這隻小雞
+              </button>
+              <p className="mt-1 text-[10px] text-[#5C3D0A]/70">
+                收藏後牠會永久留在「我的小雞」，可以派去探險跟戰隊，你會馬上拿到一顆新蛋
+              </p>
+            </div>
           ) : null}
 
-          {/* 復活入口：小雞死亡時出現。跟轉生是兩個不同機制（見 store 裡
+          {/* 復活入口：小雞死亡時出現。跟收藏是兩個不同機制（見 store 裡
               resurrectPet 的註解），死亡是沒照顧好的後果，復活是付費補救，
-              不會解鎖圖鑑、不會增加轉生次數。 */}
+              不會解鎖圖鑑、也不會變成收藏小雞。 */}
           {pet.healthStatus === "dead" ? (
             <div className="mt-3 w-full rounded-2xl bg-[#1A1A2E]/5 px-4 py-2.5 text-center shadow-md">
               <p className="text-sm font-bold text-[#1A1A2E]">💔 小雞沒有得到及時醫治，已經死掉了……</p>
               <p className="mt-0.5 text-xs text-[#1A1A2E]/60">
-                花費 30 飼料復活小雞，會重新從蛋開始養（不會解鎖圖鑑、不計入轉生次數）。
+                花費 30 飼料復活小雞，會重新從蛋開始養（不會解鎖圖鑑，生大病次數也會歸零重算）。
               </p>
               <button
                 type="button"
@@ -995,13 +1031,13 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
             </p>
           ) : null}
 
-          {/* 轉生結果訊息：刻意放在 master 判斷區塊「外面」，
-              因為轉生成功的瞬間 pet.stage 會立刻變成 egg，
+          {/* 收藏結果訊息：刻意放在 master 判斷區塊「外面」，
+              因為收藏成功的瞬間 pet.stage 會立刻變成 egg，
               如果訊息放在上面那個 master-only 區塊裡，
-              訊息會跟著 banner 一起消失，玩家根本看不到剛解鎖了什麼。 */}
-          {rebirthMessage ? (
+              訊息會跟著 banner 一起消失，學生根本看不到收藏成功了。 */}
+          {collectMessage ? (
             <p className="mt-3 w-full rounded-xl bg-white/80 px-3 py-2 text-center text-xs font-medium text-[#5C3D0A]">
-              {rebirthMessage}
+              {collectMessage}
             </p>
           ) : null}
 
@@ -1039,7 +1075,7 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
                 : null;
 
             return (
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <button
                   type="button"
                   onClick={() => router.push("/puzzle")}
@@ -1064,7 +1100,7 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
                   disabled={!canBattleOrMatch}
                   className="flex flex-col items-center gap-0.5 rounded-2xl bg-gradient-to-b from-[#C0392B] to-[#922B21] px-2 py-3 shadow-md transition-transform active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <span className="text-2xl">⚔️</span>
+                  <span className="text-2xl">🗡️</span>
                   <span className="text-xs font-extrabold text-white">殘局作戰</span>
                   <span className="text-[9px] font-medium text-white/80">
                     {shortageHint ?? "入場 20 飼料"}
@@ -1077,11 +1113,31 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
                   disabled={!canBattleOrMatch}
                   className="flex flex-col items-center gap-0.5 rounded-2xl bg-gradient-to-b from-[#8B5FBF] to-[#6B4593] px-2 py-3 shadow-md transition-transform active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  <span className="text-2xl">♟️</span>
+                  <span className="text-2xl">🤝</span>
                   <span className="text-xs font-extrabold text-white">配對對弈</span>
                   <span className="text-[9px] font-medium text-white/80">
                     {shortageHint ?? "入場 20 飼料"}
                   </span>
+                </button>
+
+                {/* RPG 擴充的兩個新玩法。刻意放在最後兩格，讓原本四個
+                    入口的位置跟順序都不變，舊學生不用重新找。 */}
+                <button
+                  type="button"
+                  onClick={() => router.push("/explore")}
+                  className="flex flex-col items-center gap-1 rounded-2xl bg-gradient-to-b from-[#5B8C5A] to-[#3E6B3D] px-2 py-3 shadow-md transition-transform active:scale-95"
+                >
+                  <span className="text-2xl">🗺️</span>
+                  <span className="text-xs font-extrabold text-white">探險</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => router.push("/team")}
+                  className="flex flex-col items-center gap-1 rounded-2xl bg-gradient-to-b from-[#A9764C] to-[#7A5233] px-2 py-3 shadow-md transition-transform active:scale-95"
+                >
+                  <span className="text-2xl">⚔️</span>
+                  <span className="text-xs font-extrabold text-white">戰隊</span>
                 </button>
               </div>
             );
@@ -1113,6 +1169,20 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
           />
         );
       })()}
+
+      {/* 收藏小雞的取名彈窗。放在頁面最外層（跟其他彈窗同一層），
+          不是放在小雞卡片裡面——因為收藏成功的瞬間 pet.stage 會變回
+          egg，放在 master-only 區塊裡的話彈窗會在寫入途中被 unmount。 */}
+      {showCollectModal && pet ? (
+        <CollectPetModal
+          jobId={pet.currentAppearanceId}
+          severeSickCount={pet.severeSickCount ?? 0}
+          daysRaised={getDaysRaised(pet.lifeStartedAt ?? pet.createdAt, Date.now())}
+          isSubmitting={isCollecting}
+          onConfirm={handleCollect}
+          onCancel={() => setShowCollectModal(false)}
+        />
+      ) : null}
 
       {/* 轉職系統改版公告：只有舊帳號會看到一次 */}
       <JobChangeAnnouncementModal

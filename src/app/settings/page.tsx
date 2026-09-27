@@ -19,7 +19,6 @@ import RequireAuth from "@/components/RequireAuth";
 import { signOutUser } from "@/hooks/useAuth";
 import { useAppBackground } from "@/lib/useAppBackground";
 import { getVsComputerWinRate, getBattleWinRate, getPuzzlePassRate } from "@/lib/stats";
-import { getPrestigeBonusPercent } from "@/lib/pet/prestige";
 import { registerPushNotifications } from "@/lib/notifications/registerPush";
 
 const ROLE_LABELS: Record<string, string> = {
@@ -252,11 +251,9 @@ function SettingsContent() {
           <h2 className="text-xs font-bold text-[#1A1A2E]/50">統計總覽</h2>
           <div className="mt-2 grid grid-cols-2 gap-2">
             <div className="rounded-2xl bg-[#FDF6E8] px-3 py-2">
-              <p className="text-[10px] font-semibold text-[#1A1A2E]/50">✨ 轉生印記</p>
-              <p className="text-base font-extrabold text-[#1A1A2E]">{user.rebirthCount} 枚</p>
-              <p className="text-[10px] font-bold text-[#5B8C5A]">
-                餵食經驗 +{getPrestigeBonusPercent(user.rebirthCount)}%
-              </p>
+              <p className="text-[10px] font-semibold text-[#1A1A2E]/50">🐣 收藏小雞</p>
+              <p className="text-base font-extrabold text-[#1A1A2E]">{user.collectedPetCount ?? 0} 隻</p>
+              <p className="text-[10px] font-bold text-[#5B8C5A]">可派去探險與戰隊</p>
             </div>
             <div className="rounded-2xl bg-[#FDF6E8] px-3 py-2">
               <p className="text-[10px] font-semibold text-[#1A1A2E]/50">🧩 解題數</p>

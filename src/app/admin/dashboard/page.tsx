@@ -360,7 +360,7 @@ function DashboardContent() {
                             不需要額外查詢，純粹是補上顯示。 */}
                         <p className="mt-3 text-xs font-semibold text-[#1A1A2E]/70">
                           📖 圖鑑收藏（{student.unlockedCatalogIds.length}/{CATALOG_ENTRIES.length}
-                          ・轉生 {student.rebirthCount} 次）
+                          ・收藏 {student.collectedPetCount ?? 0} 隻）
                         </p>
                         <div className="mt-2 grid grid-cols-4 gap-2">
                           {CATALOG_ENTRIES.map((entry) => {

@@ -93,6 +93,14 @@ function createDefaultUserDoc(
     // 新帳號沒被「轉生機制改版」那次全員歸零影響過，不需要看到補償
     // 彈窗——直接設成 true（已領取狀態），彈窗永遠不會跳出來。
     hasClaimedResetCompensation: true,
+    // ---- RPG 擴充 ----
+    // 新帳號沒被「轉生改收藏」的改版影響過，不需要看上線公告，
+    // 也不需要補送新手雞（他們從第一隻就是新制度）。
+    hasSeenRpgAnnouncement: true,
+    hasClaimedStarterPet: true,
+    equipmentBag: [],
+    bagExpandCount: 0,
+    collectedPetCount: 0,
     lastDailyGrantDate: null,
     createdAt: now,
     updatedAt: now,

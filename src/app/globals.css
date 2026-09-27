@@ -114,3 +114,107 @@
     transform: scale(1);
   }
 }
+
+/* ============================================================
+   RPG 戰鬥畫面（BattleStage）的動畫
+   ------------------------------------------------------------
+   跟上面幾組一樣放在全域樣式表，而不是元件裡的 <style jsx>：
+   styled-jsx 會幫 @keyframes 加上 scope hash，而這些動畫是用
+   inline style 的 animation 屬性引用的，scope 對不上就完全不會動。
+   ============================================================ */
+
+/* 飛出來的傷害數字：往上飄、放大一點再淡出 */
+@keyframes battle-damage-float {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 0) scale(0.7);
+  }
+  20% {
+    opacity: 1;
+    transform: translate(-50%, -10px) scale(1.15);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -46px) scale(1);
+  }
+}
+
+/* 被打到的時候抖一下 */
+@keyframes battle-hit-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
+
+/* 新的怪從右邊滑進場 */
+@keyframes battle-spawn-in {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* 倒下：往下沉、轉一點、淡出 */
+@keyframes battle-death-fade {
+  from {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(16px) rotate(-18deg);
+  }
+}
+
+/* 結算卡片彈出來 */
+@keyframes battle-result-pop {
+  0% {
+    opacity: 0;
+    transform: scale(0.82) translateY(16px);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.04) translateY(0);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* 掉落物一個一個飛進來 */
+@keyframes battle-drop-fly {
+  0% {
+    opacity: 0;
+    transform: translateY(24px) scale(0.5) rotate(-20deg);
+  }
+  70% {
+    opacity: 1;
+    transform: translateY(-4px) scale(1.12) rotate(4deg);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1) rotate(0deg);
+  }
+}
+
+/* 背景的橫向捲動（地面紋理往左跑，做出「前進」的感覺） */
+@keyframes battle-ground-scroll {
+  from {
+    background-position-x: 0;
+  }
+  to {
+    background-position-x: -96px;
+  }
+}
