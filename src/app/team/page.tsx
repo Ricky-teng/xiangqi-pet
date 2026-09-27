@@ -48,6 +48,7 @@ import { getJobColor } from "@/lib/rpg/jobVisual";
 import { getCatalogEntryById } from "@/lib/pet/catalog";
 import RulesButton from "@/components/RulesButton";
 import type { TeamDoc } from "@/types/rpg";
+import { useAppBackground } from "@/lib/useAppBackground";
 
 /** 長按幾毫秒才啟動拖曳 */
 const DRAG_HOLD_MS = 300;
@@ -93,6 +94,7 @@ function TeamContent() {
   const renameTeam = useGameStore((s) => s.renameTeam);
   const saveTeamMembers = useGameStore((s) => s.saveTeamMembers);
   const finishTeamBattle = useGameStore((s) => s.finishTeamBattle);
+  const bgStyle = useAppBackground();
 
   const [nameInput, setNameInput] = useState("");
   const [message, setMessage] = useState<string | null>(null);
@@ -304,7 +306,7 @@ function TeamContent() {
   // ---- 還沒有戰隊：強制取隊名 ----
   if (teamLoaded && !team) {
     return (
-      <main className="min-h-screen bg-[#FDF6E8] pb-10">
+      <main className="min-h-screen pb-10" style={bgStyle}>
         <div className="mx-auto max-w-md px-4 pt-6">
           <div className="rounded-3xl bg-white/80 px-5 py-6 text-center shadow-sm">
             <p className="text-3xl">⚔️</p>
@@ -351,8 +353,10 @@ function TeamContent() {
 
   if (!teamLoaded || !team) {
     return (
-      <main className="min-h-screen bg-[#FDF6E8]">
-        <p className="pt-20 text-center text-sm text-[#1A1A2E]/50">載入中…</p>
+      <main className="min-h-screen" style={bgStyle}>
+        <div className="pt-20 text-center">
+          <span className="inline-block rounded-2xl bg-white/80 px-4 py-2 text-sm font-bold text-[#1A1A2E] shadow-sm backdrop-blur-sm">載入中…</span>
+        </div>
       </main>
     );
   }
@@ -360,7 +364,7 @@ function TeamContent() {
   const daysLeft = Math.ceil(getMillisecondsUntilSeasonEnd() / 86400000);
 
   return (
-    <main className="min-h-screen bg-[#FDF6E8] pb-10">
+    <main className="min-h-screen pb-10" style={bgStyle}>
       <div className="mx-auto max-w-md px-4 pt-4">
         <header className="flex items-center justify-between rounded-2xl bg-white/70 px-4 py-3 shadow-sm">
           <button

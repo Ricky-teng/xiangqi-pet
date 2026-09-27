@@ -49,6 +49,7 @@ import {
   type DeployablePet,
 } from "@/lib/rpg/deploy";
 import { getJobColor } from "@/lib/rpg/jobVisual";
+import { useAppBackground } from "@/lib/useAppBackground";
 
 type View = "tower" | "prep" | "battle";
 
@@ -87,6 +88,16 @@ function TowerContent() {
   const progressLoaded = useGameStore((s) => s.exploreProgressLoaded);
   const loadExploreProgress = useGameStore((s) => s.loadExploreProgress);
   const finishExploreStage = useGameStore((s) => s.finishExploreStage);
+
+  /**
+   * 塔內頁除了使用者的背景，還要在上面疊一層該座塔的主色，讓學生一眼
+   * 知道自己在哪一區。沒有背景圖的人就只看到這層漸層（跟改動前一樣）。
+   * 上緣濃、45% 之後完全透明，不會蓋掉背景圖的主體。
+   */
+  const towerTint = `linear-gradient(180deg, ${theme.accentColor}33 0%, ${theme.accentColor}00 45%)`;
+  const bgStyle = useAppBackground(towerTint);
+  /** 載入中／未解鎖這種沒有塔景的畫面，不疊主色 */
+  const plainBgStyle = useAppBackground();
 
   const [view, setView] = useState<View>("tower");
   const [prepStage, setPrepStage] = useState<number | null>(null);
@@ -257,40 +268,40 @@ function TowerContent() {
 
   if (!progressLoaded || !progress) {
     return (
-      <main className="min-h-screen bg-[#FDF6E8] pb-10">
-        <p className="pt-20 text-center text-sm text-[#1A1A2E]/50">載入中…</p>
+      <main className="min-h-screen pb-10" style={plainBgStyle}>
+        <div className="pt-20 text-center">
+          <span className="inline-block rounded-2xl bg-white/80 px-4 py-2 text-sm font-bold text-[#1A1A2E] shadow-sm backdrop-blur-sm">載入中…</span>
+        </div>
       </main>
     );
   }
 
   if (!isTowerUnlocked(progress, towerNumber)) {
     return (
-      <main className="min-h-screen bg-[#FDF6E8] pb-10">
-        <div className="mx-auto max-w-md px-4 pt-10 text-center">
-          <p className="text-4xl">🔒</p>
-          <p className="mt-2 text-sm font-bold text-[#1A1A2E]">這座塔還沒解鎖</p>
-          <p className="mt-1 text-xs text-[#1A1A2E]/55">
-            要先通關第 {towerNumber - 1} 塔的第 {STAGES_PER_TOWER} 關。
-          </p>
-          <button
-            type="button"
-            onClick={() => router.push("/explore")}
-            className="mt-4 rounded-xl bg-[#1A1A2E] px-4 py-2.5 text-sm font-bold text-[#FDF6E8] shadow-md"
-          >
-            返回塔清單
-          </button>
+      <main className="min-h-screen pb-10" style={plainBgStyle}>
+        <div className="mx-auto max-w-md px-4 pt-10">
+          {/* 整塊包成白卡，否則在亮色的背景圖上讀不到 */}
+          <div className="rounded-3xl bg-white/80 px-5 py-6 text-center shadow-sm backdrop-blur-sm">
+            <p className="text-4xl">🔒</p>
+            <p className="mt-2 text-sm font-bold text-[#1A1A2E]">這座塔還沒解鎖</p>
+            <p className="mt-1 text-xs text-[#1A1A2E]/55">
+              要先通關第 {towerNumber - 1} 塔的第 {STAGES_PER_TOWER} 關。
+            </p>
+            <button
+              type="button"
+              onClick={() => router.push("/explore")}
+              className="mt-4 rounded-xl bg-[#1A1A2E] px-4 py-2.5 text-sm font-bold text-[#FDF6E8] shadow-md"
+            >
+              返回塔清單
+            </button>
+          </div>
         </div>
       </main>
     );
   }
 
   return (
-    <main
-      className="min-h-screen pb-10"
-      style={{
-        background: `linear-gradient(180deg, ${theme.accentColor}22 0%, #FDF6E8 45%)`,
-      }}
-    >
+    <main className="min-h-screen pb-10" style={bgStyle}>
       <div className="mx-auto max-w-md px-4 pt-4">
         {/* ---- 頁首 ---- */}
         <header className="flex items-center justify-between rounded-2xl bg-white/75 px-4 py-3 shadow-sm">

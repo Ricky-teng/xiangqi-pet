@@ -34,6 +34,7 @@ import { useRouter } from "next/navigation";
 import { collection, doc, getDocs, limit, onSnapshot, orderBy, query, updateDoc, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useGameStore } from "@/stores/useGameStore";
+import { useAppBackground } from "@/lib/useAppBackground";
 import { signOutUser } from "@/hooks/useAuth";
 import RequireAuth from "@/components/RequireAuth";
 import TutorialOverlay from "@/components/tutorial/TutorialOverlay";
@@ -130,12 +131,14 @@ const STAGE_LABEL: Record<string, string> = {
 
 function HomePageContent() {
   const user = useGameStore((s) => s.user);
+  const bgStyle = useAppBackground();
 
   // ---- 使用者資料尚未載入完成的保護性渲染 ----
   if (!user) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#FDF6E8]">
-        <p className="text-[#1A1A2E]">資料載入中…</p>
+      <main className="flex min-h-screen items-center justify-center" style={bgStyle}>
+        {/* 背景圖可能很亮，裸文字會看不到，要墊一層半透明白底 */}
+        <p className="rounded-2xl bg-white/80 px-4 py-2 text-sm font-bold text-[#1A1A2E] shadow-sm backdrop-blur-sm">資料載入中…</p>
       </main>
     );
   }
@@ -153,6 +156,7 @@ function HomePageContent() {
 
 function TeacherHomeContent({ user }: { user: UserDoc }) {
   const router = useRouter();
+  const bgStyle = useAppBackground();
   const [isSigningOut, setIsSigningOut] = useState(false);
 
   async function handleSignOut() {
@@ -166,7 +170,7 @@ function TeacherHomeContent({ user }: { user: UserDoc }) {
   }
 
   return (
-    <main className="flex min-h-screen flex-col bg-[#FDF6E8] px-4 pt-4 pb-10">
+    <main className="flex min-h-screen flex-col px-4 pt-4 pb-10" style={bgStyle}>
       <div className="mx-auto w-full max-w-md flex-1">
         <div className="mb-2 flex items-center justify-between px-1">
           <p className="text-xs font-medium text-[#1A1A2E]/60">
@@ -396,6 +400,7 @@ function LivingPetDisplay({
 
 function StudentHomeContent({ user }: { user: UserDoc }) {
   const router = useRouter();
+  const bgStyle = useAppBackground();
 
   const pet = useGameStore((s) => s.pet);
   const claimDailyGrant = useGameStore((s) => s.claimDailyGrant);
@@ -624,8 +629,9 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
   // ---- 寵物資料尚未載入完成的保護性渲染 ----
   if (!pet) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-[#FDF6E8]">
-        <p className="text-[#1A1A2E]">資料載入中…</p>
+      <main className="flex min-h-screen items-center justify-center" style={bgStyle}>
+        {/* 背景圖可能很亮，裸文字會看不到，要墊一層半透明白底 */}
+        <p className="rounded-2xl bg-white/80 px-4 py-2 text-sm font-bold text-[#1A1A2E] shadow-sm backdrop-blur-sm">資料載入中…</p>
       </main>
     );
   }
@@ -662,13 +668,7 @@ function StudentHomeContent({ user }: { user: UserDoc }) {
   return (
     <>
       {showTutorial ? <TutorialOverlay onFinish={finishTutorial} /> : null}
-    <main
-      className="min-h-screen pb-10"
-      style={user.activeBackground
-        ? { backgroundImage: `url(/backgrounds/${user.activeBackground}.jpg)`, backgroundSize: "cover", backgroundPosition: "center", backgroundAttachment: "fixed" }
-        : { backgroundColor: "#FDF6E8" }
-      }
-    >
+    <main className="min-h-screen pb-10" style={bgStyle}>
       <div className="mx-auto max-w-md px-4 pt-4">
         {/* ============================================================
             A. 頂部狀態列：顯示名稱在左，飼料數量＋設定入口在右，

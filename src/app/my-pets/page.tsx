@@ -38,6 +38,7 @@ import {
   getTotalPower,
 } from "@/lib/rpg/stats";
 import { createEmptyPetRecord, type CollectedPetDoc } from "@/types/rpg";
+import { useAppBackground } from "@/lib/useAppBackground";
 import { getDaysRaised } from "@/lib/collectedPets";
 import { LIVING_PET_ID } from "@/lib/rpg/deploy";
 
@@ -386,6 +387,7 @@ function MyPetsContent() {
   const collectedPetsLoaded = useGameStore((s) => s.collectedPetsLoaded);
   const loadCollectedPets = useGameStore((s) => s.loadCollectedPets);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const bgStyle = useAppBackground();
 
   useEffect(() => {
     void loadCollectedPets();
@@ -424,113 +426,116 @@ function MyPetsContent() {
   if (!user) return null;
 
   return (
-    <div className="mx-auto w-full max-w-md px-4 py-4">
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => router.push("/")}
-          className="rounded-xl bg-white/70 px-3 py-1.5 text-sm font-bold text-[#1A1A2E] shadow-sm transition-transform active:scale-95"
-        >
-          ← 返回
-        </button>
-        <h1 className="text-lg font-extrabold text-[#1A1A2E]">🐣 我的小雞</h1>
-      </div>
-
-      <p className="mt-2 rounded-2xl bg-white/60 px-3 py-2 text-xs text-[#1A1A2E]/60">
-        養到大師雞之後按「收藏」，小雞就會永久留在這裡。收藏的小雞不用餵食、不會生病，
-        可以派去探險跟戰隊。
-      </p>
-
-      {/* 正在養的那一隻：長到大師雞之後就能穿裝備、派出去打，
-          所以也要能在這一頁換裝。放在收藏清單「上面」自成一區，
-          因為牠的數值還會變（轉職、生病），跟已經定型的收藏不同。 */}
-      {livingAsCollected ? (
-        <section className="mt-3 rounded-3xl bg-[#8B5FBF]/10 px-3 py-3">
-          <p className="text-[11px] font-bold text-[#8B5FBF]">養成中（數值還會變動）</p>
+    // 最外層一定要吃 bgStyle，學生買的背景才會套進來
+    <main className="min-h-screen pb-10" style={bgStyle}>
+      <div className="mx-auto w-full max-w-md px-4 py-4">
+        <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => setSelectedId(LIVING_PET_ID)}
-            className="mt-1.5 flex w-full items-center gap-3 rounded-2xl bg-white/85 px-3 py-2.5 text-left shadow-sm transition-transform active:scale-95"
+            onClick={() => router.push("/")}
+            className="rounded-xl bg-white/70 px-3 py-1.5 text-sm font-bold text-[#1A1A2E] shadow-sm transition-transform active:scale-95"
           >
-            <PetAvatar jobId={livingAsCollected.jobId} size={40} />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-extrabold text-[#1A1A2E]">
-                {livingAsCollected.name}
-              </p>
-              <p className="text-[10px] text-[#1A1A2E]/55">
-                {getDeployBlockReason(livingAsCollected.weapon) ?? "可以出戰"}
-              </p>
-            </div>
-            <span className="rounded-full bg-[#1A1A2E] px-2 py-0.5 text-[10px] font-bold text-[#E8B84B]">
-              {getTotalPower(
-                getFinalStats(
-                  livingAsCollected.jobId,
-                  livingAsCollected.severeSickCount,
-                  livingAsCollected.weapon,
-                  livingAsCollected.armor,
-                ),
-              )}
-            </span>
+            ← 返回
           </button>
-        </section>
-      ) : null}
-
-      {!collectedPetsLoaded ? (
-        <p className="mt-6 text-center text-sm text-[#1A1A2E]/50">載入中…</p>
-      ) : collectedPets.length === 0 ? (
-        <div className="mt-6 rounded-3xl bg-white/70 px-4 py-8 text-center shadow-sm">
-          <p className="text-3xl">🥚</p>
-          <p className="mt-2 text-sm font-bold text-[#1A1A2E]">還沒有收藏任何小雞</p>
-          <p className="mt-1 text-xs text-[#1A1A2E]/55">
-            把小雞餵到大師雞，首頁就會出現「收藏」按鈕。
-            <br />
-            收藏前可以先轉職，收藏當下的職業就是牠的永久職業。
-          </p>
-          <button
-            type="button"
-            onClick={() => router.push("/feed")}
-            className="mt-4 rounded-xl bg-gradient-to-b from-[#F6D87A] to-[#E8B84B] px-4 py-2 text-sm font-extrabold text-[#5C3D0A] shadow-md transition-transform active:scale-95"
-          >
-            🌾 去餵小雞
-          </button>
+          <h1 className="text-lg font-extrabold text-[#1A1A2E]">🐣 我的小雞</h1>
         </div>
-      ) : (
-        <>
-          <p className="mt-3 text-xs font-bold text-[#1A1A2E]/50">
-            共 {collectedPets.length} 隻
-          </p>
-          <div className="mt-2 grid grid-cols-3 gap-2">
-            {collectedPets.map((pet) => {
-              const stats = getFinalStats(pet.jobId, pet.severeSickCount, pet.weapon, pet.armor);
-              return (
-                <button
-                  key={pet.id}
-                  type="button"
-                  onClick={() => setSelectedId(pet.id)}
-                  className="flex flex-col items-center gap-0.5 rounded-2xl bg-white/80 px-1.5 py-2.5 shadow-sm transition-transform active:scale-95"
-                >
-                  <PetAvatar jobId={pet.jobId} size={44} />
-                  <span className="w-full truncate text-center text-[11px] font-extrabold text-[#1A1A2E]">
-                    {pet.name}
-                  </span>
-                  <span className="rounded-full bg-[#1A1A2E] px-1.5 py-0.5 text-[9px] font-bold text-[#E8B84B]">
-                    {getTotalPower(stats)}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </>
-      )}
 
-      {selected ? (
-        <PetDetail
-          pet={selected}
-          isLiving={selected.id === LIVING_PET_ID}
-          onClose={() => setSelectedId(null)}
-        />
-      ) : null}
-    </div>
+        <p className="mt-2 rounded-2xl bg-white/60 px-3 py-2 text-xs text-[#1A1A2E]/60">
+          養到大師雞之後按「收藏」，小雞就會永久留在這裡。收藏的小雞不用餵食、不會生病，
+          可以派去探險跟戰隊。
+        </p>
+
+        {/* 正在養的那一隻：長到大師雞之後就能穿裝備、派出去打，
+            所以也要能在這一頁換裝。放在收藏清單「上面」自成一區，
+            因為牠的數值還會變（轉職、生病），跟已經定型的收藏不同。 */}
+        {livingAsCollected ? (
+          <section className="mt-3 rounded-3xl bg-[#8B5FBF]/10 px-3 py-3">
+            <p className="text-[11px] font-bold text-[#8B5FBF]">養成中（數值還會變動）</p>
+            <button
+              type="button"
+              onClick={() => setSelectedId(LIVING_PET_ID)}
+              className="mt-1.5 flex w-full items-center gap-3 rounded-2xl bg-white/85 px-3 py-2.5 text-left shadow-sm transition-transform active:scale-95"
+            >
+              <PetAvatar jobId={livingAsCollected.jobId} size={40} />
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-extrabold text-[#1A1A2E]">
+                  {livingAsCollected.name}
+                </p>
+                <p className="text-[10px] text-[#1A1A2E]/55">
+                  {getDeployBlockReason(livingAsCollected.weapon) ?? "可以出戰"}
+                </p>
+              </div>
+              <span className="rounded-full bg-[#1A1A2E] px-2 py-0.5 text-[10px] font-bold text-[#E8B84B]">
+                {getTotalPower(
+                  getFinalStats(
+                    livingAsCollected.jobId,
+                    livingAsCollected.severeSickCount,
+                    livingAsCollected.weapon,
+                    livingAsCollected.armor,
+                  ),
+                )}
+              </span>
+            </button>
+          </section>
+        ) : null}
+
+        {!collectedPetsLoaded ? (
+          <p className="mt-6 text-center text-sm text-[#1A1A2E]/50">載入中…</p>
+        ) : collectedPets.length === 0 ? (
+          <div className="mt-6 rounded-3xl bg-white/70 px-4 py-8 text-center shadow-sm">
+            <p className="text-3xl">🥚</p>
+            <p className="mt-2 text-sm font-bold text-[#1A1A2E]">還沒有收藏任何小雞</p>
+            <p className="mt-1 text-xs text-[#1A1A2E]/55">
+              把小雞餵到大師雞，首頁就會出現「收藏」按鈕。
+              <br />
+              收藏前可以先轉職，收藏當下的職業就是牠的永久職業。
+            </p>
+            <button
+              type="button"
+              onClick={() => router.push("/feed")}
+              className="mt-4 rounded-xl bg-gradient-to-b from-[#F6D87A] to-[#E8B84B] px-4 py-2 text-sm font-extrabold text-[#5C3D0A] shadow-md transition-transform active:scale-95"
+            >
+              🌾 去餵小雞
+            </button>
+          </div>
+        ) : (
+          <>
+            <p className="mt-3 inline-block rounded-full bg-white/70 px-2.5 py-1 text-xs font-bold text-[#1A1A2E]/70 shadow-sm">
+              共 {collectedPets.length} 隻
+            </p>
+            <div className="mt-2 grid grid-cols-3 gap-2">
+              {collectedPets.map((pet) => {
+                const stats = getFinalStats(pet.jobId, pet.severeSickCount, pet.weapon, pet.armor);
+                return (
+                  <button
+                    key={pet.id}
+                    type="button"
+                    onClick={() => setSelectedId(pet.id)}
+                    className="flex flex-col items-center gap-0.5 rounded-2xl bg-white/80 px-1.5 py-2.5 shadow-sm transition-transform active:scale-95"
+                  >
+                    <PetAvatar jobId={pet.jobId} size={44} />
+                    <span className="w-full truncate text-center text-[11px] font-extrabold text-[#1A1A2E]">
+                      {pet.name}
+                    </span>
+                    <span className="rounded-full bg-[#1A1A2E] px-1.5 py-0.5 text-[9px] font-bold text-[#E8B84B]">
+                      {getTotalPower(stats)}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        )}
+
+        {selected ? (
+          <PetDetail
+            pet={selected}
+            isLiving={selected.id === LIVING_PET_ID}
+            onClose={() => setSelectedId(null)}
+          />
+        ) : null}
+      </div>
+    </main>
   );
 }
 

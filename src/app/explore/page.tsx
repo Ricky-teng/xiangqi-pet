@@ -89,7 +89,9 @@ function ExploreContent() {
         </div>
 
         {!loaded || !progress ? (
-          <p className="mt-6 text-center text-sm text-[#1A1A2E]/50">載入中…</p>
+          <div className="mt-6 text-center">
+            <span className="inline-block rounded-2xl bg-white/80 px-4 py-2 text-sm font-bold text-[#1A1A2E] shadow-sm backdrop-blur-sm">載入中…</span>
+          </div>
         ) : (
           <div className="mt-3 grid grid-cols-2 gap-2.5">
             {Array.from({ length: TOWER_COUNT }, (_, i) => i + 1).map((tower) => {

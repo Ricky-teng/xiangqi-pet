@@ -4,6 +4,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useGameStore } from "@/stores/useGameStore";
+import { useAppBackground } from "@/lib/useAppBackground";
 import RequireAuth from "@/components/RequireAuth";
 import { SHOP_ITEMS, BACKGROUND_GACHA_COST, BACKGROUND_GACHA_TEN_COST, BACKGROUND_GACHA_WIN_RATE, getBackgroundGachaPool, BOARD_SKIN_GACHA_COST, BOARD_SKIN_GACHA_TEN_COST, BOARD_SKIN_GACHA_WIN_RATE, getBoardSkinGachaPool, RARITY_LABELS, RARITY_COLORS, RARITY_ORDER, type ShopItem } from "@/lib/shopItems";
 import GachaEgg, { type GachaPhase, type GachaResultData } from "@/components/shop/GachaEgg";
@@ -11,6 +12,7 @@ import { getTodayDateString } from "@/lib/tasks/dailyTasks";
 
 function ShopContent() {
   const router = useRouter();
+  const bgStyle = useAppBackground();
   const user = useGameStore((s) => s.user);
   const buyShopItem = useGameStore((s) => s.buyShopItem);
   const drawBackgroundGacha = useGameStore((s) => s.drawBackgroundGacha);
@@ -167,9 +169,7 @@ function ShopContent() {
   return (
     <main
       className="min-h-screen pb-10"
-      style={user.activeBackground
-        ? { backgroundImage: `url(/backgrounds/${user.activeBackground}.jpg)`, backgroundSize: "cover", backgroundPosition: "center", backgroundAttachment: "fixed" }
-        : { backgroundColor: "#FDF6E8" }}
+      style={bgStyle}
     >
       <div className="mx-auto max-w-md px-4 pt-4">
         <header className="flex items-center justify-between rounded-2xl bg-white/70 px-4 py-3 shadow-sm">
