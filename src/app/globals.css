@@ -1,3 +1,4 @@
+/* src/app/globals.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -217,4 +218,563 @@
   to {
     background-position-x: -96px;
   }
+}
+
+/* ============================================================
+   戰鬥畫面 2.0：怪物待機動態、特效字、Boss 警示
+   ------------------------------------------------------------
+   一樣放全域：MonsterArt / BattleStage 用 className 引用，
+   不經過 styled-jsx 的 scope。
+   ============================================================ */
+
+/* 全站的手遊數字字體（Lilita One，只有拉丁字元；中文會退回系統字） */
+.font-display {
+  font-family: var(--font-display), "Arial Rounded MT Bold", system-ui, sans-serif;
+  letter-spacing: 0.01em;
+}
+
+/* ---- 怪物：眨眼（大部分時間睜著，最後 4% 快速閉一下） ---- */
+.mon-blink {
+  transform-box: fill-box;
+  animation: mon-blink 4.6s infinite;
+}
+@keyframes mon-blink {
+  0%, 93%, 100% { transform: scaleY(1); }
+  95.5% { transform: scaleY(0.08); }
+}
+
+/* ---- 怪物：火焰閃爍 ---- */
+.mon-flicker {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: mon-flicker 0.42s ease-in-out infinite alternate;
+}
+@keyframes mon-flicker {
+  0% { transform: scale(1, 1) skewX(0deg); }
+  50% { transform: scale(0.92, 1.12) skewX(-4deg); }
+  100% { transform: scale(1.05, 0.94) skewX(3deg); }
+}
+
+/* ---- 怪物：葉子／翅膀輕輕擺動 ---- */
+.mon-sway {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: mon-sway 2.4s ease-in-out infinite alternate;
+}
+@keyframes mon-sway {
+  from { rotate: -6deg; }
+  to { rotate: 6deg; }
+}
+.mon-wing {
+  animation: mon-wing 0.7s ease-in-out infinite alternate;
+}
+@keyframes mon-wing {
+  from { transform: scaleY(1); }
+  to { transform: scaleY(0.82) rotate(-3deg); }
+}
+
+/* ---- 怪物：泡泡上浮、星星閃、光環呼吸、煙霧飄 ---- */
+.mon-bubble {
+  animation: mon-bubble 2.6s ease-in-out infinite;
+}
+@keyframes mon-bubble {
+  0% { transform: translateY(4px); opacity: 0; }
+  25% { opacity: 1; }
+  100% { transform: translateY(-14px); opacity: 0; }
+}
+.mon-twinkle {
+  animation: mon-twinkle 1.8s ease-in-out infinite;
+}
+@keyframes mon-twinkle {
+  0%, 100% { transform: scale(0.6) rotate(0deg); opacity: 0.4; }
+  50% { transform: scale(1.15) rotate(45deg); opacity: 1; }
+}
+.mon-halo {
+  animation: mon-halo 2.2s ease-in-out infinite alternate;
+}
+@keyframes mon-halo {
+  from { opacity: 0.55; }
+  to { opacity: 1; }
+}
+.mon-aura {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: mon-aura 2.8s ease-in-out infinite alternate;
+}
+@keyframes mon-aura {
+  from { transform: scale(0.92); opacity: 0.75; }
+  to { transform: scale(1.06); opacity: 1; }
+}
+.mon-wisp {
+  animation: mon-wisp 2s ease-in-out infinite alternate;
+}
+@keyframes mon-wisp {
+  from { transform: translateX(-1.5px) skewX(-3deg); opacity: 0.85; }
+  to { transform: translateX(1.5px) skewX(3deg); opacity: 1; }
+}
+.mon-zap {
+  animation: mon-zap 1.3s steps(1) infinite;
+}
+@keyframes mon-zap {
+  0%, 60%, 100% { opacity: 1; }
+  62%, 70% { opacity: 0.15; }
+  72% { opacity: 1; }
+  74% { opacity: 0.3; }
+}
+
+/* ---- 戰鬥單位待機：呼吸式上下彈（擠壓＋伸展） ---- */
+.unit-idle {
+  transform-origin: 50% 100%;
+  animation: unit-idle 1.6s ease-in-out infinite;
+}
+@keyframes unit-idle {
+  0%, 100% { transform: translateY(0) scale(1, 1); }
+  50% { transform: translateY(-3%) scale(0.97, 1.03); }
+}
+
+/* ---- 特效字：粗描邊＋漸層填色 ----
+   本體負責「描邊」（深色字＋text-stroke＋投影），::after 疊在上面負責
+   「漸層填色」（background-clip:text）。描邊是沿著字形輪廓置中畫的，
+   內側那一半會被 ::after 蓋掉，看起來就是乾淨的外描邊。
+   （反過來把描邊放 ::before 墊底行不通：堆疊層的背景永遠畫在負 z-index
+   子元素下面，填色會被描邊整個蓋住。） */
+.fx-text {
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
+  color: var(--fx-stroke-color, #1a0d00);
+  -webkit-text-stroke: var(--fx-stroke, 6px) var(--fx-stroke-color, #1a0d00);
+  paint-order: stroke fill;
+  text-shadow: 0 3px 0 var(--fx-stroke-color, #1a0d00), 0 6px 14px rgba(0, 0, 0, 0.45);
+}
+.fx-text::after {
+  content: attr(data-text);
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  color: transparent;
+  -webkit-text-stroke: 0 transparent;
+  text-shadow: none;
+  background-image: var(--fx-fill, linear-gradient(180deg, #ffffff 0%, #ffffff 100%));
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* ---- Boss 警示條：斜紋往一個方向無限捲 ---- */
+.boss-hazard {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    #ff2d46 0 16px,
+    #1a0508 16px 32px
+  );
+  background-size: 45.25px 45.25px;
+  animation: boss-hazard 0.6s linear infinite;
+}
+@keyframes boss-hazard {
+  from { background-position: 0 0; }
+  to { background-position: 45.25px 0; }
+}
+.boss-marquee {
+  animation: boss-marquee 2.4s linear infinite;
+}
+@keyframes boss-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.boss-marquee.reverse {
+  animation-direction: reverse;
+}
+
+/* ---- 背景：雲層緩慢漂移、光束搖曳 ---- */
+.bg-drift {
+  animation: bg-drift 60s linear infinite;
+}
+@keyframes bg-drift {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.bg-rays {
+  transform-origin: 50% 0%;
+  animation: bg-rays 7s ease-in-out infinite alternate;
+}
+@keyframes bg-rays {
+  from { transform: rotate(-3deg); opacity: 0.55; }
+  to { transform: rotate(3deg); opacity: 0.9; }
+}
+
+/* 使用者在系統設定「減少動態效果」：待機類的無限動畫全部停掉 */
+@media (prefers-reduced-motion: reduce) {
+  .mon-blink, .mon-flicker, .mon-sway, .mon-wing, .mon-bubble, .mon-twinkle,
+  .mon-halo, .mon-aura, .mon-wisp, .mon-zap, .unit-idle, .boss-hazard,
+  .boss-marquee, .bg-drift, .bg-rays {
+    animation: none !important;
+  }
+}
+
+/* ---- 魔法陣慢慢轉 ---- */
+.spin-slow {
+  animation: spin-slow 9s linear infinite;
+}
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+
+/* ---- 開場橫幅：一條光帶橫掃進來，字從右邊斜衝進場，最後整條往左離場 ---- */
+.banner-band {
+  top: 50%;
+  margin-top: -38px;
+  background: linear-gradient(90deg, rgba(10,8,30,0) 0%, rgba(10,8,30,0.82) 18%, rgba(10,8,30,0.82) 82%, rgba(10,8,30,0) 100%);
+  border-top: 2px solid rgba(245,197,66,0.85);
+  border-bottom: 2px solid rgba(245,197,66,0.85);
+  box-shadow: 0 0 24px rgba(245,197,66,0.35);
+  animation: banner-band 1.35s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes banner-band {
+  0% { transform: scaleY(0); opacity: 0; }
+  14% { transform: scaleY(1.15); opacity: 1; }
+  22% { transform: scaleY(1); }
+  82% { transform: scaleY(1); opacity: 1; }
+  100% { transform: scaleY(0); opacity: 0; }
+}
+.banner-start-text {
+  animation: banner-start-text 1.35s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes banner-start-text {
+  0% { transform: translateX(120%) skewX(-18deg); opacity: 0; }
+  20% { transform: translateX(-4%) skewX(-8deg); opacity: 1; }
+  30% { transform: translateX(0) skewX(0deg); }
+  80% { transform: translateX(0) scale(1.02); opacity: 1; filter: brightness(1); }
+  84% { filter: brightness(1.8); }
+  100% { transform: translateX(-120%) skewX(18deg); opacity: 0; }
+}
+.banner-sub {
+  animation: banner-sub 1.35s ease both;
+}
+@keyframes banner-sub {
+  0%, 22% { opacity: 0; transform: translateY(6px); }
+  34%, 80% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; }
+}
+
+/* ---- BOSS 警示 ---- */
+.boss-overlay {
+  animation: boss-overlay 2.5s ease both;
+}
+@keyframes boss-overlay {
+  0% { opacity: 0; }
+  8% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.boss-hazard-wrap {
+  animation: boss-hazard-in 2.5s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes boss-hazard-in {
+  0% { transform: scaleX(0); }
+  14% { transform: scaleX(1); }
+  100% { transform: scaleX(1); }
+}
+.boss-title {
+  animation: boss-title 2.5s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes boss-title {
+  0% { transform: scale(3.2); opacity: 0; filter: blur(8px); }
+  16% { transform: scale(0.92); opacity: 1; filter: blur(0); }
+  22% { transform: scale(1.06); }
+  28% { transform: scale(1); }
+  30%, 34%, 38% { transform: translateX(-3px); }
+  32%, 36% { transform: translateX(3px); }
+  40% { transform: translateX(0); }
+  100% { transform: scale(1.04); opacity: 1; }
+}
+.boss-name {
+  animation: boss-name 2.5s ease both;
+}
+@keyframes boss-name {
+  0%, 26% { opacity: 0; transform: translateY(10px) scaleX(0.6); }
+  38% { opacity: 1; transform: translateY(0) scaleX(1); }
+  100% { opacity: 1; }
+}
+
+/* ---- K.O.：從大縮小砸下來，後面一圈旋轉光芒 ---- */
+.ko-text {
+  animation: ko-text 1.7s cubic-bezier(.2,.8,.2,1) both;
+}
+@keyframes ko-text {
+  0% { transform: scale(3.4) rotate(-14deg); opacity: 0; }
+  16% { transform: scale(0.88) rotate(-6deg); opacity: 1; }
+  24% { transform: scale(1.06) rotate(-6deg); }
+  32% { transform: scale(1) rotate(-6deg); }
+  85% { transform: scale(1.04) rotate(-6deg); opacity: 1; }
+  100% { transform: scale(1.3) rotate(-6deg); opacity: 0; }
+}
+.ko-rays {
+  background: repeating-conic-gradient(from 0deg, rgba(255,224,122,0.32) 0deg 8deg, rgba(255,224,122,0) 8deg 22deg);
+  -webkit-mask-image: radial-gradient(circle, #000 0%, #000 18%, transparent 62%);
+  mask-image: radial-gradient(circle, #000 0%, #000 18%, transparent 62%);
+  animation: ko-rays 1.7s ease-out both;
+}
+@keyframes ko-rays {
+  0% { transform: scale(0.2) rotate(0deg); opacity: 0; }
+  20% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { transform: scale(1.2) rotate(70deg); opacity: 0; }
+}
+
+/* ---- 敗北：從上方掉下來晃一下 ---- */
+.lose-text {
+  animation: lose-text 1.7s cubic-bezier(.3,1.4,.5,1) both;
+}
+@keyframes lose-text {
+  0% { transform: translateY(-90px); opacity: 0; }
+  30% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  45% { transform: rotate(-4deg); }
+  60% { transform: rotate(2deg); }
+  75%, 100% { transform: rotate(0deg); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spin-slow, .ko-rays { animation: none !important; }
+}
+
+/* ============================================================
+   裝備卡框、結算卡片
+   ============================================================ */
+
+/* 卡框光澤：一道斜光每 3 秒掃過一次 */
+.item-shine {
+  background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.55) 45%, transparent 60%);
+  background-size: 250% 100%;
+  animation: item-shine 3s ease-in-out infinite;
+}
+@keyframes item-shine {
+  0%, 55% { background-position: 150% 0; }
+  100% { background-position: -100% 0; }
+}
+.item-rays {
+  background: repeating-conic-gradient(from 0deg, rgba(255,240,168,0.28) 0deg 10deg, transparent 10deg 30deg);
+  animation: spin-slow 12s linear infinite;
+}
+.item-twinkle {
+  animation: mon-twinkle 1.6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* ---- 結算：背後的旋轉光芒 ---- */
+.result-rays {
+  background: repeating-conic-gradient(from 0deg, rgba(255,214,102,0.22) 0deg 7deg, rgba(255,214,102,0) 7deg 20deg);
+  -webkit-mask-image: radial-gradient(circle, #000 0%, #000 22%, transparent 64%);
+  mask-image: radial-gradient(circle, #000 0%, #000 22%, transparent 64%);
+  animation: result-rays-in 0.8s ease-out both, spin-slow 30s linear infinite 0.8s;
+}
+@keyframes result-rays-in {
+  from { opacity: 0; transform: scale(0.3); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ---- 結算卡片本體：從下方彈上來 ---- */
+.result-card {
+  animation: result-card-in 0.55s cubic-bezier(.2,1.3,.4,1) both;
+}
+@keyframes result-card-in {
+  0% { opacity: 0; transform: translateY(40px) scale(0.86); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+.result-card.defeat {
+  animation: result-card-in 0.55s cubic-bezier(.2,1.3,.4,1) both, result-defeat-shake 0.4s ease 0.55s;
+}
+@keyframes result-defeat-shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-5px); }
+  40%, 80% { transform: translateX(5px); }
+}
+
+/* ---- 標題字砸下來 ---- */
+.result-title {
+  animation: result-title 0.7s cubic-bezier(.2,.8,.2,1) 0.15s both;
+}
+@keyframes result-title {
+  0% { opacity: 0; transform: scale(2.6); filter: blur(6px); }
+  55% { opacity: 1; transform: scale(0.92); filter: blur(0); }
+  75% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+.result-ribbon {
+  animation: result-ribbon 0.5s cubic-bezier(.2,.8,.2,1) 0.45s both;
+}
+@keyframes result-ribbon {
+  from { opacity: 0; transform: scaleX(0.2); }
+  to { opacity: 1; transform: scaleX(1); }
+}
+.result-fade-up {
+  animation: result-fade-up 0.45s ease-out both;
+}
+@keyframes result-fade-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- 掉寶卡片：背面朝上 → 翻面 ---- */
+.drop-card {
+  perspective: 600px;
+}
+.drop-card-inner {
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 0.55s cubic-bezier(.3,1.4,.5,1);
+}
+.drop-card-inner.flipped {
+  transform: rotateY(180deg);
+}
+.drop-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.drop-face.front {
+  transform: rotateY(180deg);
+}
+.drop-card-enter {
+  animation: drop-card-enter 0.45s cubic-bezier(.2,1.3,.4,1) both;
+}
+@keyframes drop-card-enter {
+  from { opacity: 0; transform: translateY(-30px) rotate(-8deg) scale(0.7); }
+  to { opacity: 1; transform: translateY(0) rotate(0deg) scale(1); }
+}
+/* 翻面瞬間往上衝的光柱 */
+.drop-pillar {
+  animation: drop-pillar 0.9s ease-out both;
+}
+@keyframes drop-pillar {
+  0% { opacity: 0; transform: scaleY(0.2); }
+  25% { opacity: 1; transform: scaleY(1); }
+  100% { opacity: 0; transform: scaleY(1.1); }
+}
+/* 卡背的問號呼吸 */
+.drop-back-pulse {
+  animation: drop-back-pulse 0.9s ease-in-out infinite alternate;
+}
+@keyframes drop-back-pulse {
+  from { opacity: 0.6; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1.06); }
+}
+
+/* ---- 彩帶 ---- */
+.confetti {
+  position: absolute;
+  top: -12px;
+  width: 7px;
+  height: 11px;
+  border-radius: 1.5px;
+  animation: confetti-fall var(--dur, 2.6s) cubic-bezier(.3,.6,.5,1) var(--delay, 0s) both;
+}
+@keyframes confetti-fall {
+  0% { transform: translate(0, 0) rotate(0deg) rotateY(0deg); opacity: 1; }
+  100% { transform: translate(var(--dx, 0px), 105vh) rotate(var(--rot, 540deg)) rotateY(720deg); opacity: 0.9; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .item-shine, .item-rays, .result-rays, .confetti, .drop-back-pulse { animation: none !important; }
+  .confetti { display: none; }
+}
+
+/* ============================================================
+   RPG 區共用質感（探險、戰隊、我的小雞、物品）
+   ============================================================ */
+
+/* 深色玻璃：頁首、浮在背景圖上的資訊條 */
+.rpg-glass {
+  background: linear-gradient(180deg, rgba(30,27,62,0.9) 0%, rgba(14,13,30,0.92) 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 0 0 1px rgba(245,197,66,0.28), 0 8px 22px rgba(0,0,0,0.3);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+/* 深色面板：主要內容區塊 */
+.rpg-panel {
+  background: linear-gradient(180deg, rgba(28,26,58,0.95) 0%, rgba(13,12,28,0.97) 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08), 0 0 0 1px rgba(245,197,66,0.22), 0 10px 26px rgba(0,0,0,0.32);
+}
+
+/* 金色主按鈕：亮面＋底部厚度＋按下去會沉 */
+.btn-gold {
+  position: relative;
+  overflow: hidden;
+  color: #3a1d00;
+  background: linear-gradient(180deg, #fff6cc 0%, #f5c542 50%, #e09a12 100%);
+  box-shadow: inset 0 2px 0 rgba(255,255,255,0.7), inset 0 -3px 0 rgba(120,60,0,0.35), 0 4px 0 #7a4a06, 0 8px 16px rgba(0,0,0,0.3);
+  transition: transform 90ms ease, box-shadow 90ms ease, filter 200ms;
+}
+.btn-gold:active:not(:disabled) {
+  transform: translateY(3px);
+  box-shadow: inset 0 2px 0 rgba(255,255,255,0.7), inset 0 -2px 0 rgba(120,60,0,0.35), 0 1px 0 #7a4a06, 0 3px 8px rgba(0,0,0,0.3);
+}
+.btn-gold:disabled {
+  filter: grayscale(0.9) brightness(0.75);
+  cursor: not-allowed;
+}
+/* 主按鈕的光澤，每 2.6 秒掃過一次，吸引學生按 */
+.btn-gold::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 35%, rgba(255,255,255,0.65) 48%, transparent 60%);
+  background-size: 260% 100%;
+  animation: item-shine 2.6s ease-in-out infinite;
+  pointer-events: none;
+}
+.btn-gold:disabled::after {
+  display: none;
+}
+
+/* 目前該打的那一層：金框呼吸 */
+.floor-current {
+  animation: floor-current 1.6s ease-in-out infinite;
+}
+@keyframes floor-current {
+  0%, 100% { box-shadow: inset 0 0 0 2px rgba(245,197,66,0.9), 0 0 10px rgba(245,197,66,0.35); }
+  50% { box-shadow: inset 0 0 0 2px rgba(255,240,168,1), 0 0 22px rgba(245,197,66,0.75); }
+}
+/* 「往這裡點」的小箭頭上下跳 */
+.nudge-bounce {
+  animation: nudge-bounce 0.9s ease-in-out infinite;
+}
+@keyframes nudge-bounce {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-gold::after, .floor-current, .nudge-bounce { animation: none !important; }
+}
+
+/* 規則說明面板從下方滑上來 */
+.rules-sheet {
+  animation: rules-sheet 0.32s cubic-bezier(.2,.9,.3,1) both;
+}
+@keyframes rules-sheet {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* ---- 合成儀式：三件素材從外圈往中心聚攏、邊轉邊縮 ---- */
+.fuse-gather {
+  animation: fuse-gather 0.8s cubic-bezier(.6,0,.8,.4) both;
+}
+@keyframes fuse-gather {
+  0% { transform: translate(-50%, -50%) rotate(var(--a)) translateX(88px) rotate(calc(-1 * var(--a))) scale(1); opacity: 1; filter: brightness(1); }
+  70% { transform: translate(-50%, -50%) rotate(calc(var(--a) + 160deg)) translateX(30px) rotate(calc(-1 * var(--a) - 160deg)) scale(0.8); opacity: 1; filter: brightness(1.8); }
+  100% { transform: translate(-50%, -50%) rotate(calc(var(--a) + 220deg)) translateX(0) scale(0.3); opacity: 0; filter: brightness(4); }
+}
+.fuse-burst {
+  background: radial-gradient(circle, #FFFFFF 0%, rgba(255,240,168,0.85) 25%, rgba(245,197,66,0) 70%);
+  animation: fuse-burst 0.8s ease-out both;
+}
+@keyframes fuse-burst {
+  0%, 60% { transform: translate(-50%, -50%) scale(0.1); opacity: 0; }
+  85% { transform: translate(-50%, -50%) scale(1.4); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(2.4); opacity: 0; }
 }

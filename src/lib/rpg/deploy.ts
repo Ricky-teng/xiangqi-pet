@@ -132,7 +132,16 @@ export function monsterToBattleUnit(monster: MonsterTemplate, id: string): Battl
 }
 
 export function monsterToBattleVisual(monster: MonsterTemplate, id: string): BattleUnitVisual {
-  return { id, emoji: monster.emoji };
+  return {
+    id,
+    emoji: monster.emoji,
+    // 戰鬥畫面用程式繪製怪物（MonsterArt），依塔號＋體型決定長相
+    monster: {
+      tower: monster.tower,
+      archetype: monster.archetype,
+      isBoss: monster.id.endsWith("-boss"),
+    },
+  };
 }
 
 // ============================================================

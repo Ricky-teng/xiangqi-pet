@@ -50,6 +50,11 @@ import {
 } from "@/lib/rpg/deploy";
 import { getJobColor } from "@/lib/rpg/jobVisual";
 import { useAppBackground } from "@/lib/useAppBackground";
+import RpgHeader, { AttemptsBadge } from "@/components/rpg/RpgHeader";
+import BattleBackdrop from "@/components/battle/BattleBackdrop";
+import MonsterArt from "@/components/battle/MonsterArt";
+import PetArt from "@/components/rpg/PetArt";
+import EquipmentIcon, { ItemFrame } from "@/components/rpg/EquipmentIcon";
 
 type View = "tower" | "prep" | "battle";
 
@@ -300,28 +305,32 @@ function TowerContent() {
     );
   }
 
+  const towerCleared = Array.from({ length: STAGES_PER_TOWER }, (_, i) => i + 1).filter((st) =>
+    isStageCleared(progress, towerNumber, st),
+  ).length;
+  /** 目前該打的那一層：最低的、可以打、還沒通關的那層 */
+  const currentStage =
+    Array.from({ length: STAGES_PER_TOWER }, (_, i) => i + 1).find(
+      (st) => canPlayStage(progress, towerNumber, st) && !isStageCleared(progress, towerNumber, st),
+    ) ?? null;
+  const leadPet = selectedPet ?? deployables[0] ?? null;
+
   return (
     <main className="min-h-screen pb-10" style={bgStyle}>
       <div className="mx-auto max-w-md px-4 pt-4">
-        {/* ---- 頁首 ---- */}
-        <header className="flex items-center justify-between rounded-2xl bg-white/75 px-4 py-3 shadow-sm">
-          <button
-            type="button"
-            onClick={() => (view === "tower" ? router.push("/explore") : backToTower())}
-            className="rounded-full bg-[#1A1A2E]/5 px-3 py-1.5 text-xs font-bold text-[#1A1A2E] transition-transform active:scale-95"
-          >
-            ← {view === "tower" ? "塔清單" : "返回"}
-          </button>
-          <h1 className="text-base font-bold" style={{ color: theme.accentColor }}>
-            {theme.name}
-          </h1>
-          <span className="rounded-full bg-[#1A1A2E] px-2.5 py-1 text-[10px] font-bold text-[#E8B84B]">
-            {attemptsLeft}/{DAILY_EXPLORE_ATTEMPTS}
-          </span>
-        </header>
+        {/* ---- 頁首（戰鬥中不顯示，畫面全部留給戰場） ---- */}
+        {view !== "battle" ? (
+          <RpgHeader
+            title={theme.name}
+            accent={theme.accentColor}
+            backLabel={view === "tower" ? "塔清單" : "返回"}
+            onBack={() => (view === "tower" ? router.push("/explore") : backToTower())}
+            right={<AttemptsBadge left={attemptsLeft} max={DAILY_EXPLORE_ATTEMPTS} />}
+          />
+        ) : null}
 
         {errorMessage ? (
-          <p className="mt-3 rounded-2xl bg-[#C0392B] px-4 py-2.5 text-center text-xs font-bold text-white shadow-md">
+          <p className="mt-3 rounded-2xl bg-[#B0102A]/90 px-4 py-2.5 text-center text-xs font-black text-white shadow-lg ring-1 ring-[#FF6A7A]/50">
             {errorMessage}
           </p>
         ) : null}
@@ -331,29 +340,81 @@ function TowerContent() {
            ============================================================ */}
         {view === "tower" ? (
           <section className="mt-3">
-            {/* 塔頂 */}
-            {/* 塔頂：刻意用負的下邊距讓它跟塔身接在一起，中間不留縫 */}
+            {/* ---- 主視覺：這座塔的戰場＋塔主 ---- */}
+            <div className="relative h-[150px] overflow-hidden rounded-[22px] ring-2" style={{ ["--tw-ring-color" as string]: theme.accentColor }}>
+              <BattleBackdrop tower={towerNumber} />
+              <div className="absolute bottom-1 right-3">
+                <div className="unit-idle">
+                  <MonsterArt tower={towerNumber} archetype="balanced" isBoss size={118} />
+                </div>
+              </div>
+              <div className="absolute inset-y-0 left-0 flex w-[62%] flex-col justify-end px-3.5 pb-3" style={{ background: "linear-gradient(90deg, rgba(5,5,16,0.82) 0%, rgba(5,5,16,0.5) 65%, rgba(5,5,16,0) 100%)" }}>
+                <p className="font-display text-[12px] leading-none text-white/60">TOWER {towerNumber}</p>
+                <p className="mt-1 leading-none">
+                  <span
+                    className="fx-text text-[28px] font-black"
+                    data-text={theme.name}
+                    style={
+                      {
+                        ["--fx-fill" as string]: `linear-gradient(180deg,#FFFFFF 15%,${theme.accentColor} 100%)`,
+                        ["--fx-stroke" as string]: "6px",
+                        ["--fx-stroke-color" as string]: "#0B0A18",
+                      } as React.CSSProperties
+                    }
+                  >
+                    {theme.name}
+                  </span>
+                </p>
+                <p className="mt-1.5 text-[11px] font-black text-white/80">
+                  塔主「{theme.name}之主」
+                </p>
+                <div className="mt-1.5 flex items-center gap-2">
+                  <div className="flex flex-1 gap-[2px]">
+                    {Array.from({ length: STAGES_PER_TOWER }, (_, i) => (
+                      <span
+                        key={i}
+                        className="h-1.5 flex-1 rounded-[2px]"
+                        style={{ background: i < towerCleared ? theme.accentColor : "rgba(255,255,255,0.18)", boxShadow: i < towerCleared ? `0 0 4px ${theme.accentColor}` : undefined }}
+                      />
+                    ))}
+                  </div>
+                  <span className="font-display text-[12px] leading-none text-white">
+                    {towerCleared}
+                    <span className="text-white/50">/{STAGES_PER_TOWER}</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* ---- 塔頂 ---- */}
+            <TowerRoof color={theme.accentColor} />
+
+            {/* ---- 塔身：由上往下畫第 10 層到第 1 層 ---- */}
             <div
-              className="relative z-10 mx-auto -mb-2 h-7 w-24 rounded-t-2xl"
+              className="relative -mt-px overflow-hidden px-2 py-2"
               style={{
-                background: `linear-gradient(180deg, ${theme.accentColor} 0%, ${theme.accentColor}CC 100%)`,
-                boxShadow: `0 0 20px ${theme.accentColor}88`,
-              }}
-            />
-            <div
-              className="overflow-hidden rounded-2xl"
-              style={{
-                border: `2px solid ${theme.accentColor}`,
-                boxShadow: `inset 0 2px 14px ${theme.accentColor}33, 0 8px 20px rgba(0,0,0,0.2)`,
+                background: "linear-gradient(90deg,#14132A 0%,#1E1C3C 50%,#14132A 100%)",
+                boxShadow: `inset 3px 0 0 ${theme.accentColor}66, inset -3px 0 0 ${theme.accentColor}66, 0 10px 24px rgba(0,0,0,0.3)`,
               }}
             >
-              {/* 由上往下畫第 10 關到第 1 關，視覺上就是一棟由下往上爬的塔 */}
-              {Array.from({ length: STAGES_PER_TOWER }, (_, i) => STAGES_PER_TOWER - i).map(
-                (stage) => {
+              {/* 磚紋 */}
+              <div
+                className="pointer-events-none absolute inset-0 opacity-[0.07]"
+                style={{
+                  backgroundImage:
+                    "repeating-linear-gradient(0deg, #FFFFFF 0 1px, transparent 1px 22px), repeating-linear-gradient(90deg, #FFFFFF 0 1px, transparent 1px 44px)",
+                }}
+              />
+              <div className="relative flex flex-col gap-1.5">
+                {Array.from({ length: STAGES_PER_TOWER }, (_, i) => STAGES_PER_TOWER - i).map((stage) => {
                   const cleared = isStageCleared(progress, towerNumber, stage);
                   const playable = canPlayStage(progress, towerNumber, stage);
+                  const isCurrent = stage === currentStage;
                   const plan = getStagePlan(towerNumber, stage);
                   const isTop = stage === STAGES_PER_TOWER;
+                  // 這一層會出現哪幾種小怪（依出場順序去重）
+                  const normals = plan.monsters.slice(0, plan.normalCount);
+                  const kinds = Array.from(new Map(normals.map((m) => [m.archetype, m])).values());
 
                   return (
                     <button
@@ -365,50 +426,73 @@ function TowerContent() {
                         setErrorMessage(null);
                         setView("prep");
                       }}
-                      className="flex w-full items-center gap-3 border-b border-white/10 px-3 py-2.5 text-left transition-colors last:border-b-0 disabled:cursor-not-allowed"
+                      aria-label={`第 ${stage} 層${cleared ? "，已通關" : playable ? "，可以挑戰" : "，尚未開放"}`}
+                      className={[
+                        "relative flex w-full items-center gap-2.5 rounded-xl px-2 py-2 text-left transition-transform active:scale-[0.98] disabled:cursor-not-allowed focus-visible:outline focus-visible:outline-2 focus-visible:outline-white",
+                        isCurrent ? "floor-current" : "",
+                      ].join(" ")}
                       style={{
-                        // 可玩的樓層用塔的主色打光，上鎖的是一片死沉的
-                        // 深色。第一版寫成半透明的深藍黑，疊在淺色頁面
-                        // 背景上反而比可玩的還亮，看起來像「上鎖的才是
-                        // 開著的」，所以改成不透明。
-                        // 亮的那一側放在右邊（Boss 圖示那邊），左邊
-                        // 留深色，樓層編號的金色徽章才不會糊在亮底上
-                        background: playable
-                          ? `linear-gradient(90deg, #1A1A2E 0%, #1A1A2E 55%, ${theme.accentColor}44 100%)`
-                          : "linear-gradient(90deg, #14141F 0%, #0E0E18 100%)",
+                        background: isCurrent
+                          ? `linear-gradient(90deg, ${theme.accentColor}38 0%, rgba(30,28,60,0.95) 55%)`
+                          : playable
+                            ? "linear-gradient(90deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03))"
+                            : "rgba(0,0,0,0.3)",
+                        boxShadow: !isCurrent && playable ? "inset 0 0 0 1px rgba(255,255,255,0.08)" : undefined,
                       }}
                     >
-                      <span
-                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-extrabold"
-                        style={{
-                          backgroundColor: cleared ? theme.accentColor : "rgba(255,255,255,0.12)",
-                          color: cleared ? "#1A1A2E" : "rgba(255,255,255,0.5)",
-                        }}
-                      >
-                        {stage}
-                      </span>
+                      <FloorMedallion stage={stage} cleared={cleared} current={isCurrent} locked={!playable} accent={theme.accentColor} />
 
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs font-bold text-white">
-                          第 {stage} 關
+                        <p className="flex items-center gap-1.5 text-[13px] font-black" style={{ color: playable ? "#FFFFFF" : "rgba(255,255,255,0.35)" }}>
+                          第 {stage} 層
                           {isTop ? (
-                            <span className="ml-1 text-[10px] font-bold text-[#E8B84B]">塔頂</span>
+                            <span className="rounded-md px-1 text-[9.5px] font-black text-[#3A1D00]" style={{ background: "linear-gradient(180deg,#FFF6CC,#F5C542)" }}>
+                              頂樓
+                            </span>
                           ) : null}
                         </p>
-                        <p className="text-[10px] text-white/45">
-                          {playable
-                            ? `${plan.normalCount} 隻怪 ＋ ${theme.bossEmoji} ${theme.name}之主`
-                            : "通關前一關才會開啟"}
-                        </p>
+                        {playable ? (
+                          <div className="mt-0.5 flex items-center gap-0.5">
+                            {kinds.map((m) => (
+                              <MonsterArt key={m.id} tower={towerNumber} archetype={m.archetype} size={22} />
+                            ))}
+                            <span className="font-display ml-0.5 text-[11px] text-white/55">×{plan.normalCount}</span>
+                            <span className="mx-1 text-[10px] text-white/30">＋</span>
+                            <MonsterArt tower={towerNumber} archetype="balanced" isBoss size={26} />
+                          </div>
+                        ) : (
+                          <p className="mt-0.5 text-[10.5px] font-bold text-white/30">通關下一層才會開放</p>
+                        )}
                       </div>
 
-                      <span className="shrink-0 text-base">
-                        {cleared ? "✅" : playable ? theme.bossEmoji : "🔒"}
-                      </span>
+                      {isCurrent ? (
+                        <span className="flex items-center gap-1.5">
+                          {leadPet ? <PetArt jobId={leadPet.jobId} size={30} /> : null}
+                          <span className="btn-gold nudge-bounce rounded-full px-3 py-1.5 text-[12px] font-black">挑戰</span>
+                        </span>
+                      ) : cleared ? (
+                        <span className="flex items-center gap-1 text-[11px] font-black text-[#FFE58A]">
+                          <StarIcon />
+                          重打
+                        </span>
+                      ) : !playable ? (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="2.6" strokeLinecap="round" aria-hidden="true">
+                          <rect x="5" y="11" width="14" height="10" rx="2.5" />
+                          <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+                        </svg>
+                      ) : null}
                     </button>
                   );
-                },
-              )}
+                })}
+              </div>
+            </div>
+
+            {/* ---- 塔基 ---- */}
+            <div
+              className="relative mx-[-6px] h-7 rounded-b-xl"
+              style={{ background: "linear-gradient(180deg,#2A2752 0%,#14132A 100%)", boxShadow: `inset 0 2px 0 ${theme.accentColor}55, 0 8px 18px rgba(0,0,0,0.3)` }}
+            >
+              <span className="absolute inset-0 flex items-center justify-center text-[10.5px] font-black tracking-[0.3em] text-white/45">入口</span>
             </div>
           </section>
         ) : null}
@@ -420,6 +504,7 @@ function TowerContent() {
           <section className="mt-3">
             {(() => {
               const plan = getStagePlan(towerNumber, prepStage);
+              const boss = plan.monsters[plan.monsters.length - 1];
               const cleared = isStageCleared(progress, towerNumber, prepStage);
               const willConsume = !cleared;
               const noAttempts = willConsume && attemptsLeft <= 0;
@@ -433,125 +518,148 @@ function TowerContent() {
 
               return (
                 <>
-                  <div className="rounded-3xl bg-white/75 px-4 py-3 shadow-sm">
-                    <p className="text-sm font-extrabold text-[#1A1A2E]">
-                      {theme.name}・第 {prepStage} 關
-                    </p>
-                    <p className="mt-0.5 text-xs text-[#1A1A2E]/55">
-                      {plan.normalCount} 隻怪，最後是 {theme.bossEmoji}{" "}
-                      <span className="font-bold">{theme.name}之主</span>
-                    </p>
-                    <p className="mt-1 text-[10px] text-[#1A1A2E]/45">
-                      {cleared
-                        ? "已通關過，重打不扣次數、也不會再掉裝備"
-                        : "首通會掉 2 件第 1 階裝備・輸贏都扣 1 次"}
-                    </p>
+                  {/* ---- 對決主視覺 ---- */}
+                  <div className="relative h-[220px] overflow-hidden rounded-[22px] ring-2" style={{ ["--tw-ring-color" as string]: theme.accentColor }}>
+                    <BattleBackdrop tower={towerNumber} />
+                    <div className="absolute left-3 top-3 rounded-lg bg-black/55 px-2 py-1 text-[11px] font-black text-white ring-1 ring-white/15">
+                      第 {prepStage} 層
+                    </div>
+                    {/* 我方 */}
+                    <div className="absolute bottom-7 left-[6%] flex flex-col items-center">
+                      <div className="relative">
+                        <div className="absolute -bottom-2 left-1/2 h-5 w-28 -translate-x-1/2 rounded-[50%]" style={{ background: "radial-gradient(closest-side, rgba(245,197,66,0.55), rgba(245,197,66,0))" }} />
+                        <div className="unit-idle relative">
+                          {selectedPet ? <PetArt jobId={selectedPet.jobId} size={104} /> : <div style={{ width: 104, height: 104 }} />}
+                        </div>
+                      </div>
+                    </div>
+                    {/* 首領 */}
+                    <div className="absolute bottom-6 right-[4%]">
+                      <div className="absolute -bottom-1 left-1/2 h-5 w-32 -translate-x-1/2 rounded-[50%]" style={{ background: "radial-gradient(closest-side, rgba(255,45,70,0.55), rgba(255,45,70,0))" }} />
+                      <div className="unit-idle relative">
+                        <MonsterArt tower={towerNumber} archetype={boss.archetype} isBoss size={124} />
+                      </div>
+                    </div>
+                    {/* VS */}
+                    <div className="absolute left-1/2 top-[44%] -translate-x-1/2 -translate-y-1/2">
+                      <span
+                        className="fx-text font-display text-[40px] italic leading-none"
+                        data-text="VS"
+                        style={
+                          {
+                            ["--fx-fill" as string]: "linear-gradient(180deg,#FFFFFF 10%,#FFE07A 55%,#FF8A00 100%)",
+                            ["--fx-stroke" as string]: "7px",
+                            ["--fx-stroke-color" as string]: "#2A1200",
+                          } as React.CSSProperties
+                        }
+                      >
+                        VS
+                      </span>
+                    </div>
+                    {/* 底部名牌 */}
+                    <div className="absolute inset-x-0 bottom-0 flex items-end justify-between px-3 pb-1.5 pt-6" style={{ background: "linear-gradient(0deg, rgba(5,5,16,0.85), rgba(5,5,16,0))" }}>
+                      <span className="max-w-[45%] truncate text-[13px] font-black text-white">{selectedPet?.name ?? "選一隻小雞"}</span>
+                      <span className="flex items-center gap-1">
+                        <span className="font-display rounded-[4px] bg-[#FF2D46] px-1 text-[9px] leading-[14px] text-white">BOSS</span>
+                        <span className="text-[13px] font-black text-white">{boss.name}</span>
+                      </span>
+                    </div>
                   </div>
 
-                  {/* 選小雞 */}
-                  <div className="mt-3 rounded-3xl bg-white/75 px-4 py-3 shadow-sm">
-                    <p className="text-xs font-bold text-[#1A1A2E]/60">派誰去（只能派 1 隻）</p>
+                  {/* ---- 這一關的資訊 ---- */}
+                  <div className="mt-3 grid grid-cols-3 gap-2">
+                    <InfoChip label="敵人">
+                      <span className="font-display text-[18px] text-white">{plan.normalCount}</span>
+                      <span className="ml-0.5 text-[10px] font-bold text-white/55">隻＋首領</span>
+                    </InfoChip>
+                    <InfoChip label={cleared ? "掉落" : "首通掉落"}>
+                      {cleared ? (
+                        <span className="text-[11px] font-black text-white/45">已領過</span>
+                      ) : (
+                        <span className="flex items-center gap-1">
+                          {[0, 1].map((k) => (
+                            <span key={k} className="flex h-6 w-6 items-center justify-center rounded-md text-[11px] font-black text-[#F5C542] ring-1 ring-[#F5C542]/60" style={{ background: "linear-gradient(145deg,#3A2A6E,#1A1438)" }}>
+                              ?
+                            </span>
+                          ))}
+                        </span>
+                      )}
+                    </InfoChip>
+                    <InfoChip label="消耗">
+                      {willConsume ? (
+                        <>
+                          <span className="font-display text-[18px] text-white">1</span>
+                          <span className="ml-0.5 text-[10px] font-bold text-white/55">次</span>
+                        </>
+                      ) : (
+                        <span className="text-[11px] font-black text-[#7FE8A8]">不扣次數</span>
+                      )}
+                    </InfoChip>
+                  </div>
+
+                  {/* ---- 選小雞 ---- */}
+                  <div className="rpg-panel mt-3 rounded-2xl px-3 py-3">
+                    <p className="px-1 text-[12px] font-black text-white/70">派誰出戰（只能派 1 隻）</p>
                     {deployables.length === 0 ? (
-                      <p className="mt-3 rounded-2xl bg-white/70 px-3 py-4 text-center text-xs text-[#1A1A2E]/50">
+                      <p className="mt-3 rounded-xl bg-white/[0.05] px-3 py-4 text-center text-[12px] font-bold text-white/55">
                         還沒有可以出戰的小雞。把小雞養到大師雞就能派牠去探險。
                       </p>
                     ) : (
-                      <div className="mt-2 grid grid-cols-3 gap-2">
-                        {deployables.map((pet) => {
-                          const selected = pet.id === selectedPetId;
-                          return (
-                            <button
-                              key={pet.id}
-                              type="button"
-                              onClick={() => setSelectedPetId(pet.id)}
-                              className="relative rounded-2xl border-2 bg-white/90 px-1.5 py-2 text-center transition-transform active:scale-95"
-                              style={{
-                                // 選中一律用全站的金色，不要用職業色——
-                                // 攻擊型職業是紅色，紅框看起來像「這個
-                                // 選項有問題」，完全相反的意思。
-                                // 職業用左上角一個小色點表示就好。
-                                borderColor: selected ? "#E8B84B" : "rgba(26,26,46,0.12)",
-                                boxShadow: selected ? "0 0 12px #E8B84B88" : undefined,
-                              }}
-                            >
-                              <span
-                                className="absolute left-1.5 top-1.5 h-2 w-2 rounded-full"
-                                style={{ backgroundColor: getJobColor(pet.jobId) }}
-                              />
-                              {selected ? (
-                                <span className="absolute right-1 top-0.5 text-[10px]">✓</span>
-                              ) : null}
-                              <p className="truncate text-[11px] font-extrabold text-[#1A1A2E]">
-                                {pet.name}
-                              </p>
-                              <p className="text-[10px] font-bold text-[#5C3D0A]">
-                                戰力 {pet.totalPower}
-                              </p>
-                              {pet.blockReason ? (
-                                <p className="text-[9px] font-bold text-[#C0392B]">
-                                  {pet.blockReason}
-                                </p>
-                              ) : null}
-                            </button>
-                          );
-                        })}
+                      <div className="-mx-1 mt-2 flex snap-x gap-2 overflow-x-auto px-1 pb-1" style={{ scrollbarWidth: "none" }}>
+                        {deployables.map((pet) => (
+                          <PetPickCard key={pet.id} pet={pet} selected={pet.id === selectedPetId} onSelect={() => setSelectedPetId(pet.id)} />
+                        ))}
                       </div>
                     )}
 
+                    {/* 數值對照：我方 vs 首領 */}
                     {selectedPet ? (
-                      <div className="mt-2 grid grid-cols-4 gap-1 rounded-2xl bg-[#FDF6E8] px-2 py-2 text-center">
-                        <div>
-                          <p className="text-[9px] text-[#1A1A2E]/45">體力</p>
-                          <p className="text-[11px] font-extrabold text-[#1A1A2E]">
-                            {selectedPet.stats.hp}
-                          </p>
+                      <div className="mt-3 rounded-xl bg-black/25 px-3 py-2.5">
+                        <div className="mb-1.5 flex items-center justify-between text-[10px] font-black">
+                          <span className="text-[#7FD3FF]">{selectedPet.name}</span>
+                          <span className="text-white/40">數值對照</span>
+                          <span className="text-[#FF8A96]">首領</span>
                         </div>
-                        <div>
-                          <p className="text-[9px] text-[#1A1A2E]/45">攻擊</p>
-                          <p className="text-[11px] font-extrabold text-[#1A1A2E]">
-                            {selectedPet.stats.attack}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-[9px] text-[#1A1A2E]/45">防禦</p>
-                          <p className="text-[11px] font-extrabold text-[#1A1A2E]">
-                            {selectedPet.stats.defense}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-[9px] text-[#1A1A2E]/45">速度</p>
-                          <p className="text-[11px] font-extrabold text-[#1A1A2E]">
-                            {selectedPet.stats.speed}
-                          </p>
+                        <div className="flex flex-col gap-1.5">
+                          {(
+                            [
+                              ["hp", "體力"],
+                              ["attack", "攻擊"],
+                              ["defense", "防禦"],
+                              ["speed", "速度"],
+                            ] as const
+                          ).map(([key, label]) => (
+                            <StatCompare key={key} label={label} mine={selectedPet.stats[key]} theirs={boss.stats[key]} />
+                          ))}
                         </div>
                       </div>
                     ) : null}
                   </div>
 
-                  {/* 開始按鈕：不能出戰時灰掉＋寫原因＋放快捷連結 */}
+                  {/* ---- 出發 ---- */}
                   <button
                     type="button"
                     disabled={blockReason !== null}
                     onClick={handleStart}
-                    className="mt-3 w-full rounded-2xl bg-gradient-to-b from-[#F6D87A] to-[#E8B84B] px-4 py-3.5 text-base font-extrabold text-[#5C3D0A] shadow-md transition-transform active:scale-95 disabled:cursor-not-allowed disabled:opacity-45"
-                    style={{
-                      boxShadow:
-                        blockReason === null
-                          ? "inset 0 1px 6px rgba(255,255,255,0.6), 0 6px 14px rgba(92,61,10,0.3)"
-                          : undefined,
-                    }}
+                    className="btn-gold mt-3 w-full rounded-2xl px-4 py-4 text-[18px] font-black tracking-[0.15em]"
                   >
-                    ⚔️ 開始探險
+                    出發！
                   </button>
+                  <p className="mt-2 text-center">
+                    {/* 墊一層深色玻璃：使用者背景是照片時，裸字會看不到 */}
+                    <span className="rpg-glass inline-block rounded-full px-3 py-1 text-[10.5px] font-bold text-white/80">
+                      {cleared ? "已通關過：重打不扣次數，也不會再掉裝備" : `輸贏都會扣 1 次（今天還剩 ${attemptsLeft} 次）`}
+                    </span>
+                  </p>
 
                   {blockReason ? (
-                    <div className="mt-2 rounded-2xl bg-[#C0392B]/10 px-3 py-2.5 text-center">
-                      <p className="text-xs font-bold text-[#C0392B]">{blockReason}</p>
+                    <div className="mt-2 rounded-2xl bg-[#B0102A]/90 px-3 py-2.5 text-center ring-1 ring-[#FF6A7A]/50">
+                      <p className="text-[12px] font-black text-white">{blockReason}</p>
                       {blockReason === "還差一把武器" ? (
                         <button
                           type="button"
                           onClick={() => router.push("/inventory")}
-                          className="mt-1.5 rounded-xl bg-[#C0392B] px-3 py-1.5 text-[11px] font-bold text-white transition-transform active:scale-95"
+                          className="mt-1.5 rounded-xl bg-white px-3 py-1.5 text-[11px] font-black text-[#B0102A] transition-transform active:scale-95"
                         >
                           去物品頁買武器
                         </button>
@@ -559,7 +667,7 @@ function TowerContent() {
                         <button
                           type="button"
                           onClick={() => router.push("/my-pets")}
-                          className="mt-1.5 rounded-xl bg-[#C0392B] px-3 py-1.5 text-[11px] font-bold text-white transition-transform active:scale-95"
+                          className="mt-1.5 rounded-xl bg-white px-3 py-1.5 text-[11px] font-black text-[#B0102A] transition-transform active:scale-95"
                         >
                           去我的小雞
                         </button>
@@ -576,18 +684,24 @@ function TowerContent() {
             戰鬥
            ============================================================ */}
         {view === "battle" && setup ? (
-          <section className="mt-3">
-            <p className="mb-2 text-center text-xs font-bold text-[#1A1A2E]/55">
-              {theme.name}・第 {setup.stage} 關
-            </p>
+          // 戰鬥時整個畫面換成深色全螢幕，戰場置中——手機上不會只佔
+          // 上半截、下面露出一大片背景圖，學生的注意力全部在戰場上
+          <section
+            className="fixed inset-0 z-[60] flex items-center overflow-y-auto px-3 py-4"
+            style={{ background: `radial-gradient(ellipse at 50% 35%, ${theme.accentColor}40 0%, #0B0A18 70%)` }}
+          >
+            <div className="mx-auto w-full max-w-md">
             <BattleStage
               playerUnits={setup.playerUnits}
               enemyUnits={setup.enemyUnits}
               visuals={setup.visuals}
               result={setup.result}
-              accentColor={theme.accentColor}
+              tower={towerNumber}
+              title={`${theme.name}・第 ${setup.stage} 關`}
+              playerLabel={setup.pet.name}
               onFinish={handleBattleFinish}
             />
+            </div>
           </section>
         ) : null}
       </div>
@@ -630,6 +744,156 @@ function TowerContent() {
         />
       ) : null}
     </main>
+  );
+}
+
+// ============================================================
+// 子元件
+// ============================================================
+
+/** 塔頂：尖頂＋發光寶珠，接在塔身上方 */
+function TowerRoof({ color }: { color: string }) {
+  return (
+    <svg viewBox="0 0 400 64" className="mt-3 block w-full" style={{ height: 56 }} preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="roof-grad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} />
+          <stop offset="100%" stopColor="#14132A" />
+        </linearGradient>
+        <radialGradient id="roof-orb" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#FFFFFF" />
+          <stop offset="40%" stopColor={color} />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </radialGradient>
+      </defs>
+      <circle cx={200} cy={12} r={14} fill="url(#roof-orb)" />
+      <path d="M200,10 L246,40 L380,52 L392,64 L8,64 L20,52 L154,40 Z" fill="url(#roof-grad)" />
+      <path d="M200,10 L246,40 L380,52 L392,64" fill="none" stroke="#FFFFFF" strokeOpacity="0.35" strokeWidth="1.5" />
+      <circle cx={200} cy={12} r={4.5} fill="#FFFFFF" />
+    </svg>
+  );
+}
+
+/** 樓層編號徽章 */
+function FloorMedallion({
+  stage,
+  cleared,
+  current,
+  locked,
+  accent,
+}: {
+  stage: number;
+  cleared: boolean;
+  current: boolean;
+  locked: boolean;
+  accent: string;
+}) {
+  const bg = cleared
+    ? "linear-gradient(180deg,#FFF6CC 0%,#F5C542 55%,#B47A0A 100%)"
+    : current
+      ? `linear-gradient(180deg,#FFFFFF 0%,${accent} 100%)`
+      : locked
+        ? "linear-gradient(180deg,#2A2840,#16152A)"
+        : "linear-gradient(180deg,#4A4870,#2A2850)";
+  return (
+    <span
+      className="font-display relative flex h-10 w-10 shrink-0 items-center justify-center text-[17px] leading-none"
+      style={{
+        clipPath: "polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%)",
+        background: bg,
+        color: cleared || current ? "#2A1600" : locked ? "rgba(255,255,255,0.3)" : "#FFFFFF",
+      }}
+    >
+      {stage}
+    </span>
+  );
+}
+
+function StarIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M12 2.5l2.9 6.2 6.6.7-5 4.5 1.4 6.6L12 17.2 6.1 20.5l1.4-6.6-5-4.5 6.6-.7z" fill="#F5C542" stroke="#7A4A06" strokeWidth="1.2" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function InfoChip({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="rpg-panel flex flex-col items-center justify-center rounded-2xl px-2 py-2">
+      <span className="text-[10px] font-black text-white/50">{label}</span>
+      <span className="mt-0.5 flex h-7 items-center leading-none">{children}</span>
+    </div>
+  );
+}
+
+/** 準備頁的小雞選擇卡（像抽卡遊戲的角色卡） */
+function PetPickCard({ pet, selected, onSelect }: { pet: DeployablePet; selected: boolean; onSelect: () => void }) {
+  const jobColor = getJobColor(pet.jobId);
+  const blocked = pet.blockReason !== null;
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-pressed={selected}
+      className="relative w-[96px] shrink-0 snap-start rounded-2xl p-[2px] text-center transition-transform active:scale-95 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white"
+      style={{
+        background: selected ? "linear-gradient(160deg,#FFF6CC,#F5C542 45%,#B47A0A)" : `linear-gradient(160deg, ${jobColor}AA, #2A2850)`,
+        boxShadow: selected ? "0 0 14px rgba(245,197,66,0.7)" : undefined,
+      }}
+    >
+      <div className="relative overflow-hidden rounded-[14px] px-1.5 pb-2 pt-1.5" style={{ background: `radial-gradient(circle at 50% 30%, ${jobColor}55 0%, #14132A 70%)` }}>
+        {selected ? (
+          <span className="absolute right-1 top-1 z-10 flex h-4 w-4 items-center justify-center rounded-full bg-[#F5C542] text-[10px] font-black text-[#3A1D00]">✓</span>
+        ) : null}
+        <div className="flex justify-center" style={{ filter: blocked ? "grayscale(0.8) brightness(0.7)" : undefined }}>
+          <PetArt jobId={pet.jobId} size={58} />
+        </div>
+        <p className="mt-1 truncate text-[11.5px] font-black text-white">{pet.name}</p>
+        <p className="font-display text-[14px] leading-none text-[#FFE58A]">{pet.totalPower}</p>
+        <div className="mt-1.5 flex justify-center gap-1">
+          {(["weapon", "armor"] as const).map((kind) => {
+            const item = pet[kind];
+            return item ? (
+              <ItemFrame key={kind} tier={item.tier} size={22}>
+                <EquipmentIcon kind={kind} tier={item.tier} size={15} />
+              </ItemFrame>
+            ) : (
+              <span key={kind} className="block h-[22px] w-[22px] rounded-[5px] border border-dashed border-white/25" />
+            );
+          })}
+        </div>
+        {blocked ? (
+          <span className="absolute inset-x-0 bottom-0 bg-[#B0102A] py-0.5 text-[9.5px] font-black text-white">{pet.blockReason}</span>
+        ) : null}
+      </div>
+    </button>
+  );
+}
+
+/** 一項數值的我方 vs 首領對照條 */
+function StatCompare({ label, mine, theirs }: { label: string; mine: number; theirs: number }) {
+  const max = Math.max(1, mine, theirs);
+  const ahead = mine >= theirs;
+  return (
+    <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2">
+      <div className="flex items-center justify-end gap-1.5">
+        <span className="font-display text-[12px] leading-none" style={{ color: ahead ? "#7FD3FF" : "rgba(127,211,255,0.7)" }}>
+          {mine}
+        </span>
+        <div className="h-2 w-full max-w-[90px] overflow-hidden rounded-full bg-white/10">
+          <div className="ml-auto h-full rounded-full" style={{ width: `${(mine / max) * 100}%`, background: "linear-gradient(90deg,#1E7FD0,#7FD3FF)" }} />
+        </div>
+      </div>
+      <span className="w-8 text-center text-[10.5px] font-black text-white/60">{label}</span>
+      <div className="flex items-center gap-1.5">
+        <div className="h-2 w-full max-w-[90px] overflow-hidden rounded-full bg-white/10">
+          <div className="h-full rounded-full" style={{ width: `${(theirs / max) * 100}%`, background: "linear-gradient(90deg,#FF8A96,#C0102A)" }} />
+        </div>
+        <span className="font-display text-[12px] leading-none" style={{ color: !ahead ? "#FF8A96" : "rgba(255,138,150,0.7)" }}>
+          {theirs}
+        </span>
+      </div>
+    </div>
   );
 }
 

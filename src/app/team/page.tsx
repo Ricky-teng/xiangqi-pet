@@ -45,30 +45,15 @@ import {
   type DeployablePet,
 } from "@/lib/rpg/deploy";
 import { getJobColor } from "@/lib/rpg/jobVisual";
-import { getCatalogEntryById } from "@/lib/pet/catalog";
 import RulesButton from "@/components/RulesButton";
 import type { TeamDoc } from "@/types/rpg";
 import { useAppBackground } from "@/lib/useAppBackground";
+import PetArt from "@/components/rpg/PetArt";
+import RpgHeader, { AttemptsBadge } from "@/components/rpg/RpgHeader";
+import BattleBackdrop from "@/components/battle/BattleBackdrop";
 
 /** 長按幾毫秒才啟動拖曳 */
 const DRAG_HOLD_MS = 300;
-
-function PetAvatar({ jobId, size }: { jobId: string | null; size: number }) {
-  const entry = jobId ? getCatalogEntryById(jobId) : null;
-  const [failed, setFailed] = useState(false);
-  if (!entry || failed) {
-    return <span style={{ fontSize: size * 0.72 }}>{entry?.fallbackEmoji ?? "🐔"}</span>;
-  }
-  return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={entry.imagePath}
-      alt={entry.name}
-      onError={() => setFailed(true)}
-      style={{ width: size, height: size, objectFit: "contain" }}
-    />
-  );
-}
 
 interface BattleSetup {
   opponent: TeamDoc;
@@ -308,43 +293,56 @@ function TeamContent() {
     return (
       <main className="min-h-screen pb-10" style={bgStyle}>
         <div className="mx-auto max-w-md px-4 pt-6">
-          <div className="rounded-3xl bg-white/80 px-5 py-6 text-center shadow-sm">
-            <p className="text-3xl">⚔️</p>
-            <h1 className="mt-2 text-lg font-extrabold text-[#1A1A2E]">成立你的戰隊</h1>
-            <p className="mt-1 text-xs text-[#1A1A2E]/55">
-              派 3 隻小雞挑戰別人的戰隊，每個月結算一次，前三名有飼料獎勵。
-            </p>
-            <input
-              type="text"
-              value={nameInput}
-              onChange={(e) => setNameInput(e.target.value)}
-              maxLength={TEAM_NAME_MAX_LENGTH}
-              placeholder="幫戰隊取個名字"
-              className="mt-4 w-full rounded-xl border border-[#E8B84B] bg-white px-3 py-2.5 text-center text-sm font-bold text-[#1A1A2E] outline-none focus:border-[#5C3D0A]"
-            />
-            <p className="mt-1 text-[10px] text-[#1A1A2E]/40">
-              之後每一季可以改一次（最多 {TEAM_NAME_MAX_LENGTH} 個字）
-            </p>
-            {message ? (
-              <p className="mt-2 text-[11px] font-bold text-[#C0392B]">{message}</p>
-            ) : null}
-            <button
-              type="button"
-              onClick={async () => {
-                const r = await createTeam(nameInput);
-                setMessage(r.message);
-              }}
-              className="mt-4 w-full rounded-xl bg-gradient-to-b from-[#F6D87A] to-[#E8B84B] px-4 py-3 text-sm font-extrabold text-[#5C3D0A] shadow-md transition-transform active:scale-95"
-            >
-              成立戰隊
-            </button>
-            <button
-              type="button"
-              onClick={() => router.push("/")}
-              className="mt-2 w-full rounded-xl bg-white px-4 py-2.5 text-xs font-bold text-[#1A1A2E]/60"
-            >
-              先不要
-            </button>
+          <div className="overflow-hidden rounded-[26px] p-[3px]" style={{ background: "linear-gradient(160deg,#FFF1B8 0%,#E8B84B 30%,#8A5A12 60%,#F5C542 100%)" }}>
+            <div className="overflow-hidden rounded-[23px] bg-[#0B0A18]">
+              <div className="relative h-[170px]">
+                <BattleBackdrop />
+                <div className="absolute inset-x-0 bottom-3 flex justify-center gap-1">
+                  {deployables.slice(0, 3).map((pet) => (
+                    <div key={pet.id} className="unit-idle">
+                      <PetArt jobId={pet.jobId} size={70} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className="px-5 pb-5 pt-4 text-center">
+                <h1>
+                  <span
+                    className="fx-text text-[26px] font-black"
+                    data-text="成立你的戰隊"
+                    style={fxStyle("linear-gradient(180deg,#FFFFFF 5%,#FFE58A 50%,#E8A912 100%)", 6, "#1A1206")}
+                  >
+                    成立你的戰隊
+                  </span>
+                </h1>
+                <p className="mt-1.5 text-[12px] leading-relaxed text-white/65">
+                  派 3 隻小雞挑戰別人的戰隊，每個月結算一次，前三名有飼料獎勵。
+                </p>
+                <input
+                  type="text"
+                  value={nameInput}
+                  onChange={(e) => setNameInput(e.target.value)}
+                  maxLength={TEAM_NAME_MAX_LENGTH}
+                  placeholder="幫戰隊取個名字"
+                  className="mt-4 w-full rounded-2xl bg-white/[0.07] px-3 py-3 text-center text-[15px] font-black text-white outline-none ring-2 ring-[#F5C542]/50 placeholder:text-white/30 focus:ring-[#F5C542]"
+                />
+                <p className="mt-1.5 text-[10.5px] text-white/40">之後每一季可以改一次（最多 {TEAM_NAME_MAX_LENGTH} 個字）</p>
+                {message ? <p className="mt-2 text-[12px] font-black text-[#FF8A96]">{message}</p> : null}
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const r = await createTeam(nameInput);
+                    setMessage(r.message);
+                  }}
+                  className="btn-gold mt-4 w-full rounded-2xl px-4 py-3.5 text-[16px] font-black"
+                >
+                  成立戰隊
+                </button>
+                <button type="button" onClick={() => router.push("/")} className="mt-2 w-full rounded-2xl px-4 py-2.5 text-[12px] font-black text-white/50">
+                  先不要
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </main>
@@ -355,203 +353,220 @@ function TeamContent() {
     return (
       <main className="min-h-screen" style={bgStyle}>
         <div className="pt-20 text-center">
-          <span className="inline-block rounded-2xl bg-white/80 px-4 py-2 text-sm font-bold text-[#1A1A2E] shadow-sm backdrop-blur-sm">載入中…</span>
+          <span className="rpg-glass inline-block rounded-2xl px-4 py-2 text-sm font-black text-white/80">載入中…</span>
         </div>
       </main>
     );
   }
 
   const daysLeft = Math.ceil(getMillisecondsUntilSeasonEnd() / 86400000);
+  const canChallenge = teamBlockReason === null && attemptsLeft > 0;
 
   return (
     <main className="min-h-screen pb-10" style={bgStyle}>
       <div className="mx-auto max-w-md px-4 pt-4">
-        <header className="flex items-center justify-between rounded-2xl bg-white/70 px-4 py-3 shadow-sm">
-          <button
-            type="button"
-            onClick={() => router.push("/")}
-            className="rounded-full bg-[#1A1A2E]/5 px-3 py-1.5 text-xs font-bold text-[#1A1A2E] transition-transform active:scale-95"
-          >
-            ← 返回
-          </button>
-          <h1 className="text-base font-bold text-[#1A1A2E]">⚔️ 戰隊</h1>
-          <div className="flex items-center gap-1.5">
-            <RulesButton topic="team" />
-            <span className="rounded-full bg-[#1A1A2E] px-2.5 py-1 text-[10px] font-bold text-[#E8B84B]">
-              {attemptsLeft}/{DAILY_TEAM_ATTEMPTS}
-            </span>
-          </div>
-        </header>
+        <RpgHeader
+          title="戰隊"
+          onBack={() => router.push("/")}
+          right={
+            <>
+              <RulesButton topic="team" variant="dark" />
+              <AttemptsBadge left={attemptsLeft} max={DAILY_TEAM_ATTEMPTS} />
+            </>
+          }
+        />
 
         {message ? (
-          <p className="mt-3 rounded-2xl bg-[#1A1A2E] px-4 py-2.5 text-center text-xs font-bold text-white shadow-md">
-            {message}
-          </p>
+          <p className="rpg-glass mt-3 rounded-2xl px-4 py-2.5 text-center text-[12px] font-black text-white">{message}</p>
         ) : null}
 
         {/* ---- 賽季資訊 ---- */}
-        <div className="mt-3 flex items-center justify-between rounded-2xl bg-white/60 px-3 py-2">
-          <div>
-            <p className="text-[10px] font-bold text-[#1A1A2E]/45">
-              {getSeasonLabel(getSeasonId())}
-            </p>
-            <p className="text-[10px] text-[#1A1A2E]/45">還有 {daysLeft} 天結算</p>
+        <div className="rpg-panel mt-3 flex items-center gap-3 rounded-2xl px-3.5 py-3">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl" style={{ background: "radial-gradient(circle at 35% 30%, #FFF6CC, #F5C542 55%, #A8740F)" }}>
+            <TrophyIcon />
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="text-[12px] font-black text-white">{getSeasonLabel(getSeasonId())}</p>
+            <p className="text-[10.5px] font-bold text-white/50">還有 {daysLeft} 天結算・前三名有飼料獎勵</p>
           </div>
           <div className="text-right">
-            <p className="text-[10px] font-bold text-[#1A1A2E]/45">目前積分</p>
-            <p className="text-base font-extrabold text-[#5C3D0A]">{team.score}</p>
+            <p className="text-[10px] font-bold text-white/50">積分</p>
+            <p className="font-display text-[26px] leading-none text-[#FFE58A]" style={{ textShadow: "0 0 12px rgba(245,197,66,0.5)" }}>
+              {team.score}
+            </p>
           </div>
         </div>
 
-        {/* ---- 自己的戰隊 ---- */}
-        <section className="mt-3 rounded-3xl bg-white/75 px-4 py-3 shadow-sm">
-          <div className="flex items-center justify-between">
-            <div className="min-w-0">
-              <p className="truncate text-sm font-extrabold text-[#1A1A2E]">{team.teamName}</p>
-              <p className="text-[10px] text-[#1A1A2E]/45">
-                {team.wins} 勝 {team.losses} 敗・總戰力 {teamPower}
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={() => {
-                setNameInput(team.teamName);
-                setShowRename(true);
-              }}
-              className="shrink-0 rounded-lg bg-[#1A1A2E]/5 px-2 py-1 text-[10px] font-bold text-[#1A1A2E]/60"
-            >
-              改隊名
-            </button>
-          </div>
-
-          {/* 三個站位 */}
-          <div className="mt-3 grid grid-cols-3 gap-2">
-            {slots.map((pet, index) => (
-              <div
-                key={index}
-                ref={(el) => {
-                  slotRefs.current[index] = el;
-                }}
-                className={[
-                  "relative flex h-24 flex-col items-center justify-center rounded-2xl border-2",
-                  // 虛線只留給「空位／可放置」，有雞的站位是實線。
-                  // 兩種都用虛線的話，滿編的隊伍看起來像三個都還沒放好。
-                  pet && !dragging ? "" : "border-dashed",
-                ].join(" ")}
-                style={{
-                  borderColor: dragging
-                    ? "#E8B84B"
-                    : pet
-                      ? getJobColor(pet.jobId)
-                      : "rgba(26,26,46,0.18)",
-                  backgroundColor: pet ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.45)",
-                  boxShadow: dragging ? "0 0 12px #E8B84B88" : undefined,
-                }}
-              >
-                {pet ? (
-                  <>
-                    <button
-                      type="button"
-                      onClick={() => setSlots((prev) => prev.map((p, i) => (i === index ? null : p)))}
-                      className="absolute right-1 top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#1A1A2E]/10 text-[10px] font-bold text-[#1A1A2E]/50"
-                      aria-label="移除"
-                    >
-                      ✕
-                    </button>
-                    <PetAvatar jobId={pet.jobId} size={36} />
-                    <span className="mt-0.5 w-full truncate px-1 text-center text-[10px] font-extrabold text-[#1A1A2E]">
-                      {pet.name}
+        {/* ---- 自己的戰隊：編隊舞台 ---- */}
+        <section className="mt-3 overflow-hidden rounded-[24px] p-[2.5px]" style={{ background: "linear-gradient(160deg,#FFF1B8 0%,#E8B84B 30%,#8A5A12 62%,#F5C542 100%)" }}>
+          <div className="overflow-hidden rounded-[21.5px] bg-[#0B0A18]">
+            <div className="relative h-[232px]">
+              <BattleBackdrop />
+              {/* 隊名＋戰績 */}
+              <div className="absolute inset-x-0 top-0 flex items-start justify-between px-3 pb-6 pt-2.5" style={{ background: "linear-gradient(180deg, rgba(5,5,16,0.8), rgba(5,5,16,0))" }}>
+                <div className="min-w-0">
+                  <p className="truncate leading-none">
+                    <span className="fx-text text-[20px] font-black" data-text={team.teamName} style={fxStyle("linear-gradient(180deg,#FFFFFF 10%,#FFE58A 100%)", 5, "#1A1206")}>
+                      {team.teamName}
                     </span>
-                    <span className="text-[9px] font-bold text-[#5C3D0A]">戰力 {pet.totalPower}</span>
-                    {!pet.weapon ? (
-                      <span className="text-[8px] font-bold text-[#C0392B]">無武器</span>
-                    ) : null}
-                  </>
-                ) : (
-                  <span className="text-xs text-[#1A1A2E]/25">空位 {index + 1}</span>
-                )}
+                  </p>
+                  <p className="mt-1 flex items-center gap-2 text-[11px] font-black">
+                    <span className="text-[#7FE8A8]">{team.wins} 勝</span>
+                    <span className="text-[#FF8A96]">{team.losses} 敗</span>
+                    <span className="text-white/50">
+                      總戰力 <span className="font-display text-[13px] text-white">{teamPower}</span>
+                    </span>
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNameInput(team.teamName);
+                    setShowRename(true);
+                  }}
+                  className="shrink-0 rounded-xl bg-black/45 px-2.5 py-1.5 text-[10.5px] font-black text-white/80 ring-1 ring-white/20 transition-transform active:scale-95"
+                >
+                  改隊名
+                </button>
               </div>
-            ))}
-          </div>
 
-          <button
-            type="button"
-            onClick={handleSaveMembers}
-            className="mt-2 w-full rounded-xl bg-[#1A1A2E]/5 px-3 py-1.5 text-[11px] font-bold text-[#1A1A2E]/60"
-          >
-            儲存編隊
-          </button>
+              {/* 三個站位 */}
+              <div className="absolute inset-x-2 bottom-2 grid grid-cols-3 gap-1.5">
+                {slots.map((pet, index) => (
+                  <div
+                    key={index}
+                    ref={(el) => {
+                      slotRefs.current[index] = el;
+                    }}
+                    className="relative flex h-[150px] flex-col items-center justify-end rounded-2xl pb-1.5 transition-colors"
+                    style={{
+                      background: dragging ? "rgba(245,197,66,0.12)" : undefined,
+                      boxShadow: dragging ? "inset 0 0 0 2px rgba(245,197,66,0.8)" : undefined,
+                    }}
+                  >
+                    {/* 地上的光陣 */}
+                    <div
+                      className="pointer-events-none absolute bottom-7 left-1/2 h-6 w-[88%] -translate-x-1/2 rounded-[50%]"
+                      style={{
+                        background: pet
+                          ? `radial-gradient(closest-side, ${getJobColor(pet.jobId)}AA, ${getJobColor(pet.jobId)}00)`
+                          : "radial-gradient(closest-side, rgba(255,255,255,0.22), rgba(255,255,255,0))",
+                        boxShadow: pet ? undefined : "inset 0 0 0 1.5px rgba(255,255,255,0.35)",
+                      }}
+                    />
+                    {pet ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setSlots((prev) => prev.map((p, i) => (i === index ? null : p)))}
+                          className="absolute right-1 top-1 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-black/55 text-[11px] font-black text-white/80 ring-1 ring-white/25"
+                          aria-label={`把 ${pet.name} 移出戰隊`}
+                        >
+                          ✕
+                        </button>
+                        <div className="unit-idle relative mb-1" style={{ animationDelay: `${index * -0.4}s` }}>
+                          <PetArt jobId={pet.jobId} size={76} />
+                        </div>
+                        <div className="relative w-full rounded-lg bg-black/60 px-1 py-1 text-center ring-1 ring-white/15">
+                          <p className="truncate text-[11px] font-black text-white">{pet.name}</p>
+                          <p className="font-display text-[12px] leading-none text-[#FFE58A]">{pet.totalPower}</p>
+                          {!pet.weapon ? <p className="text-[9px] font-black text-[#FF8A96]">沒有武器</p> : null}
+                        </div>
+                      </>
+                    ) : (
+                      <div className="relative mb-9 flex flex-col items-center">
+                        <span className="flex h-11 w-11 items-center justify-center rounded-full border-2 border-dashed border-white/40 text-[22px] font-black text-white/60">
+                          +
+                        </span>
+                        <span className="mt-1.5 text-[10.5px] font-black text-white/60">空位 {index + 1}</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 border-t border-white/10 px-3 py-2">
+              <p className="min-w-0 flex-1 text-[10.5px] font-bold text-white/45">長按下方的小雞，拖到上面的空位</p>
+              <button
+                type="button"
+                onClick={handleSaveMembers}
+                className="shrink-0 rounded-xl bg-white/10 px-3 py-1.5 text-[11px] font-black text-white/85 ring-1 ring-white/20 transition-transform active:scale-95"
+              >
+                儲存編隊
+              </button>
+            </div>
+          </div>
         </section>
 
         {/* ---- 大挑戰按鈕 ---- */}
         <button
           type="button"
-          disabled={teamBlockReason !== null || attemptsLeft <= 0}
+          disabled={!canChallenge}
           onClick={handleOpenLeaderboard}
-          className="mt-3 w-full rounded-2xl bg-gradient-to-b from-[#F6D87A] to-[#E8B84B] px-4 py-3.5 text-base font-extrabold text-[#5C3D0A] shadow-md transition-transform active:scale-95 disabled:cursor-not-allowed disabled:opacity-45"
-          style={{
-            boxShadow:
-              teamBlockReason === null && attemptsLeft > 0
-                ? "inset 0 1px 6px rgba(255,255,255,0.6), 0 6px 14px rgba(92,61,10,0.3)"
-                : undefined,
-          }}
+          className="btn-gold mt-3 flex w-full items-center justify-center gap-2 rounded-2xl px-4 py-4 text-[18px] font-black tracking-[0.12em]"
         >
-          ⚔️ 挑戰
+          <CrossedSwordsIcon />
+          挑戰
         </button>
         {teamBlockReason ? (
-          <div className="mt-2 rounded-2xl bg-[#C0392B]/10 px-3 py-2.5 text-center">
-            <p className="text-xs font-bold text-[#C0392B]">{teamBlockReason}</p>
+          <div className="mt-2 rounded-2xl bg-[#B0102A]/90 px-3 py-2.5 text-center ring-1 ring-[#FF6A7A]/50">
+            <p className="text-[12px] font-black text-white">{teamBlockReason}</p>
             <button
               type="button"
               onClick={() => router.push("/inventory")}
-              className="mt-1.5 rounded-xl bg-[#C0392B] px-3 py-1.5 text-[11px] font-bold text-white"
+              className="mt-1.5 rounded-xl bg-white px-3 py-1.5 text-[11px] font-black text-[#B0102A]"
             >
               去物品頁買武器
             </button>
           </div>
+        ) : attemptsLeft <= 0 ? (
+          <p className="mt-2 text-center">
+            <span className="rpg-glass inline-block rounded-full px-3 py-1 text-[11px] font-bold text-white/80">今天的挑戰次數用完了，明天 00:00 重置</span>
+          </p>
         ) : null}
 
         {/* ---- 下方收藏網格（拖到上面編隊） ---- */}
-        <section className="mt-3 rounded-3xl bg-white/75 px-4 py-3 shadow-sm">
-          <p className="text-xs font-bold text-[#1A1A2E]/60">
-            我的小雞（長按拖到上面的空位）
-          </p>
+        <section className="rpg-panel mt-3 rounded-2xl px-3 py-3">
+          <p className="px-1 text-[12px] font-black text-white/70">我的小雞</p>
           {deployables.length === 0 ? (
-            <p className="mt-3 rounded-2xl bg-white/70 px-3 py-4 text-center text-xs text-[#1A1A2E]/50">
+            <p className="mt-3 rounded-xl bg-white/[0.05] px-3 py-4 text-center text-[12px] font-bold text-white/55">
               還沒有可以上場的小雞。把小雞養到大師雞就能編進戰隊。
             </p>
           ) : (
             <div className="mt-2 grid grid-cols-4 gap-2">
               {deployables.map((pet) => {
                 const onField = slots.some((s) => s?.id === pet.id);
+                const jobColor = getJobColor(pet.jobId);
                 return (
                   <div
                     key={pet.id}
                     onPointerDown={(e) => startHold(pet, e.clientX, e.clientY)}
                     onPointerUp={cancelHold}
                     onPointerLeave={cancelHold}
-                    className="flex select-none flex-col items-center rounded-2xl border bg-white/90 px-1 py-2 text-center"
+                    className="relative select-none rounded-xl p-[1.5px]"
                     style={{
-                      borderColor: onField ? getJobColor(pet.jobId) : "rgba(26,26,46,0.1)",
-                      opacity: onField ? 0.45 : 1,
+                      background: `linear-gradient(160deg, ${jobColor}CC, #2A2850)`,
+                      opacity: onField ? 0.5 : 1,
                       touchAction: "pan-y",
                     }}
                   >
-                    <PetAvatar jobId={pet.jobId} size={28} />
-                    <span className="w-full truncate text-[9px] font-extrabold text-[#1A1A2E]">
-                      {pet.name}
-                    </span>
-                    <span className="text-[9px] text-[#5C3D0A]">{pet.totalPower}</span>
-                    {!pet.weapon ? (
-                      <span className="text-[8px] font-bold text-[#C0392B]">無武器</span>
+                    <div className="flex flex-col items-center rounded-[10px] px-1 pb-1.5 pt-1" style={{ background: `radial-gradient(circle at 50% 30%, ${jobColor}44 0%, #14132A 72%)` }}>
+                      <PetArt jobId={pet.jobId} size={44} />
+                      <span className="w-full truncate text-center text-[10px] font-black text-white">{pet.name}</span>
+                      <span className="font-display text-[11px] leading-none text-[#FFE58A]">{pet.totalPower}</span>
+                      {!pet.weapon ? <span className="text-[8.5px] font-black text-[#FF8A96]">沒有武器</span> : null}
+                    </div>
+                    {onField ? (
+                      <span className="absolute inset-x-[1.5px] top-[1.5px] rounded-t-[10px] bg-[#F5C542] py-0.5 text-center text-[9.5px] font-black text-[#3A1D00]">上場中</span>
                     ) : null}
                   </div>
                 );
               })}
             </div>
           )}
-          <p className="mt-2 text-[10px] text-[#1A1A2E]/40">
-            戰隊只要「整隊至少一隻有武器」就能出戰，空手的小雞也能上去當肉盾
+          <p className="mt-2.5 px-1 text-[10.5px] leading-relaxed text-white/45">
+            整隊只要至少一隻有武器就能出戰，空手的小雞也能上去當肉盾。
           </p>
         </section>
       </div>
@@ -559,56 +574,62 @@ function TeamContent() {
       {/* ---- 拖曳中的浮動影像 ---- */}
       {dragging && dragPos ? (
         <div
-          className="pointer-events-none fixed z-[80] flex flex-col items-center rounded-2xl bg-white px-2 py-1.5 shadow-2xl"
+          className="pointer-events-none fixed z-[80] flex flex-col items-center rounded-2xl px-2 py-1.5"
           style={{
-            left: dragPos.x - 28,
-            top: dragPos.y - 34,
-            border: `2px solid ${getJobColor(dragging.jobId)}`,
+            left: dragPos.x - 34,
+            top: dragPos.y - 44,
+            background: "linear-gradient(180deg,#2A2850,#14132A)",
+            boxShadow: "0 0 0 2px #F5C542, 0 0 18px rgba(245,197,66,0.7), 0 12px 24px rgba(0,0,0,0.5)",
+            transform: "rotate(-4deg) scale(1.08)",
           }}
         >
-          <PetAvatar jobId={dragging.jobId} size={30} />
-          <span className="text-[9px] font-extrabold text-[#1A1A2E]">{dragging.name}</span>
+          <PetArt jobId={dragging.jobId} size={46} />
+          <span className="text-[10px] font-black text-white">{dragging.name}</span>
         </div>
       ) : null}
 
       {/* ---- 改隊名 ---- */}
       {showRename ? (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 px-4">
-          <div className="w-full max-w-sm rounded-3xl bg-[#FDF6E8] p-5 shadow-2xl">
-            <h3 className="text-center text-base font-extrabold text-[#1A1A2E]">改隊名</h3>
-            <p className="mt-1 text-center text-[11px] text-[#1A1A2E]/55">
-              {team.renameCountThisSeason >= 1
-                ? "這一季已經改過一次了，下一季才能再改。"
-                : "每一季只能改一次，改完這一季就不能再改。"}
-            </p>
-            <input
-              type="text"
-              value={nameInput}
-              onChange={(e) => setNameInput(e.target.value)}
-              maxLength={TEAM_NAME_MAX_LENGTH}
-              disabled={team.renameCountThisSeason >= 1}
-              className="mt-3 w-full rounded-xl border border-[#E8B84B] bg-white px-3 py-2.5 text-center text-sm font-bold text-[#1A1A2E] outline-none disabled:opacity-50"
-            />
-            <div className="mt-4 grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => setShowRename(false)}
-                className="rounded-xl bg-white px-3 py-2.5 text-sm font-bold text-[#1A1A2E]/70 shadow-sm"
-              >
-                取消
-              </button>
-              <button
-                type="button"
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/65 px-4">
+          <div className="result-card w-full max-w-sm rounded-[26px] p-[3px]" style={{ background: "linear-gradient(160deg,#FFF1B8 0%,#E8B84B 30%,#8A5A12 62%,#F5C542 100%)" }}>
+            <div className="rounded-[23px] bg-gradient-to-b from-[#221F48] to-[#0E0D1E] p-5">
+              <h3 className="text-center">
+                <span className="fx-text text-[20px] font-black" data-text="改隊名" style={fxStyle("linear-gradient(180deg,#FFFFFF 5%,#FFE58A 50%,#E8A912 100%)", 5, "#1A1206")}>
+                  改隊名
+                </span>
+              </h3>
+              <p className="mt-1 text-center text-[11.5px] text-white/60">
+                {team.renameCountThisSeason >= 1 ? "這一季已經改過一次了，下一季才能再改。" : "每一季只能改一次，改完這一季就不能再改。"}
+              </p>
+              <input
+                type="text"
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
+                maxLength={TEAM_NAME_MAX_LENGTH}
                 disabled={team.renameCountThisSeason >= 1}
-                onClick={async () => {
-                  const r = await renameTeam(nameInput);
-                  setMessage(r.message);
-                  if (r.success) setShowRename(false);
-                }}
-                className="rounded-xl bg-gradient-to-b from-[#F6D87A] to-[#E8B84B] px-3 py-2.5 text-sm font-extrabold text-[#5C3D0A] shadow-md disabled:opacity-40"
-              >
-                確定
-              </button>
+                className="mt-3 w-full rounded-2xl bg-white/[0.07] px-3 py-3 text-center text-[15px] font-black text-white outline-none ring-2 ring-[#F5C542]/50 focus:ring-[#F5C542] disabled:opacity-40"
+              />
+              <div className="mt-4 grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowRename(false)}
+                  className="rounded-2xl bg-white/10 px-3 py-3 text-sm font-black text-white/80 ring-1 ring-white/20"
+                >
+                  取消
+                </button>
+                <button
+                  type="button"
+                  disabled={team.renameCountThisSeason >= 1}
+                  onClick={async () => {
+                    const r = await renameTeam(nameInput);
+                    setMessage(r.message);
+                    if (r.success) setShowRename(false);
+                  }}
+                  className="btn-gold rounded-2xl px-3 py-3 text-sm font-black"
+                >
+                  確定
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -616,26 +637,27 @@ function TeamContent() {
 
       {/* ---- 排行榜半屏彈窗 ---- */}
       {showLeaderboard ? (
-        <div
-          className="fixed inset-0 z-[70] flex items-end bg-black/60"
-          onClick={() => setShowLeaderboard(false)}
-        >
+        <div className="fixed inset-0 z-[70] flex items-end bg-black/65" onClick={() => setShowLeaderboard(false)}>
           <div
-            className="max-h-[72vh] w-full overflow-y-auto rounded-t-3xl bg-[#FDF6E8] px-4 pb-6 pt-4 shadow-2xl"
+            className="rules-sheet max-h-[76vh] w-full overflow-y-auto rounded-t-[28px] px-4 pb-6 pt-4"
+            style={{ background: "linear-gradient(180deg,#221F48 0%,#0E0D1E 100%)", boxShadow: "0 -1px 0 rgba(245,197,66,0.5), 0 -20px 40px rgba(0,0,0,0.5)" }}
             onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label="選一個對手"
           >
-            <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-[#1A1A2E]/15" />
-            <h3 className="text-center text-base font-extrabold text-[#1A1A2E]">選一個對手</h3>
-            <p className="mt-0.5 text-center text-[10px] text-[#1A1A2E]/45">
-              挑戰比自己排名高的人，贏了加比較多分
-            </p>
+            <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-white/20" />
+            <h3 className="text-center">
+              <span className="fx-text text-[21px] font-black" data-text="選一個對手" style={fxStyle("linear-gradient(180deg,#FFFFFF 5%,#FFE58A 50%,#E8A912 100%)", 5, "#1A1206")}>
+                選一個對手
+              </span>
+            </h3>
+            <p className="mt-1 text-center text-[11px] text-white/50">挑戰排名比你高的隊伍，贏了加比較多分</p>
 
             {isLoadingBoard || !leaderboard ? (
-              <p className="py-10 text-center text-sm text-[#1A1A2E]/50">載入中…</p>
+              <p className="py-10 text-center text-sm font-black text-white/50">載入中…</p>
             ) : leaderboard.length === 0 ? (
-              <p className="py-10 text-center text-sm text-[#1A1A2E]/50">
-                目前還沒有任何戰隊上榜
-              </p>
+              <p className="py-10 text-center text-sm font-black text-white/50">目前還沒有任何戰隊上榜</p>
             ) : (
               <div className="mt-3 flex flex-col gap-1.5">
                 {leaderboard.map((t, index) => {
@@ -643,39 +665,53 @@ function TeamContent() {
                   const isMe = t.uid === user.uid;
                   const myRank = getMyRank(leaderboard, user.uid);
                   const preview = previewScoreChange(myRank, rank, team.score);
+                  const medal = rank <= 3 ? MEDALS[rank - 1] : null;
                   return (
                     <div
                       key={t.uid}
-                      className="flex items-center gap-2 rounded-2xl bg-white/85 px-3 py-2"
-                      style={{ opacity: isMe ? 0.5 : 1 }}
+                      className="flex items-center gap-2.5 rounded-2xl px-2.5 py-2"
+                      style={{
+                        background: isMe
+                          ? "linear-gradient(90deg, rgba(79,195,255,0.22), rgba(79,195,255,0.06))"
+                          : medal
+                            ? `linear-gradient(90deg, ${medal.glow}30, rgba(255,255,255,0.03))`
+                            : "rgba(255,255,255,0.05)",
+                        boxShadow: isMe ? "inset 0 0 0 1.5px rgba(79,195,255,0.6)" : medal ? `inset 0 0 0 1px ${medal.glow}66` : "inset 0 0 0 1px rgba(255,255,255,0.06)",
+                      }}
                     >
-                      <span className="w-6 shrink-0 text-center text-xs font-extrabold text-[#5C3D0A]">
-                        {rank}
-                      </span>
+                      {medal ? (
+                        <span
+                          className="font-display flex h-8 w-8 shrink-0 items-center justify-center text-[15px] leading-none"
+                          style={{ clipPath: "polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%)", background: medal.fill, color: "#2A1600" }}
+                        >
+                          {rank}
+                        </span>
+                      ) : (
+                        <span className="font-display w-8 shrink-0 text-center text-[15px] text-white/55">{rank}</span>
+                      )}
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-xs font-extrabold text-[#1A1A2E]">
+                        <p className="truncate text-[13px] font-black text-white">
                           {t.teamName}
+                          {isMe ? <span className="ml-1.5 text-[10px] font-black text-[#7FD3FF]">你</span> : null}
                         </p>
-                        <p className="truncate text-[10px] text-[#1A1A2E]/45">
-                          {t.ownerName}・戰力 {t.totalPower}
+                        <p className="truncate text-[10.5px] font-bold text-white/45">
+                          {t.ownerName}・戰力 <span className="font-display text-[11px] text-white/70">{t.totalPower}</span>
                         </p>
                       </div>
-                      <span className="shrink-0 text-xs font-extrabold text-[#1A1A2E]">
-                        {t.score}
-                      </span>
+                      <span className="font-display shrink-0 text-[16px] text-[#FFE58A]">{t.score}</span>
                       {isMe ? (
-                        <span className="w-16 shrink-0 text-center text-[10px] font-bold text-[#1A1A2E]/40">
-                          你自己
-                        </span>
+                        <span className="w-[68px] shrink-0" />
                       ) : (
                         <button
                           type="button"
                           onClick={() => handleChallenge(t, rank)}
-                          className="w-16 shrink-0 rounded-lg bg-gradient-to-b from-[#F6D87A] to-[#E8B84B] px-2 py-1.5 text-[10px] font-extrabold text-[#5C3D0A] shadow-sm transition-transform active:scale-95"
+                          className="btn-gold w-[68px] shrink-0 rounded-xl px-1.5 py-1.5 text-[12px] font-black leading-tight"
                         >
                           挑戰
-                          <span className="block text-[8px] font-bold text-[#5C3D0A]/70">
-                            +{preview.onWin} / {preview.onLose}
+                          <span className="block text-[9.5px] font-black">
+                            <span className="text-[#1E6B2E]">+{preview.onWin}</span>
+                            <span className="text-[#3A1D00]/50"> / </span>
+                            <span className="text-[#8A1020]">{preview.onLose}</span>
                           </span>
                         </button>
                       )}
@@ -690,17 +726,19 @@ function TeamContent() {
 
       {/* ---- 戰鬥 ---- */}
       {setup && !finished ? (
-        <div className="fixed inset-0 z-[75] overflow-y-auto bg-[#FDF6E8] px-4 py-4">
-          <div className="mx-auto max-w-md">
-            <p className="mb-2 text-center text-xs font-bold text-[#1A1A2E]/55">
-              {team.teamName} vs {setup.opponent.teamName}
-            </p>
+        <div
+          className="fixed inset-0 z-[75] flex items-center overflow-y-auto px-3 py-4"
+          style={{ background: "radial-gradient(ellipse at 50% 30%, #2A1C12 0%, #0B0A18 70%)" }}
+        >
+          <div className="mx-auto w-full max-w-md">
             <BattleStage
               playerUnits={setup.playerUnits}
               enemyUnits={setup.enemyUnits}
               visuals={setup.visuals}
               result={setup.result}
-              accentColor="#A9764C"
+              title={`${team.teamName} vs ${setup.opponent.teamName}`}
+              playerLabel={team.teamName}
+              enemyLabel={setup.opponent.teamName}
               onFinish={handleBattleFinish}
             />
           </div>
@@ -740,6 +778,45 @@ function TeamContent() {
         />
       ) : null}
     </main>
+  );
+}
+
+// ============================================================
+// 小工具
+// ============================================================
+
+/** 前三名的獎牌配色：金、銀、銅 */
+const MEDALS = [
+  { fill: "linear-gradient(180deg,#FFF6CC 0%,#F5C542 55%,#B47A0A 100%)", glow: "#F5C542" },
+  { fill: "linear-gradient(180deg,#FFFFFF 0%,#C9D0DC 55%,#7A8494 100%)", glow: "#C9D0DC" },
+  { fill: "linear-gradient(180deg,#FFE0C2 0%,#D9864A 55%,#8A4A1A 100%)", glow: "#D9864A" },
+];
+
+/** 特效字的 CSS 變數 */
+function fxStyle(fill: string, stroke: number, strokeColor: string): React.CSSProperties {
+  return {
+    ["--fx-fill" as string]: fill,
+    ["--fx-stroke" as string]: `${stroke}px`,
+    ["--fx-stroke-color" as string]: strokeColor,
+  } as React.CSSProperties;
+}
+
+function TrophyIcon() {
+  return (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="#3A1D00" aria-hidden="true">
+      <path d="M7 3h10v3h3v2a4 4 0 0 1-4 4h-.3A5 5 0 0 1 13 14.9V17h3v3H8v-3h3v-2.1A5 5 0 0 1 8.3 12H8a4 4 0 0 1-4-4V6h3V3zm-1 5a2 2 0 0 0 1.2 1.8A6 6 0 0 1 7 8V8H6zm11 0v0a6 6 0 0 1-.2 1.8A2 2 0 0 0 18 8h-1z" />
+    </svg>
+  );
+}
+
+function CrossedSwordsIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M14.5 17.5 3 6V3h3l11.5 11.5" />
+      <path d="m13 19 6-6M16 16l4 4M19 21l2-2" />
+      <path d="M9.5 6.5 14 2h3v3l-4.5 4.5" />
+      <path d="m5 14 6 6M7 17l-3 3M3 19l2 2" />
+    </svg>
   );
 }
 
