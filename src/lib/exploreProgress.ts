@@ -46,6 +46,7 @@ export async function fetchExploreProgress(uid: string): Promise<ExploreProgress
     bossDefeatedCount: data.bossDefeatedCount ?? 0,
     dailyAttemptsUsed: data.dailyAttemptsUsed ?? 0,
     dailyAttemptsDate: data.dailyAttemptsDate ?? getTaipeiDateString(),
+    dailyReplayLootUsed: data.dailyReplayLootUsed ?? 0,
     updatedAt: data.updatedAt ?? now,
   };
 }
@@ -68,7 +69,7 @@ export function normalizeDailyAttempts(
   today: string = getTaipeiDateString(),
 ): ExploreProgressDoc {
   if (progress.dailyAttemptsDate === today) return progress;
-  return { ...progress, dailyAttemptsUsed: 0, dailyAttemptsDate: today };
+  return { ...progress, dailyAttemptsUsed: 0, dailyReplayLootUsed: 0, dailyAttemptsDate: today };
 }
 
 /** 這一關通關過了沒 */

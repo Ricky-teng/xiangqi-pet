@@ -18,7 +18,15 @@ import type { CollectedPetDoc } from "@/types/rpg";
 import type { BattleUnit } from "@/lib/rpg/battle";
 import type { BattleUnitVisual } from "@/components/battle/BattleStage";
 import type { MonsterTemplate } from "@/lib/rpg/monsters";
-import { getDeployBlockReason, type EquipmentItem } from "@/lib/rpg/equipment";
+import {
+  getCombatTraits,
+  getDeployBlockReason,
+  getItemType,
+  type ArmorType,
+  type CombatTraits,
+  type EquipmentItem,
+  type WeaponType,
+} from "@/lib/rpg/equipment";
 import { getFinalStats, getTotalPower, type PetStats } from "@/lib/rpg/stats";
 
 /** 畫面上用來代表「一隻可以出戰的小雞」的統一形狀 */
@@ -33,6 +41,9 @@ export interface DeployablePet {
   weapon: EquipmentItem | null;
   armor: EquipmentItem | null;
   stats: PetStats;
+  /** 裝備跟寶石帶來的特殊效果（爆擊、吸血…） */
+  traits: CombatTraits;
+  /** 總戰力（含特殊效果的估值） */
   totalPower: number;
   /** 不能出戰的原因，null = 可以出戰 */
   blockReason: string | null;
@@ -51,6 +62,7 @@ function build(
   armor: EquipmentItem | null,
 ): DeployablePet {
   const stats = getFinalStats(jobId, severeSickCount, weapon, armor);
+  const traits = getCombatTraits(weapon, armor);
   return {
     id,
     isLiving,
@@ -60,7 +72,8 @@ function build(
     weapon,
     armor,
     stats,
-    totalPower: getTotalPower(stats),
+    traits,
+    totalPower: getTotalPower(stats, traits),
     blockReason: getDeployBlockReason(weapon),
   };
 }
@@ -111,11 +124,19 @@ export function toBattleUnit(pet: DeployablePet, id: string, side: "player" | "e
     attack: pet.stats.attack,
     defense: pet.stats.defense,
     speed: pet.stats.speed,
+    traits: pet.traits,
   };
 }
 
 export function toBattleVisual(pet: DeployablePet, id: string): BattleUnitVisual {
-  return { id, jobId: pet.jobId };
+  return {
+    id,
+    jobId: pet.jobId,
+    // 戰鬥畫面依武器種類換刀光樣式、依防具種類畫閃避／反傷特效
+    // getItemType 對武器一定回傳武器種類、防具一定回傳防具種類（見 equipment.ts）
+    weaponType: pet.weapon ? (getItemType(pet.weapon) as WeaponType) : null,
+    armorType: pet.armor ? (getItemType(pet.armor) as ArmorType) : null,
+  };
 }
 
 export function monsterToBattleUnit(monster: MonsterTemplate, id: string): BattleUnit {

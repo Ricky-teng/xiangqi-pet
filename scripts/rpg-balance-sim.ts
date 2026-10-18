@@ -55,7 +55,7 @@ const PROFILES: PlayerProfile[] = [
 ];
 
 function makeEquipment(tier: EquipmentTier | null, kind: "weapon" | "armor"): EquipmentItem | null {
-  return tier === null ? null : createEquipmentItem(kind, tier, 0);
+  return tier === null ? null : createEquipmentItem(kind === "weapon" ? "sword" : "shield", tier, 0);
 }
 
 function buildPlayerUnit(profile: PlayerProfile): BattleUnit {

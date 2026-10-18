@@ -4,18 +4,19 @@
 /**
  * 「🎒 物品」頁的裝備分頁
  * ------------------------------------------------------------
- * 三個區塊，由上而下：
- *   1. 購買  — 第 1 階武器／防具各 100 飼料、背包擴充 +20 格 1000 飼料
- *   2. 背包  — 同階同類型折疊顯示，但格數照算（一件一格）
- *   3. 合成  — 手動選 3 件（有光效）＋ 一鍵合成（先跳確認頁）
+ * 四個區塊，由上而下：
+ *   1. 購買    — 第 1 階劍／盾各 100 飼料（其他種類只能靠探險掉）、背包擴充
+ *   2. 寶石袋  — 六色寶石各有幾顆（寶石不佔背包格數）
+ *   3. 背包    — 同種類同階折疊成一格，點開看每一件的品質跟寶石，
+ *                可以「放進合成」或「鑲寶石」
+ *   4. 合成    — 手動選 3 件同種類同階（有合成陣光效）＋ 一鍵合成
  *
- * 折疊顯示的重點：畫面上只出現「粗製武器 ×27」一個圖示，但格數
+ * 折疊顯示的重點：畫面上只出現「粗製匕首 ×27」一個圖示，但格數
  * 仍然是 27 格。所以卡片上同時寫著數量跟「佔 27 格」，不然學生會
  * 以為折疊等於只佔一格，背包爆掉的時候搞不清楚為什麼。
  *
  * 合成成功時播一段「合成儀式」（FuseCeremony）：三件素材往中間
- * 聚攏 → 爆光 → 新裝備背面朝上落下再翻面、光柱衝上去。合成是這個
- * 系統最爽的一刻，值得給它一個完整的演出。
+ * 聚攏 → 爆光 → 新裝備背面朝上落下再翻面、光柱衝上去。
  */
 
 import { useEffect, useMemo, useState } from "react";
@@ -25,21 +26,31 @@ import {
   BAG_EXPAND_COST,
   BAG_EXPAND_SLOTS,
   EQUIPMENT_SHOP_PRICE,
+  EQUIPMENT_TYPES,
   FUSE_REQUIRED_COUNT,
-  KIND_LABELS,
   MAX_EQUIPMENT_TIER,
+  SHOP_TYPE_BY_KIND,
   autoFuse,
   getBagCapacity,
   getEquipmentBonusLabel,
   getEquipmentName,
+  getItemGems,
+  getItemQuality,
+  getItemType,
+  getQualityLabel,
+  getSocketCount,
   getTierName,
   groupBag,
   type BagGroup,
   type EquipmentItem,
   type EquipmentKind,
   type EquipmentTier,
+  type EquipmentType,
 } from "@/lib/rpg/equipment";
+import { GEM_IDS, GEM_TABLE, getGemCount, getGemTotal } from "@/lib/rpg/gems";
 import EquipmentIcon, { ItemFrame, getTierMaterial } from "@/components/rpg/EquipmentIcon";
+import GemIcon from "@/components/rpg/GemIcon";
+import { GemSocketSheet, ItemInfoLines, ItemTile, QualityBadge } from "@/components/rpg/ItemDetail";
 
 interface EquipmentSectionProps {
   /** 統一交給物品頁顯示訊息，跟道具／背景分頁共用同一條提示列 */
@@ -50,9 +61,9 @@ interface EquipmentSectionProps {
 interface FuseShow {
   key: number;
   /** 素材（只用來畫聚攏的那三件） */
-  material: { kind: EquipmentKind; tier: EquipmentTier };
+  material: { kind: EquipmentKind; type: EquipmentType; tier: EquipmentTier };
   /** 合出來的東西（一鍵合成可能好幾件） */
-  produced: { id: string; kind: EquipmentKind; tier: EquipmentTier }[];
+  produced: EquipmentItem[];
 }
 
 /** 合成陣的幾何：圓心、半徑、三個槽的角度（正上方開始，每 120°） */
@@ -85,11 +96,15 @@ export default function EquipmentSection({ onMessage }: EquipmentSectionProps) {
   /** 手動合成槽：存的是背包裡的 item id，最多 FUSE_REQUIRED_COUNT 件 */
   const [fuseSlots, setFuseSlots] = useState<string[]>([]);
   /** 一鍵合成的確認頁（null = 沒在確認） */
-  const [autoFusePreview, setAutoFusePreview] = useState<{ fuseCount: number; produced: EquipmentItem[] } | null>(null);
+  const [autoFusePreview, setAutoFusePreview] = useState<{ fuseCount: number; produced: EquipmentItem[]; gemsBack: number } | null>(null);
   /** 正在播的合成儀式 */
   const [fuseShow, setFuseShow] = useState<FuseShow | null>(null);
   /** 剛買到的那一格閃一下 */
   const [boughtKind, setBoughtKind] = useState<EquipmentKind | null>(null);
+  /** 點開來看的那一組（用 key 記，背包變動後重新從 groups 找） */
+  const [openGroupKey, setOpenGroupKey] = useState<string | null>(null);
+  /** 正在鑲寶石的那一件 */
+  const [socketItemId, setSocketItemId] = useState<string | null>(null);
 
   const bag = useMemo(() => user?.equipmentBag ?? [], [user]);
   const expandCount = user?.bagExpandCount ?? 0;
@@ -100,15 +115,17 @@ export default function EquipmentSection({ onMessage }: EquipmentSectionProps) {
 
   const isBagFull = bag.length >= capacity;
   const usedPct = Math.min(100, (bag.length / Math.max(1, capacity)) * 100);
+  const gemTotal = getGemTotal(user.gemBag);
+  const openGroup = openGroupKey ? groups.find((g) => groupKey(g) === openGroupKey) ?? null : null;
 
   /** 合成槽裡目前選了哪些（轉成實際物件） */
   const fusePicked = fuseSlots
     .map((id) => bag.find((item) => item.id === id))
     .filter((item): item is EquipmentItem => Boolean(item));
 
-  /** 這一組（同階同類型）目前在合成槽裡被選了幾件 */
+  /** 這一組（同種類同階）目前在合成槽裡被選了幾件 */
   function getSelectedCount(group: BagGroup): number {
-    return fusePicked.filter((item) => item.kind === group.kind && item.tier === group.tier).length;
+    return fusePicked.filter((item) => getItemType(item) === group.type && item.tier === group.tier).length;
   }
 
   function handleBuy(kind: EquipmentKind) {
@@ -125,42 +142,63 @@ export default function EquipmentSection({ onMessage }: EquipmentSectionProps) {
     onMessage(result.message);
   }
 
-  /** 點背包裡的一組：從那組裡挑一件還沒被選的丟進合成槽 */
-  function handlePickForFuse(group: BagGroup) {
+  /** 把一件放進合成槽（從清單裡的「放進合成」按鈕） */
+  function addToFuse(item: EquipmentItem): boolean {
+    if (item.tier >= MAX_EQUIPMENT_TIER) {
+      onMessage(`${getTierName(MAX_EQUIPMENT_TIER)}已經是最高階，不能再合成。`);
+      return false;
+    }
+    if (fuseSlots.includes(item.id)) {
+      setFuseSlots(fuseSlots.filter((id) => id !== item.id));
+      return true;
+    }
+    if (fuseSlots.length >= FUSE_REQUIRED_COUNT) {
+      onMessage(`合成槽只能放 ${FUSE_REQUIRED_COUNT} 件，先按「清空」再重選。`);
+      return false;
+    }
+    // 已經選了東西的話，後面只能選同種類同階的，不然一定合不成
+    if (fusePicked.length > 0) {
+      const first = fusePicked[0];
+      if (getItemType(first) !== getItemType(item) || first.tier !== item.tier) {
+        onMessage(`合成要 3 件同種類、同階的裝備，例如 3 把${getEquipmentName(first)}。`);
+        return false;
+      }
+    }
+    setFuseSlots([...fuseSlots, item.id]);
+    return true;
+  }
+
+  /** 一次把這一組放滿合成槽（品質差的先，留下好的） */
+  function fillFuseFromGroup(group: BagGroup) {
     if (group.tier >= MAX_EQUIPMENT_TIER) {
       onMessage(`${getTierName(MAX_EQUIPMENT_TIER)}已經是最高階，不能再合成。`);
       return;
     }
-    if (fuseSlots.length >= FUSE_REQUIRED_COUNT) {
-      onMessage(`合成槽只能放 ${FUSE_REQUIRED_COUNT} 件，先按「清空」再重選。`);
+    if (group.count < FUSE_REQUIRED_COUNT) {
+      onMessage(`這一組只有 ${group.count} 件，要湊滿 ${FUSE_REQUIRED_COUNT} 件才能合成。`);
       return;
     }
-    // 已經選了東西的話，後面只能選同階同類型的，不然一定合不成
-    if (fusePicked.length > 0) {
-      const first = fusePicked[0];
-      if (first.kind !== group.kind || first.tier !== group.tier) {
-        onMessage("合成要 3 件同階同類型的裝備喔。");
-        return;
-      }
-    }
-    const next = group.items.find((item) => !fuseSlots.includes(item.id));
-    if (!next) {
-      onMessage("這一組已經全部放進合成槽了。");
-      return;
-    }
-    setFuseSlots([...fuseSlots, next.id]);
+    // 合出來會繼承最好的品質，所以拿「最好的 1 件 ＋ 最差的 2 件」
+    const best = group.items[0];
+    const worst = group.items.slice(-2);
+    setFuseSlots([best.id, ...worst.map((i) => i.id)]);
+    setOpenGroupKey(null);
+    onMessage(`已經放進 3 件${getEquipmentName(best)}（最好的一件 ＋ 最差的兩件），合出來會繼承最好的品質。`);
   }
 
   function handleFuse() {
     const first = fusePicked[0];
+    const before = new Set(bag.map((i) => i.id));
     const result = fuseEquipmentItems(fuseSlots);
     onMessage(result.message);
     if (result.success && first) {
       setFuseSlots([]);
+      const latest = useGameStore.getState().user?.equipmentBag ?? [];
+      const produced = latest.filter((i) => !before.has(i.id));
       setFuseShow({
         key: Date.now(),
-        material: { kind: first.kind, tier: first.tier },
-        produced: [{ id: `fused-${Date.now()}`, kind: first.kind, tier: (first.tier + 1) as EquipmentTier }],
+        material: { kind: first.kind, type: getItemType(first), tier: first.tier },
+        produced,
       });
     }
   }
@@ -168,25 +206,29 @@ export default function EquipmentSection({ onMessage }: EquipmentSectionProps) {
   function handleOpenAutoFuse() {
     const preview = autoFuse(bag, Date.now());
     if (preview.fuseCount === 0) {
-      onMessage("沒有任何同階同類型湊滿 3 件的裝備可以合成。");
+      onMessage("沒有任何同種類、同階湊滿 3 件的裝備可以合成。");
       return;
     }
-    setAutoFusePreview({ fuseCount: preview.fuseCount, produced: preview.produced });
+    setAutoFusePreview({ fuseCount: preview.fuseCount, produced: preview.produced, gemsBack: preview.returnedGems.length });
   }
 
   function handleConfirmAutoFuse() {
-    const preview = autoFusePreview;
+    const before = new Set(bag.map((i) => i.id));
     const result = autoFuseBag();
     onMessage(result.message);
     setAutoFusePreview(null);
     setFuseSlots([]);
-    if (result.success && preview && preview.produced.length > 0) {
-      const lowest = [...preview.produced].sort((a, b) => a.tier - b.tier)[0];
-      setFuseShow({
-        key: Date.now(),
-        material: { kind: lowest.kind, tier: Math.max(1, lowest.tier - 1) as EquipmentTier },
-        produced: preview.produced.map((p) => ({ id: p.id, kind: p.kind, tier: p.tier })),
-      });
+    if (result.success) {
+      const latest = useGameStore.getState().user?.equipmentBag ?? [];
+      const produced = latest.filter((i) => !before.has(i.id)).sort((a, b) => a.tier - b.tier);
+      if (produced.length > 0) {
+        const lowest = produced[0];
+        setFuseShow({
+          key: Date.now(),
+          material: { kind: lowest.kind, type: getItemType(lowest), tier: Math.max(1, lowest.tier - 1) as EquipmentTier },
+          produced,
+        });
+      }
     }
   }
 
@@ -198,12 +240,13 @@ export default function EquipmentSection({ onMessage }: EquipmentSectionProps) {
       <section className="rpg-panel rounded-[22px] px-4 py-4">
         <SectionTitle right={<RulesButton topic="equipment" variant="dark" />}>購買裝備</SectionTitle>
         <p className="mt-1 text-[11.5px] leading-relaxed text-white/55">
-          商店只賣第 1 階，更高階要靠合成（3 件同階同類型 → 1 件高一階）
+          商店只賣第 1 階的劍跟盾。匕首、斧頭這些其他種類要去探險打，每座塔主要掉自己的新種類。
         </p>
 
         <div className="mt-3 grid grid-cols-2 gap-2.5">
           {(["weapon", "armor"] as const).map((kind) => {
             const disabled = user.foodCount < EQUIPMENT_SHOP_PRICE || isBagFull;
+            const type = SHOP_TYPE_BY_KIND[kind];
             return (
               <button
                 key={kind}
@@ -216,10 +259,10 @@ export default function EquipmentSection({ onMessage }: EquipmentSectionProps) {
                 <span className="flex w-full flex-col items-center rounded-[16px] px-2 pb-2.5 pt-3" style={{ background: "radial-gradient(circle at 50% 30%, #4A3A7A 0%, #17142E 75%)" }}>
                   <span className={boughtKind === kind ? "drop-card-enter" : ""}>
                     <ItemFrame tier={1} size={60}>
-                      <EquipmentIcon kind={kind} tier={1} size={42} />
+                      <EquipmentIcon kind={kind} type={type} tier={1} size={42} />
                     </ItemFrame>
                   </span>
-                  <span className="mt-2 text-[13px] font-black text-white">粗製{KIND_LABELS[kind]}</span>
+                  <span className="mt-2 text-[13px] font-black text-white">粗製{EQUIPMENT_TYPES[type].name}</span>
                   <span className="text-[10.5px] font-bold text-white/55">{kind === "weapon" ? "攻擊 +20" : "防禦 +10・體力 +100"}</span>
                   <span className="mt-2 flex items-center gap-1 rounded-full px-3 py-1" style={{ background: "linear-gradient(180deg,#FFF6CC,#F5C542)" }}>
                     <WheatIcon />
@@ -252,7 +295,41 @@ export default function EquipmentSection({ onMessage }: EquipmentSectionProps) {
       </section>
 
       {/* ============================================================
-          2. 背包
+          2. 寶石袋
+         ============================================================ */}
+      <section className="rpg-panel rounded-[22px] px-4 py-4">
+        <SectionTitle
+          right={
+            <span className="leading-none">
+              <span className="font-display text-[16px] text-[#FFE58A]">{gemTotal}</span>
+              <span className="ml-1 text-[11px] font-black text-white/50">顆</span>
+            </span>
+          }
+        >
+          寶石袋
+        </SectionTitle>
+        <p className="mt-1 text-[11.5px] leading-relaxed text-white/55">
+          探險首通必掉 1 顆。裝備幾階就有幾個孔，在背包點開裝備就能鑲；隨時可以免費拆下來。
+        </p>
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          {GEM_IDS.map((g) => {
+            const n = getGemCount(user.gemBag, g);
+            return (
+              <div key={g} className="flex flex-col items-center rounded-2xl bg-white/[0.05] px-1 pb-2 pt-2.5 ring-1 ring-white/10" style={{ opacity: n > 0 ? 1 : 0.5 }}>
+                <span className="relative">
+                  <GemIcon gem={g} size={34} />
+                  <span className="font-display absolute -bottom-1 -right-3 rounded-full bg-black/70 px-1.5 text-[11px] leading-[16px] text-white ring-1 ring-white/20">×{n}</span>
+                </span>
+                <span className="mt-1.5 text-[11.5px] font-black text-white">{GEM_TABLE[g].name}</span>
+                <span className="text-[10px] font-bold text-white/55">{GEM_TABLE[g].label}</span>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* ============================================================
+          3. 背包
          ============================================================ */}
       <section className="rpg-panel rounded-[22px] px-4 py-4">
         <SectionTitle
@@ -273,55 +350,62 @@ export default function EquipmentSection({ onMessage }: EquipmentSectionProps) {
             style={{ width: `${usedPct}%`, background: isBagFull ? "linear-gradient(90deg,#FF4D5E,#FF8A96)" : "linear-gradient(90deg,#C98A0A,#FFE58A)" }}
           />
         </div>
-        <p className="mt-1.5 text-[11px] text-white/50">同階同類型會疊成一格顯示，但格數是一件一格算的</p>
+        <p className="mt-1.5 text-[11px] text-white/50">同種類同階會疊成一格顯示，但格數是一件一格算的。點一下看每一件。</p>
 
         {groups.length === 0 ? (
-          <p className="mt-4 rounded-2xl bg-white/[0.05] px-3 py-6 text-center text-[12px] font-bold text-white/55">
-            背包是空的。先買一件武器，才能派小雞去探險。
-          </p>
+          <p className="mt-4 rounded-2xl bg-white/[0.05] px-3 py-6 text-center text-[12px] font-bold text-white/55">背包是空的。先買一把劍，才能派小雞去探險。</p>
         ) : (
           <div className="mt-3 grid grid-cols-4 gap-x-2 gap-y-3">
             {groups.map((group) => {
               const selected = getSelectedCount(group);
               const m = getTierMaterial(group.tier);
+              const best = group.items[0];
+              const anyGems = group.items.some((i) => getItemGems(i).length > 0);
               return (
                 <button
-                  key={`${group.kind}-${group.tier}`}
+                  key={groupKey(group)}
                   type="button"
-                  onClick={() => handlePickForFuse(group)}
+                  onClick={() => setOpenGroupKey(groupKey(group))}
                   className="relative flex flex-col items-center transition-transform active:scale-95"
-                  aria-label={`${getTierName(group.tier)}${KIND_LABELS[group.kind]} ${group.count} 件`}
+                  aria-label={`${getTierName(group.tier)}${EQUIPMENT_TYPES[group.type].name} ${group.count} 件`}
                 >
                   <ItemFrame tier={group.tier} size={64} count={group.count} selected={selected > 0}>
-                    <EquipmentIcon kind={group.kind} tier={group.tier} size={44} />
+                    <EquipmentIcon kind={group.kind} type={group.type} tier={group.tier} size={44} />
                   </ItemFrame>
                   {selected > 0 ? (
                     <span className="absolute -left-1 -top-1 z-10 flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-black text-[#3A1D00] shadow" style={{ background: "linear-gradient(180deg,#FFF6CC,#F5C542)" }}>
                       {selected}
                     </span>
                   ) : null}
+                  {anyGems ? (
+                    <span className="absolute -right-1 -top-1 z-10">
+                      <GemIcon gem={getItemGems(group.items.find((i) => getItemGems(i).length > 0)!)[0]} size={16} />
+                    </span>
+                  ) : null}
                   <span className="mt-1 text-[10.5px] font-black" style={{ color: m.frameHi }}>
                     {getTierName(group.tier)}
-                    {KIND_LABELS[group.kind]}
+                    {EQUIPMENT_TYPES[group.type].name}
                   </span>
-                  <span className="text-[9.5px] font-bold text-white/40">佔 {group.count} 格</span>
+                  <span className="text-[9.5px] font-bold text-white/40">
+                    最好 {getQualityLabel(best)}・佔 {group.count} 格
+                  </span>
                 </button>
               );
             })}
           </div>
         )}
 
-        {groups.length > 0 ? (
-          <p className="mt-3 text-[10.5px] leading-relaxed text-white/45">點一下把裝備放進下面的合成槽。要換裝到小雞身上請到「我的小雞」。</p>
-        ) : null}
+        {groups.length > 0 ? <p className="mt-3 text-[10.5px] leading-relaxed text-white/45">要換裝到小雞身上請到「我的小雞」。</p> : null}
       </section>
 
       {/* ============================================================
-          3. 合成
+          4. 合成
          ============================================================ */}
       <section className="rpg-panel relative overflow-hidden rounded-[22px] px-4 py-4">
         <SectionTitle>合成</SectionTitle>
-        <p className="mt-1 text-[11.5px] text-white/55">{FUSE_REQUIRED_COUNT} 件同階同類型 → 1 件高一階，必定成功，不用額外花飼料</p>
+        <p className="mt-1 text-[11.5px] text-white/55">
+          {FUSE_REQUIRED_COUNT} 件同種類、同階 → 1 件高一階。必定成功、不花飼料；新的那件繼承 3 件裡最好的品質，素材上的寶石會退回寶石袋。
+        </p>
 
         {/* 合成陣：三個槽剛好坐在圓環上，連線從中心往外指向各槽 */}
         <div className="relative mx-auto mt-3 h-[184px] w-[240px]">
@@ -363,21 +447,20 @@ export default function EquipmentSection({ onMessage }: EquipmentSectionProps) {
             return (
               <div key={index} className="absolute" style={{ left: x, top: y }}>
                 {item ? (
-                  <ItemFrame tier={item.tier} size={52}>
-                    <EquipmentIcon kind={item.kind} tier={item.tier} size={36} />
-                  </ItemFrame>
+                  <button type="button" onClick={() => setFuseSlots(fuseSlots.filter((id) => id !== item.id))} aria-label="從合成槽拿出來">
+                    <ItemTile item={item} size={52} showSockets={false} />
+                  </button>
                 ) : (
                   <span className="flex h-[52px] w-[52px] items-center justify-center rounded-[11px] border-2 border-dashed border-white/25 bg-[#14132A] text-[18px] font-black text-white/30">+</span>
                 )}
               </div>
             );
           })}
-          {/* 中間：會合出什麼 */}
           <div className="absolute -translate-x-1/2 -translate-y-1/2" style={{ left: FUSE_CX, top: FUSE_CY }}>
             {fusePicked.length === FUSE_REQUIRED_COUNT ? (
               <div className="drop-back-pulse">
                 <ItemFrame tier={(fusePicked[0].tier + 1) as EquipmentTier} size={46}>
-                  <EquipmentIcon kind={fusePicked[0].kind} tier={(fusePicked[0].tier + 1) as EquipmentTier} size={32} />
+                  <EquipmentIcon kind={fusePicked[0].kind} type={getItemType(fusePicked[0])} tier={(fusePicked[0].tier + 1) as EquipmentTier} size={32} />
                 </ItemFrame>
               </div>
             ) : (
@@ -388,11 +471,13 @@ export default function EquipmentSection({ onMessage }: EquipmentSectionProps) {
 
         {fusePicked.length === FUSE_REQUIRED_COUNT ? (
           <p className="mt-1 text-center text-[12px] font-black text-[#FFE58A]">
-            會合成出：{getTierName((fusePicked[0].tier + 1) as 2 | 3 | 4 | 5)}
-            {KIND_LABELS[fusePicked[0].kind]}
+            會合成出：{getTierName((fusePicked[0].tier + 1) as EquipmentTier)}
+            {EQUIPMENT_TYPES[getItemType(fusePicked[0])].name}（品質 {getQualityLabel({ quality: Math.max(...fusePicked.map(getItemQuality)) })}）
           </p>
         ) : (
-          <p className="mt-1 text-center text-[11.5px] font-bold text-white/50">從上面的背包點選 {FUSE_REQUIRED_COUNT - fusePicked.length} 件</p>
+          <p className="mt-1 text-center text-[11.5px] font-bold text-white/50">
+            {fusePicked.length === 0 ? "在背包點開一組裝備，按「放進合成」" : `再放 ${FUSE_REQUIRED_COUNT - fusePicked.length} 件同種類同階的`}
+          </p>
         )}
 
         <div className="mt-3 grid grid-cols-[1fr_1.6fr] gap-2">
@@ -421,6 +506,76 @@ export default function EquipmentSection({ onMessage }: EquipmentSectionProps) {
       </section>
 
       {/* ============================================================
+          某一組的單件清單
+         ============================================================ */}
+      {openGroup ? (
+        <div className="fixed inset-0 z-[70] flex items-end justify-center bg-black/65 sm:items-center" onClick={() => setOpenGroupKey(null)}>
+          <div
+            className="rules-sheet max-h-[82vh] w-full max-w-sm overflow-y-auto rounded-t-[28px] px-4 pb-6 pt-4 sm:rounded-[28px]"
+            style={{ background: "linear-gradient(180deg,#221F48 0%,#0E0D1E 100%)", boxShadow: "0 -1px 0 rgba(245,197,66,0.5), 0 -20px 40px rgba(0,0,0,0.5)" }}
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-label={`${getTierName(openGroup.tier)}${EQUIPMENT_TYPES[openGroup.type].name}`}
+          >
+            <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-white/20" />
+            <div className="flex items-center justify-between px-1">
+              <p className="text-[15px] font-black text-white">
+                {getTierName(openGroup.tier)}
+                {EQUIPMENT_TYPES[openGroup.type].name}
+                <span className="ml-1.5 text-[12px] text-white/50">× {openGroup.count}</span>
+              </p>
+              {openGroup.count >= FUSE_REQUIRED_COUNT && openGroup.tier < MAX_EQUIPMENT_TIER ? (
+                <button type="button" onClick={() => fillFuseFromGroup(openGroup)} className="btn-gold rounded-xl px-3 py-1.5 text-[11.5px] font-black">
+                  放 3 件進合成
+                </button>
+              ) : null}
+            </div>
+            <p className="mt-1 px-1 text-[11px] font-bold text-white/45">{EQUIPMENT_TYPES[openGroup.type].summary}</p>
+
+            <div className="mt-3 flex flex-col gap-2">
+              {openGroup.items.map((item) => {
+                const inFuse = fuseSlots.includes(item.id);
+                return (
+                  <div key={item.id} className="flex items-center gap-3 rounded-2xl bg-white/[0.05] px-2.5 py-2.5 ring-1" style={{ ["--tw-ring-color" as string]: inFuse ? "#F5C542" : "rgba(255,255,255,0.1)" }}>
+                    <ItemTile item={item} size={58} selected={inFuse} />
+                    <div className="min-w-0 flex-1">
+                      <ItemInfoLines item={item} compact />
+                    </div>
+                    <div className="flex shrink-0 flex-col gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => addToFuse(item)}
+                        disabled={item.tier >= MAX_EQUIPMENT_TIER}
+                        className="rounded-lg px-2.5 py-1.5 text-[11px] font-black transition-transform active:scale-95 disabled:opacity-30"
+                        style={inFuse ? { background: "#F5C542", color: "#3A1D00" } : { background: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.85)" }}
+                      >
+                        {inFuse ? "取消合成" : "放進合成"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSocketItemId(item.id)}
+                        className="rounded-lg px-2.5 py-1.5 text-[11px] font-black text-white transition-transform active:scale-95"
+                        style={{ background: "linear-gradient(180deg,#6A4FC0,#3E2A8A)" }}
+                      >
+                        鑲寶石 {getItemGems(item).length}/{getSocketCount(item.tier)}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <button type="button" onClick={() => setOpenGroupKey(null)} className="mt-4 w-full rounded-2xl bg-white/10 px-4 py-3 text-sm font-black text-white/80 ring-1 ring-white/20">
+              關閉
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {socketItemId ? <GemSocketSheet target={{ where: "bag", itemId: socketItemId }} onClose={() => setSocketItemId(null)} /> : null}
+
+      {/* ============================================================
           一鍵合成的確認頁
          ============================================================ */}
       {autoFusePreview ? (
@@ -432,24 +587,24 @@ export default function EquipmentSection({ onMessage }: EquipmentSectionProps) {
                   一鍵合成
                 </span>
               </h3>
-              <p className="mt-1 text-center text-[12px] text-white/60">會合成 {autoFusePreview.fuseCount} 次，合出下面這些：</p>
+              <p className="mt-1 text-center text-[12px] text-white/60">會合成 {autoFusePreview.fuseCount} 次，最後會得到：</p>
 
               <div className="mt-3 flex flex-wrap justify-center gap-3">
                 {autoFusePreview.produced.map((item) => (
-                  <div key={item.id} className="flex w-[72px] flex-col items-center">
-                    <ItemFrame tier={item.tier} size={60}>
-                      <EquipmentIcon kind={item.kind} tier={item.tier} size={42} />
-                    </ItemFrame>
+                  <div key={item.id} className="flex w-[76px] flex-col items-center">
+                    <ItemTile item={item} size={60} showSockets={false} />
                     <span className="mt-1 text-center text-[10.5px] font-black" style={{ color: getTierMaterial(item.tier).frameHi }}>
                       {getEquipmentName(item)}
                     </span>
-                    <span className="text-center text-[9px] font-bold leading-tight text-white/50">{getEquipmentBonusLabel(item)}</span>
+                    <QualityBadge item={item} className="mt-0.5" />
+                    <span className="mt-0.5 text-center text-[9px] font-bold leading-tight text-white/50">{getEquipmentBonusLabel(item)}</span>
                   </div>
                 ))}
               </div>
 
               <p className="mt-3 rounded-xl bg-white/[0.05] px-3 py-2 text-[11px] leading-relaxed text-white/60">
-                合成是從低階往高階跑的，所以 9 件粗製武器會變成 1 件稀有武器，而不是停在 3 件精良武器。
+                合成是從低階往高階跑的，所以 9 把粗製匕首會變成 1 把稀有匕首，而不是停在 3 把精良匕首。每次合成都會留下品質最好的那件。
+                {autoFusePreview.gemsBack > 0 ? `素材上的 ${autoFusePreview.gemsBack} 顆寶石會退回寶石袋。` : ""}
               </p>
 
               <div className="mt-4 grid grid-cols-[1fr_1.4fr] gap-2">
@@ -468,6 +623,10 @@ export default function EquipmentSection({ onMessage }: EquipmentSectionProps) {
       {fuseShow ? <FuseCeremony key={fuseShow.key} show={fuseShow} onClose={() => setFuseShow(null)} /> : null}
     </div>
   );
+}
+
+function groupKey(group: Pick<BagGroup, "type" | "tier">): string {
+  return `${group.type}-${group.tier}`;
 }
 
 // ============================================================
@@ -500,10 +659,7 @@ function FuseCeremony({ show, onClose }: { show: FuseShow; onClose: () => void }
       {/* 背後光芒，顏色跟著合出來最高的那一階 */}
       <div className="pointer-events-none absolute left-1/2 top-1/2 h-[700px] w-[700px] -translate-x-1/2 -translate-y-1/2">
         {/* 動畫會改 transform，置中的 translate 必須放在外層 */}
-        <div
-          className="result-rays absolute inset-0"
-          style={{ background: `repeating-conic-gradient(from 0deg, ${bestM.frameHi}38 0deg 7deg, transparent 7deg 20deg)` }}
-        />
+        <div className="result-rays absolute inset-0" style={{ background: `repeating-conic-gradient(from 0deg, ${bestM.frameHi}38 0deg 7deg, transparent 7deg 20deg)` }} />
       </div>
 
       {phase === "gather" ? (
@@ -511,7 +667,7 @@ function FuseCeremony({ show, onClose }: { show: FuseShow; onClose: () => void }
           {[0, 1, 2].map((i) => (
             <div key={i} className="fuse-gather absolute left-1/2 top-1/2" style={{ ["--a" as string]: `${-90 + i * 120}deg` } as React.CSSProperties}>
               <ItemFrame tier={show.material.tier} size={58}>
-                <EquipmentIcon kind={show.material.kind} tier={show.material.tier} size={40} />
+                <EquipmentIcon kind={show.material.kind} type={show.material.type} tier={show.material.tier} size={40} />
               </ItemFrame>
             </div>
           ))}
@@ -542,26 +698,21 @@ function FuseCeremony({ show, onClose }: { show: FuseShow; onClose: () => void }
                         </span>
                       </div>
                       <div className="drop-face front">
-                        <ItemFrame tier={item.tier} size={92}>
-                          <EquipmentIcon kind={item.kind} tier={item.tier} size={66} />
-                        </ItemFrame>
+                        <ItemTile item={item} size={92} />
                       </div>
                     </div>
                   </div>
                   <p className="mt-2 text-[13px] font-black transition-opacity duration-300" style={{ color: m.frameHi, opacity: isFlipped ? 1 : 0 }}>
-                    {getTierName(item.tier)}
-                    {KIND_LABELS[item.kind]}
+                    {getEquipmentName(item)}
                   </p>
+                  <span className="transition-opacity duration-300" style={{ opacity: isFlipped ? 1 : 0 }}>
+                    <QualityBadge item={item} />
+                  </span>
                 </div>
               );
             })}
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="btn-gold result-fade-up mt-7 rounded-2xl px-10 py-3 text-[15px] font-black"
-            style={{ animationDelay: `${1.3 + show.produced.length * 0.38}s` }}
-          >
+          <button type="button" onClick={onClose} className="btn-gold result-fade-up mt-7 rounded-2xl px-10 py-3 text-[15px] font-black" style={{ animationDelay: `${1.3 + show.produced.length * 0.38}s` }}>
             太好了
           </button>
         </div>

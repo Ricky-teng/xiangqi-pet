@@ -1,5 +1,6 @@
 // src/types/database.ts
 import { PuzzleLevel, SolutionSequence } from "./xiangqi";
+import type { GemBag } from "@/lib/rpg/gems";
 import type { EquipmentItem } from "@/lib/rpg/equipment";
 
 /**
@@ -167,6 +168,12 @@ export interface UserDoc {
 
   /** 背包擴充過幾次（每次 +20 格、1000 飼料，無上限） */
   bagExpandCount?: number;
+
+  /**
+   * 寶石袋：顏色 → 數量（見 lib/rpg/gems.ts）。不佔裝備背包的格數。
+   * 鑲在裝備上的寶石不在這裡，存在那件裝備的 gems 欄位。
+   */
+  gemBag?: GemBag;
 
   /**
    * 收藏小雞的總數。子集合的 count 沒辦法在排行榜查詢裡排序，

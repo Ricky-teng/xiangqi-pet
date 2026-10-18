@@ -431,6 +431,117 @@ export class FxEngine {
     }
   }
 
+  /**
+   * 法杖：一顆發光的魔力球從 (x1,y1) 飛到 (x2,y2)，durationSec 秒抵達。
+   * 球本身是會移動的光團，後面拖一條火花尾巴。
+   */
+  projectile(x1: number, y1: number, x2: number, y2: number, color: string, durationSec: number): void {
+    const vx = (x2 - x1) / durationSec;
+    const vy = (y2 - y1) / durationSec;
+    this.emit(K_GLOW, x1, y1, { vx, vy, s0: 14, s1: 16, max: durationSec, c: color, a: 1, add: true });
+    this.emit(K_GLOW, x1, y1, { vx, vy, s0: 6, s1: 7, max: durationSec, c: "#FFFFFF", a: 1, add: true });
+    const n = Math.round(10 * this.profile.burst);
+    for (let i = 0; i < n; i++) {
+      const lag = i / n;
+      this.emit(K_SPARK, x1 - vx * lag * 0.08, y1 - vy * lag * 0.08 + rand(-4, 4), {
+        vx: vx * rand(0.85, 1),
+        vy: vy * rand(0.85, 1) + rand(-30, 30),
+        drag: 0.6,
+        max: durationSec * rand(0.6, 1),
+        s0: rand(1.5, 3),
+        s1: 0.4,
+        c: color,
+        a: 0.9,
+        add: true,
+      });
+    }
+  }
+
+  /** 長槍：沿著 dir 方向一道細長的突刺光，槍尖一圈小衝擊 */
+  thrust(x: number, y: number, dir: number, length: number, color: string): void {
+    const n = Math.round(7 * this.profile.burst);
+    for (let i = 0; i < n; i++) {
+      this.emit(K_SPARK, x - dir * length * rand(0.2, 0.6), y + rand(-3, 3), {
+        vx: dir * rand(900, 1400),
+        vy: 0,
+        drag: 0.01,
+        max: rand(0.08, 0.14),
+        s0: i === 0 ? 4 : rand(1.2, 2.2),
+        s1: 0.6,
+        c: i === 0 ? "#FFFFFF" : color,
+        a: 1,
+        add: true,
+      });
+    }
+    this.emit(K_RING, x, y, { s0: 4, s1: length * 0.35, max: 0.22, c: color, a: 0.9, add: true });
+  }
+
+  /** 護盾被打破（或被打到）：一圈淡藍光環＋幾片碎片 */
+  shieldHit(x: number, y: number, size: number, broke: boolean): void {
+    this.emit(K_RING, x, y, { s0: size * 0.35, s1: size * (broke ? 0.85 : 0.6), max: broke ? 0.45 : 0.25, c: "#9FE0FF", a: 0.95, add: true });
+    if (!broke) return;
+    this.emit(K_GLOW, x, y, { s0: size * 0.3, s1: size * 0.8, max: 0.35, c: "#BFEFFF", a: 0.8, add: true });
+    const n = Math.round(12 * this.profile.burst);
+    for (let i = 0; i < n; i++) {
+      const angle = rand(0, Math.PI * 2);
+      const speed = rand(120, 300);
+      this.emit(K_SHARD, x + Math.cos(angle) * size * 0.35, y + Math.sin(angle) * size * 0.35, {
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed - 60,
+        g: 600,
+        drag: 0.4,
+        max: rand(0.4, 0.7),
+        s0: rand(3, 5),
+        s1: 2,
+        rot: rand(0, Math.PI * 2),
+        vr: rand(-12, 12),
+        c: pick(["#DFF6FF", "#9FE0FF", "#FFFFFF"]),
+        a: 0.9,
+        add: true,
+      });
+    }
+  }
+
+  /** 刺甲反傷：從防守方身上朝攻擊者噴出一束銀色尖刺 */
+  spikes(x: number, y: number, dir: number): void {
+    const n = Math.round(9 * this.profile.burst);
+    for (let i = 0; i < n; i++) {
+      const angle = (dir > 0 ? 0 : Math.PI) + rand(-0.5, 0.5);
+      const speed = rand(380, 620);
+      this.emit(K_SPARK, x, y + rand(-10, 10), {
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        drag: 0.05,
+        max: rand(0.12, 0.22),
+        s0: rand(2.4, 3.6),
+        s1: 0.8,
+        c: pick(["#FFFFFF", "#D6DEE8", "#A9B4C2"]),
+        a: 1,
+        add: true,
+      });
+    }
+  }
+
+  /** 吸血：從目標身上飄出幾顆紅色光點，飛向攻擊者 */
+  drain(x1: number, y1: number, x2: number, y2: number): void {
+    const n = Math.round(8 * this.profile.burst);
+    const dur = 0.35;
+    for (let i = 0; i < n; i++) {
+      const sx = x1 + rand(-12, 12);
+      const sy = y1 + rand(-12, 12);
+      this.emit(K_GLOW, sx, sy, {
+        vx: (x2 - sx) / dur,
+        vy: (y2 - sy) / dur + rand(-40, 40),
+        max: dur * rand(0.9, 1.1),
+        s0: rand(3, 5),
+        s1: 2,
+        c: pick(["#FF4D6D", "#FF8FA3", "#7FE8A8"]),
+        a: 1,
+        add: true,
+      });
+    }
+  }
+
   // ============================================================
   // 內部
   // ============================================================

@@ -2,9 +2,10 @@
 "use client";
 
 /**
- * 裝備圖示（程式繪製的劍與盾）＋ 抽卡風的階級框
+ * 裝備圖示（程式繪製，10 種 × 5 階）＋ 抽卡風的階級框
  * ------------------------------------------------------------
- * 取代原本的 ⚔️ / 🛡️ emoji。5 階各有自己的材質：
+ * 武器：劍、匕首、斧、法杖、長槍；防具：盾、重甲、皮甲、刺甲、法袍。
+ * 每一種的輪廓都不一樣，看剪影就知道是什麼。5 階各有自己的材質：
  *
  *   1 粗製  鐵灰       單純的鐵劍、圓釘木盾
  *   2 精良  翠綠       劍身多一道血槽、盾面十字紋
@@ -19,7 +20,9 @@
  */
 
 import { useId } from "react";
-import type { EquipmentKind, EquipmentTier } from "@/lib/rpg/equipment";
+import { SHOP_TYPE_BY_KIND, type EquipmentKind, type EquipmentTier, type EquipmentType } from "@/lib/rpg/equipment";
+import type { GemId } from "@/lib/rpg/gems";
+import { GemSockets } from "@/components/rpg/GemIcon";
 
 interface TierMaterial {
   /** 金屬三階：亮／主／暗 */
@@ -51,11 +54,14 @@ export function getTierMaterial(tier: number): TierMaterial {
 interface EquipmentIconProps {
   kind: EquipmentKind;
   tier: EquipmentTier;
+  /** 種類，不給就用部位的基本款（劍／盾） */
+  type?: EquipmentType;
   size: number;
   className?: string;
 }
 
-export default function EquipmentIcon({ kind, tier, size, className }: EquipmentIconProps) {
+export default function EquipmentIcon({ kind, tier, type, size, className }: EquipmentIconProps) {
+  const t = type ?? SHOP_TYPE_BY_KIND[kind];
   const raw = useId();
   const uid = `eq${raw.replace(/[^a-zA-Z0-9]/g, "")}`;
   const m = getTierMaterial(tier);
@@ -89,7 +95,16 @@ export default function EquipmentIcon({ kind, tier, size, className }: Equipment
           </feMerge>
         </filter>
       </defs>
-      {kind === "weapon" ? <Sword tier={tier} m={m} uid={uid} /> : <Shield tier={tier} m={m} uid={uid} />}
+      {t === "sword" ? <Sword tier={tier} m={m} uid={uid} /> : null}
+      {t === "dagger" ? <Dagger tier={tier} m={m} uid={uid} /> : null}
+      {t === "axe" ? <Axe tier={tier} m={m} uid={uid} /> : null}
+      {t === "staff" ? <Staff tier={tier} m={m} uid={uid} /> : null}
+      {t === "spear" ? <Spear tier={tier} m={m} uid={uid} /> : null}
+      {t === "shield" ? <Shield tier={tier} m={m} uid={uid} /> : null}
+      {t === "heavy" ? <HeavyArmor tier={tier} m={m} uid={uid} /> : null}
+      {t === "leather" ? <LeatherArmor tier={tier} m={m} uid={uid} /> : null}
+      {t === "spiked" ? <SpikedArmor tier={tier} m={m} uid={uid} /> : null}
+      {t === "robe" ? <Robe tier={tier} m={m} uid={uid} /> : null}
     </svg>
   );
 }
@@ -209,6 +224,275 @@ function Shield({ tier, m, uid }: { tier: number; m: TierMaterial; uid: string }
 }
 
 // ============================================================
+// 新增的 8 種
+// ============================================================
+
+/** 共用：握柄（纏布） */
+function Grip({ x, y, w, h }: { x: number; y: number; w: number; h: number }) {
+  return (
+    <g>
+      <rect x={x} y={y} width={w} height={h} rx={w / 2.5} fill="#4A2E18" stroke="#1A1208" strokeWidth={1} />
+      {Array.from({ length: Math.max(2, Math.floor(h / 3.2)) }, (_, i) => (
+        <path key={i} d={`M${x + 0.3},${y + 2 + i * 3.2} L${x + w - 0.3},${y + 3.4 + i * 3.2}`} stroke="#8A5A32" strokeWidth={1.1} />
+      ))}
+    </g>
+  );
+}
+
+/** 匕首：短而寬的彎刃（像小彎刀）、刃尖朝左上，跟朝右上的劍一眼分得出來 */
+function Dagger({ tier, m, uid }: { tier: number; m: TierMaterial; uid: string }) {
+  const guard = tier >= 5 ? `url(#${uid}-gold)` : tier >= 3 ? m.lo : "#5A3A1E";
+  return (
+    <g transform="translate(32 32) scale(1.2) rotate(-38) translate(-32 -34)">
+      {tier >= 5 ? <path d="M30,8 C42,16 42,30 38,38 L24,38 Z" fill="#FFE07A" opacity={0.5} filter={`url(#${uid}-glow)`} /> : null}
+      {/* 寬彎刃：背直、刃口外弧 */}
+      <path d="M27,38 L27,18 C27,12 30,8 33,7 C40,14 41,28 37,38 Z" fill={`url(#${uid}-metal)`} stroke={m.lo} strokeWidth={1.3} strokeLinejoin="round" />
+      <path d="M33.5,9 C39,16 39.6,28 36.2,36.5" fill="none" stroke={`url(#${uid}-edge)`} strokeWidth={1.6} />
+      {tier >= 2 ? <path d="M29.5,15 L29.5,35" stroke={m.lo} strokeWidth={1.4} opacity={0.5} strokeLinecap="round" /> : null}
+      {tier >= 3 ? <circle cx={32} cy={24} r={1.6} fill={m.gem} filter={`url(#${uid}-glow)`} /> : null}
+      {/* 寬護手，兩端往刃的方向翹 */}
+      <path d="M21,39 C21,36 24,36 26,37.5 L38,37.5 C40,36 43,36 43,39 C43,41.5 40,41.5 38,40.5 L26,40.5 C24,41.5 21,41.5 21,39 Z" fill={guard} stroke="#1A1208" strokeWidth={1.1} />
+      {tier >= 4 ? (
+        <>
+          <path d="M21,39 C17,36 16,32 18,29" fill="none" stroke={guard} strokeWidth={2.6} strokeLinecap="round" />
+          <path d="M43,39 C47,36 48,32 46,29" fill="none" stroke={guard} strokeWidth={2.6} strokeLinecap="round" />
+        </>
+      ) : null}
+      <Grip x={29.2} y={41} w={5.6} h={10} />
+      <circle cx={32} cy={53.5} r={3.2} fill={tier >= 5 ? `url(#${uid}-gold)` : m.mid} stroke={m.lo} strokeWidth={1} />
+      {tier >= 3 ? <circle cx={32} cy={53.5} r={1.3} fill={m.gem} /> : null}
+    </g>
+  );
+}
+
+/** 斧：長柄＋單面寬刃斧頭，高階刃背長出尖刺 */
+function Axe({ tier, m, uid }: { tier: number; m: TierMaterial; uid: string }) {
+  return (
+    <g transform="translate(32 32) scale(1.08) rotate(30) translate(-32 -32)">
+      {tier >= 5 ? <path d="M34,8 C52,10 54,30 36,32 Z" fill="#FFE07A" opacity={0.55} filter={`url(#${uid}-glow)`} /> : null}
+      {/* 長柄 */}
+      <rect x={29.5} y={8} width={5} height={50} rx={2.4} fill="#6B4A2A" stroke="#1A1208" strokeWidth={1.1} />
+      <path d="M30.5,10 L30.5,56" stroke="#9A6E40" strokeWidth={1} opacity={0.7} />
+      {[46, 50, 54].map((y) => (
+        <path key={y} d={`M29.6,${y} L34.4,${y + 1.6}`} stroke="#3A2410" strokeWidth={1.2} />
+      ))}
+      {/* 斧頭：弧形刃 */}
+      <path d="M34,11 C46,9 54,16 53,24 C52,31 45,34 34,31 Z" fill={`url(#${uid}-metal)`} stroke={m.lo} strokeWidth={1.3} strokeLinejoin="round" />
+      <path d="M48,11.5 C53,15 54.5,21 53,27" fill="none" stroke={`url(#${uid}-edge)`} strokeWidth={2} />
+      {/* 刃背：粗製是平的，高階長出尖刺 */}
+      {tier >= 3 ? (
+        <path d="M29.5,14 L22,10 L25,18 L20,21 L29.5,24 Z" fill={`url(#${uid}-metal)`} stroke={m.lo} strokeWidth={1.1} strokeLinejoin="round" />
+      ) : (
+        <rect x={25} y={14} width={5} height={10} rx={1.5} fill={m.mid} stroke={m.lo} strokeWidth={1} />
+      )}
+      {tier >= 2 ? <path d="M38,17 C42,16 45,19 44,23 C43,26 40,27 38,25" fill="none" stroke={m.lo} strokeWidth={1.2} opacity={0.55} /> : null}
+      {/* 斧頭跟柄的接合環 */}
+      <rect x={28.5} y={12} width={7} height={4} rx={1} fill={tier >= 5 ? `url(#${uid}-gold)` : m.lo} />
+      <rect x={28.5} y={27} width={7} height={4} rx={1} fill={tier >= 5 ? `url(#${uid}-gold)` : m.lo} />
+      {tier >= 4 ? <circle cx={41} cy={21} r={2.6} fill={`url(#${uid}-gem)`} stroke={m.lo} strokeWidth={0.8} filter={`url(#${uid}-glow)`} /> : null}
+    </g>
+  );
+}
+
+/** 法杖：木杖，頂端彎鉤包住一顆發光的寶珠 */
+function Staff({ tier, m, uid }: { tier: number; m: TierMaterial; uid: string }) {
+  const wood = tier >= 5 ? `url(#${uid}-gold)` : tier >= 3 ? "#5A3A6E" : "#7A522C";
+  return (
+    <g transform="translate(32 32) scale(1.05) rotate(22) translate(-32 -32)">
+      {/* 寶珠的光 */}
+      <circle cx={32} cy={14} r={tier >= 3 ? 13 : 9} fill={m.gem} opacity={tier >= 3 ? 0.35 : 0.18} filter={`url(#${uid}-glow)`} />
+      {/* 杖身 */}
+      <path d="M30.5,22 L29.5,60 L34.5,60 L33.5,22 Z" fill={wood} stroke="#1A1208" strokeWidth={1.1} strokeLinejoin="round" />
+      <path d="M31,26 L30.4,58" stroke="#FFFFFF" strokeWidth={0.8} opacity={0.25} />
+      {/* 纏繞的布條 */}
+      {[34, 40].map((y) => (
+        <path key={y} d={`M29.6,${y} L34.4,${y + 2.4}`} stroke={tier >= 2 ? m.mid : "#C9B08A"} strokeWidth={2} strokeLinecap="round" />
+      ))}
+      {/* 頂端的彎鉤，包住寶珠 */}
+      <path
+        d="M32,23 C24,22 21,14 25,8 C28,4 35,4 38,8 C40,11 39,15 36,16"
+        fill="none"
+        stroke={wood}
+        strokeWidth={3.4}
+        strokeLinecap="round"
+      />
+      <path d="M32,23 C24,22 21,14 25,8 C28,4 35,4 38,8 C40,11 39,15 36,16" fill="none" stroke="#1A1208" strokeWidth={0.8} opacity={0.6} strokeLinecap="round" />
+      {/* 寶珠 */}
+      <circle cx={31.5} cy={14} r={5.4} fill={`url(#${uid}-gem)`} stroke={m.lo} strokeWidth={1} />
+      <circle cx={29.8} cy={12.2} r={1.6} fill="#FFFFFF" opacity={0.9} />
+      {/* 4 階以上：環繞的小星 */}
+      {tier >= 4
+        ? [
+            [21, 20],
+            [42, 8],
+            [41, 22],
+          ].map(([x, y], i) => <path key={i} d={`M${x},${y - 2.5} L${x + 0.7},${y - 0.7} L${x + 2.5},${y} L${x + 0.7},${y + 0.7} L${x},${y + 2.5} L${x - 0.7},${y + 0.7} L${x - 2.5},${y} L${x - 0.7},${y - 0.7} Z`} fill={m.hi} />)
+        : null}
+    </g>
+  );
+}
+
+/** 長槍：細長的桿＋葉形槍頭，槍頭下綁著流蘇 */
+function Spear({ tier, m, uid }: { tier: number; m: TierMaterial; uid: string }) {
+  const tassel = tier >= 5 ? "#FF4D6D" : tier >= 3 ? m.gem : "#C0392B";
+  return (
+    <g transform="translate(32 32) scale(1.12) rotate(45) translate(-32 -32)">
+      {tier >= 5 ? <path d="M32,0 L38,18 L26,18 Z" fill="#FFE07A" opacity={0.55} filter={`url(#${uid}-glow)`} /> : null}
+      {/* 桿 */}
+      <rect x={30.2} y={18} width={3.6} height={44} rx={1.6} fill={tier >= 4 ? m.lo : "#7A522C"} stroke="#1A1208" strokeWidth={0.9} />
+      {/* 葉形槍頭 */}
+      <path d="M32,0 C38,7 38.5,14 32,21 C25.5,14 26,7 32,0 Z" fill={`url(#${uid}-metal)`} stroke={m.lo} strokeWidth={1.2} strokeLinejoin="round" />
+      <path d="M32,3 L32,18" stroke={m.lo} strokeWidth={0.9} opacity={0.6} />
+      <path d="M31,4 C29,8 29,12 31,16" fill="none" stroke="#FFFFFF" strokeWidth={1} opacity={0.8} />
+      {/* 3 階以上：兩側的小月牙刃 */}
+      {tier >= 3 ? (
+        <g fill={`url(#${uid}-metal)`} stroke={m.lo} strokeWidth={0.9}>
+          <path d="M30,18 C25,17 23,14 24,11 C25,14 27,15.5 30,16 Z" />
+          <path d="M34,18 C39,17 41,14 40,11 C39,14 37,15.5 34,16 Z" />
+        </g>
+      ) : null}
+      {/* 槍頭跟桿的接合環 */}
+      <rect x={29.6} y={19} width={4.8} height={3} rx={1} fill={tier >= 5 ? `url(#${uid}-gold)` : m.mid} stroke={m.lo} strokeWidth={0.7} />
+      {/* 流蘇 */}
+      {[-3, -1, 1, 3].map((dx, i) => (
+        <path key={i} d={`M32,22 C${32 + dx},26 ${32 + dx * 1.5},28 ${32 + dx * 1.7},31`} stroke={tassel} strokeWidth={1.6} fill="none" strokeLinecap="round" />
+      ))}
+      {tier >= 4 ? <circle cx={32} cy={10} r={1.6} fill={m.gem} filter={`url(#${uid}-glow)`} /> : null}
+    </g>
+  );
+}
+
+/** 重甲：寬肩的金屬胸甲，一片一片的板甲 */
+function HeavyArmor({ tier, m, uid }: { tier: number; m: TierMaterial; uid: string }) {
+  return (
+    <g>
+      {tier >= 5 ? <path d="M10,14 L54,14 L50,56 L14,56 Z" fill="#FFE07A" opacity={0.45} filter={`url(#${uid}-glow)`} /> : null}
+      {/* 肩甲 */}
+      <path d="M6,20 C6,12 14,9 22,10 L24,22 L10,28 Z" fill={`url(#${uid}-metal)`} stroke="#14100A" strokeWidth={1.3} strokeLinejoin="round" />
+      <path d="M58,20 C58,12 50,9 42,10 L40,22 L54,28 Z" fill={`url(#${uid}-metal)`} stroke="#14100A" strokeWidth={1.3} strokeLinejoin="round" />
+      {/* 胸甲 */}
+      <path d="M18,12 L26,10 C28,14 36,14 38,10 L46,12 L48,34 C47,46 40,54 32,57 C24,54 17,46 16,34 Z" fill={`url(#${uid}-metal)`} stroke="#14100A" strokeWidth={1.4} strokeLinejoin="round" />
+      {/* 板甲接縫 */}
+      <path d="M32,15 L32,55" stroke={m.lo} strokeWidth={1.2} opacity={0.6} />
+      {[30, 38, 46].map((y) => (
+        <path key={y} d={`M${17 + (y - 30) * 0.15},${y} C24,${y + 3} 40,${y + 3} ${47 - (y - 30) * 0.15},${y}`} fill="none" stroke={m.lo} strokeWidth={1.3} opacity={0.6} />
+      ))}
+      {/* 鉚釘 */}
+      {[
+        [22, 20],
+        [42, 20],
+        [12, 19],
+        [52, 19],
+      ].map(([x, y]) => (
+        <circle key={`${x}-${y}`} cx={x} cy={y} r={1.4} fill={m.hi} stroke={m.lo} strokeWidth={0.6} />
+      ))}
+      {tier >= 2 ? <circle cx={32} cy={24} r={tier >= 4 ? 4.6 : 3.6} fill={`url(#${uid}-gem)`} stroke={tier >= 5 ? "#7A4A06" : m.lo} strokeWidth={1} filter={tier >= 3 ? `url(#${uid}-glow)` : undefined} /> : null}
+      {tier >= 5 ? <path d="M18,12 L26,10 C28,14 36,14 38,10 L46,12" fill="none" stroke="#FFF4C2" strokeWidth={1.4} /> : null}
+      <path d="M20,15 L26,13 L22,24 Z" fill="#FFFFFF" opacity={0.4} />
+    </g>
+  );
+}
+
+/** 皮甲：無袖的皮背心，有縫線跟皮帶扣 */
+function LeatherArmor({ tier, m, uid }: { tier: number; m: TierMaterial; uid: string }) {
+  // 皮革本體一律是皮革色，階級表現在縫線、扣環跟寶石
+  const hide = tier >= 5 ? "#8A4A1A" : tier >= 3 ? "#6A3A22" : "#8A5A32";
+  const hideLight = tier >= 5 ? "#C9864A" : tier >= 3 ? "#A0623A" : "#B88A58";
+  return (
+    <g>
+      {tier >= 5 ? <path d="M14,10 L50,10 L52,56 L12,56 Z" fill="#FFE07A" opacity={0.4} filter={`url(#${uid}-glow)`} /> : null}
+      <path
+        d="M20,8 L27,8 C28,13 36,13 37,8 L44,8 L52,18 L46,24 L47,54 C40,57 24,57 17,54 L18,24 L12,18 Z"
+        fill={hide}
+        stroke="#1A0E06"
+        strokeWidth={1.4}
+        strokeLinejoin="round"
+      />
+      <path d="M20,8 L27,8 C28,13 36,13 37,8 L44,8 L49,15 C40,16 24,16 15,15 Z" fill={hideLight} opacity={0.55} />
+      {/* 前襟 */}
+      <path d="M32,13 L32,55" stroke="#1A0E06" strokeWidth={1.2} />
+      {/* 縫線（虛線） */}
+      <path d="M21,22 L21,52 M43,22 L43,52" stroke={tier >= 2 ? m.hi : "#E8D2A8"} strokeWidth={1} strokeDasharray="2 2" opacity={0.85} />
+      {/* 交叉綁帶 */}
+      {[22, 30, 38].map((y) => (
+        <path key={y} d={`M29,${y} L35,${y + 4} M35,${y} L29,${y + 4}`} stroke="#E8D2A8" strokeWidth={1.2} />
+      ))}
+      {/* 腰帶＋扣環 */}
+      <rect x={17} y={45} width={30} height={5} fill="#3A2210" stroke="#1A0E06" strokeWidth={0.9} />
+      <rect x={28.5} y={44} width={7} height={7} rx={1.2} fill={tier >= 5 ? `url(#${uid}-gold)` : `url(#${uid}-metal)`} stroke={m.lo} strokeWidth={0.9} />
+      {tier >= 3 ? <circle cx={32} cy={47.5} r={1.8} fill={`url(#${uid}-gem)`} filter={`url(#${uid}-glow)`} /> : null}
+      <path d="M22,10 L26,10 L20,20 Z" fill="#FFFFFF" opacity={0.3} />
+    </g>
+  );
+}
+
+/** 刺甲：胸甲表面一排排尖刺 */
+function SpikedArmor({ tier, m, uid }: { tier: number; m: TierMaterial; uid: string }) {
+  const spikes: [number, number, number][] = [
+    [16, 22, -150],
+    [48, 22, -30],
+    [22, 32, -140],
+    [42, 32, -40],
+    [19, 42, -160],
+    [45, 42, -20],
+    [32, 30, -90],
+  ];
+  return (
+    <g>
+      {tier >= 5 ? <path d="M8,10 L56,10 L52,58 L12,58 Z" fill="#FFE07A" opacity={0.45} filter={`url(#${uid}-glow)`} /> : null}
+      {/* 尖刺（先畫，胸甲蓋住根部） */}
+      {spikes.map(([x, y, deg], i) => (
+        <path
+          key={i}
+          transform={`translate(${x} ${y}) rotate(${deg})`}
+          d={`M0,-3 L${tier >= 3 ? 11 : 8},0 L0,3 Z`}
+          fill={tier >= 5 ? `url(#${uid}-gold)` : m.hi}
+          stroke={m.lo}
+          strokeWidth={0.9}
+          strokeLinejoin="round"
+        />
+      ))}
+      <path d="M17,12 L26,10 C28,14 36,14 38,10 L47,12 L48,36 C46,47 40,54 32,57 C24,54 18,47 16,36 Z" fill={`url(#${uid}-metal)`} stroke="#14100A" strokeWidth={1.4} strokeLinejoin="round" />
+      {/* 胸甲上的刺座 */}
+      {spikes.map(([x, y], i) => (
+        <circle key={i} cx={x + (32 - x) * 0.25} cy={y} r={2.2} fill={m.lo} stroke="#14100A" strokeWidth={0.6} />
+      ))}
+      {tier >= 2 ? <circle cx={32} cy={42} r={3.6} fill={`url(#${uid}-gem)`} stroke={m.lo} strokeWidth={1} filter={tier >= 3 ? `url(#${uid}-glow)` : undefined} /> : null}
+      <path d="M20,15 L26,13 L22,24 Z" fill="#FFFFFF" opacity={0.4} />
+    </g>
+  );
+}
+
+/** 法袍：長袍＋兜帽，衣襬上有符文 */
+function Robe({ tier, m, uid }: { tier: number; m: TierMaterial; uid: string }) {
+  return (
+    <g>
+      {tier >= 5 ? <path d="M12,6 L52,6 L58,60 L6,60 Z" fill="#FFE07A" opacity={0.4} filter={`url(#${uid}-glow)`} /> : null}
+      {/* 袍身：上窄下寬 */}
+      <path d="M22,16 L42,16 L52,58 C40,61 24,61 12,58 Z" fill={`url(#${uid}-metal)`} stroke="#14100A" strokeWidth={1.4} strokeLinejoin="round" />
+      {/* 兜帽 */}
+      <path d="M20,18 C18,8 24,3 32,3 C40,3 46,8 44,18 C40,15 24,15 20,18 Z" fill={m.lo} stroke="#14100A" strokeWidth={1.3} strokeLinejoin="round" />
+      <path d="M24,16 C24,10 28,7 32,7 C36,7 40,10 40,16" fill="#0A0814" opacity={0.8} />
+      {/* 前襟滾邊 */}
+      <path d="M32,16 L32,59" stroke={tier >= 5 ? "#FFF4C2" : m.hi} strokeWidth={2} opacity={0.8} />
+      {/* 腰帶 */}
+      <path d="M23,30 C28,32 36,32 41,30" stroke={tier >= 5 ? `url(#${uid}-gold)` : m.lo} strokeWidth={3} fill="none" />
+      {/* 衣襬符文（2 階以上） */}
+      {tier >= 2 ? (
+        <g stroke={m.gem} strokeWidth={1.2} fill="none" opacity={0.9} filter={tier >= 3 ? `url(#${uid}-glow)` : undefined}>
+          <circle cx={22} cy={50} r={3} />
+          <path d="M22,47 L22,53 M19,50 L25,50" />
+          <circle cx={42} cy={50} r={3} />
+          <path d="M40,48 L44,52 M44,48 L40,52" />
+        </g>
+      ) : null}
+      {tier >= 3 ? <circle cx={32} cy={31} r={2.6} fill={`url(#${uid}-gem)`} stroke={m.lo} strokeWidth={0.8} /> : null}
+      <path d="M24,20 L28,19 L20,44 Z" fill="#FFFFFF" opacity={0.25} />
+    </g>
+  );
+}
+
+// ============================================================
 // 卡框
 // ============================================================
 
@@ -222,10 +506,13 @@ interface ItemFrameProps {
   className?: string;
   /** 右下角的小數字（背包折疊的數量） */
   count?: number;
+  /** 寶石孔：給了就在卡框下緣畫一排孔（sockets = 孔數） */
+  gems?: GemId[];
+  sockets?: number;
 }
 
 /** 抽卡風的方形卡框：階級色漸層邊、暗色底、稀有以上有光澤掃過 */
-export function ItemFrame({ tier, size, children, selected = false, className, count }: ItemFrameProps) {
+export function ItemFrame({ tier, size, children, selected = false, className, count, gems, sockets }: ItemFrameProps) {
   const m = getTierMaterial(tier);
   const radius = Math.round(size * 0.2);
   return (
@@ -257,7 +544,9 @@ export function ItemFrame({ tier, size, children, selected = false, className, c
       >
         {/* 背景放射線（傳說才有） */}
         {tier >= 5 ? <div className="item-rays absolute inset-[-40%]" /> : null}
-        <div className="relative">{children}</div>
+        <div className="relative" style={sockets && sockets > 0 && size >= 40 ? { transform: `translateY(-${Math.round(size * 0.07)}px) scale(0.9)` } : undefined}>
+          {children}
+        </div>
         {/* 光澤掃過（稀有以上） */}
         {tier >= 3 ? <div className="item-shine pointer-events-none absolute inset-0" /> : null}
         {/* 階級點：左上角 1~5 顆小菱形 */}
@@ -275,6 +564,12 @@ export function ItemFrame({ tier, size, children, selected = false, className, c
             />
           ))}
         </div>
+        {/* 寶石孔：貼在卡框下緣（卡框太小的時候不畫，太擠看不清楚） */}
+        {sockets && sockets > 0 && size >= 40 ? (
+          <div className="absolute inset-x-0 bottom-[3%]">
+            <GemSockets gems={gems ?? []} sockets={sockets} size={Math.max(7, Math.round(size * 0.15))} />
+          </div>
+        ) : null}
         {count !== undefined && count > 1 ? (
           <span
             className="font-display absolute bottom-[4%] right-[7%] leading-none text-white"

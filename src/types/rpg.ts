@@ -115,6 +115,13 @@ export interface ExploreProgressDoc {
   /** dailyAttemptsUsed 是哪一天的（台北時間 YYYY-MM-DD） */
   dailyAttemptsDate: string;
 
+  /**
+   * 今天用掉幾次「重打掉落名額」（贏了已通關的關卡才算），每天前 10 次
+   * 才有機會掉寶石跟裝備，見 lib/rpg/loot.ts。跟 dailyAttemptsUsed
+   * 同一天重置（共用 dailyAttemptsDate）。
+   */
+  dailyReplayLootUsed: number;
+
   updatedAt: number;
 }
 
@@ -126,6 +133,7 @@ export function createDefaultExploreProgress(uid: string, now: number, taipeiDat
     bossDefeatedCount: 0,
     dailyAttemptsUsed: 0,
     dailyAttemptsDate: taipeiDate,
+    dailyReplayLootUsed: 0,
     updatedAt: now,
   };
 }

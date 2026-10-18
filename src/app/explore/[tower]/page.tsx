@@ -24,7 +24,9 @@ import { useGameStore } from "@/stores/useGameStore";
 import BattleStage, { type BattleUnitVisual } from "@/components/battle/BattleStage";
 import BattleResultCard from "@/components/battle/BattleResultCard";
 import { simulateBattle, type BattleResult, type BattleUnit } from "@/lib/rpg/battle";
-import { getBagCapacity, rollDropEquipment, type EquipmentItem } from "@/lib/rpg/equipment";
+import { getBagCapacity, getItemType, type EquipmentItem } from "@/lib/rpg/equipment";
+import { getReplayLootLeft, rollStageLoot, REPLAY_LOOT_DAILY_LIMIT } from "@/lib/rpg/loot";
+import type { GemId } from "@/lib/rpg/gems";
 import {
   DAILY_EXPLORE_ATTEMPTS,
   HEAL_PERCENT_ON_KILL,
@@ -32,7 +34,6 @@ import {
   TOWER_COUNT,
   getStagePlan,
   getTowerTheme,
-  rollDropCount,
 } from "@/lib/rpg/monsters";
 import {
   canPlayStage,
@@ -55,6 +56,7 @@ import BattleBackdrop from "@/components/battle/BattleBackdrop";
 import MonsterArt from "@/components/battle/MonsterArt";
 import PetArt from "@/components/rpg/PetArt";
 import EquipmentIcon, { ItemFrame } from "@/components/rpg/EquipmentIcon";
+import GemIcon from "@/components/rpg/GemIcon";
 
 type View = "tower" | "prep" | "battle";
 
@@ -75,6 +77,9 @@ interface FinishedState {
   won: boolean;
   surrendered: boolean;
   drops: EquipmentItem[];
+  gemDrops: GemId[];
+  /** 這一場是不是用掉了一次重打掉落名額（結算卡片要提示剩幾次） */
+  usedReplayLoot: boolean;
   bagWasFull: boolean;
   unlockedNextTower: boolean;
 }
@@ -147,6 +152,7 @@ function TowerContent() {
   const attemptsLeft = progress
     ? Math.max(0, DAILY_EXPLORE_ATTEMPTS - progress.dailyAttemptsUsed)
     : 0;
+  const replayLootLeft = getReplayLootLeft(progress?.dailyReplayLootUsed ?? 0);
 
   const handleStart = useCallback(() => {
     if (!progress || !selectedPet || prepStage === null) return;
@@ -201,13 +207,15 @@ function TowerContent() {
 
       const won = outcome.winner === "player" && !outcome.surrendered;
 
-      // 掉寶只有首通會掉，而且一律第 1 階
-      const drops: EquipmentItem[] = [];
-      if (won && setup.isFirstClear) {
-        // 每一關最後都有 Boss，所以通關一律走 Boss 的掉落率（100% 掉 2 個）
-        const count = rollDropCount(true);
-        for (let i = 0; i < count; i++) drops.push(rollDropEquipment(Date.now() + i));
-      }
+      // 掉落：首通 2 件裝備＋1 顆寶石；重打只有每天前 10 次贏的有機會掉
+      // （規則全部在 lib/rpg/loot.ts）
+      const loot = rollStageLoot({
+        tower: towerNumber,
+        won,
+        isFirstClear: setup.isFirstClear,
+        replayLootUsedToday: progress.dailyReplayLootUsed ?? 0,
+      });
+      const drops: EquipmentItem[] = loot.equipment;
 
       // 背包塞不下的多出來的直接丟掉。在這裡就先算好，結算卡片才能
       // 立刻顯示真正拿到的那幾件。
@@ -232,6 +240,8 @@ function TowerContent() {
         won,
         surrendered: outcome.surrendered,
         drops: accepted,
+        gemDrops: loot.gems,
+        usedReplayLoot: loot.usedReplayLoot,
         bagWasFull,
         unlockedNextTower: willUnlockNextTower,
       });
@@ -242,6 +252,8 @@ function TowerContent() {
         won,
         consumedAttempt: setup.consumedAttempt,
         drops: accepted,
+        gemDrops: loot.gems,
+        usedReplayLoot: loot.usedReplayLoot,
         petId: setup.pet.isLiving ? null : setup.pet.id,
       });
     },
@@ -572,9 +584,12 @@ function TowerContent() {
                       <span className="font-display text-[18px] text-white">{plan.normalCount}</span>
                       <span className="ml-0.5 text-[10px] font-bold text-white/55">隻＋首領</span>
                     </InfoChip>
-                    <InfoChip label={cleared ? "掉落" : "首通掉落"}>
+                    <InfoChip label={cleared ? "重打掉落" : "首通掉落"}>
                       {cleared ? (
-                        <span className="text-[11px] font-black text-white/45">已領過</span>
+                        <span className="leading-none">
+                          <span className="font-display text-[18px] text-white">{replayLootLeft}</span>
+                          <span className="ml-0.5 text-[10px] font-bold text-white/55">/ {REPLAY_LOOT_DAILY_LIMIT} 次</span>
+                        </span>
                       ) : (
                         <span className="flex items-center gap-1">
                           {[0, 1].map((k) => (
@@ -582,6 +597,7 @@ function TowerContent() {
                               ?
                             </span>
                           ))}
+                          <GemIcon gem="amethyst" size={20} mystery />
                         </span>
                       )}
                     </InfoChip>
@@ -648,7 +664,11 @@ function TowerContent() {
                   <p className="mt-2 text-center">
                     {/* 墊一層深色玻璃：使用者背景是照片時，裸字會看不到 */}
                     <span className="rpg-glass inline-block rounded-full px-3 py-1 text-[10.5px] font-bold text-white/80">
-                      {cleared ? "已通關過：重打不扣次數，也不會再掉裝備" : `輸贏都會扣 1 次（今天還剩 ${attemptsLeft} 次）`}
+                      {cleared
+                        ? replayLootLeft > 0
+                          ? `重打不扣次數。贏了有機會掉寶石跟裝備（今天還剩 ${replayLootLeft} 次機會）`
+                          : `重打不扣次數。今天 ${REPLAY_LOOT_DAILY_LIMIT} 次重打掉落用完了，打贏也不會掉東西`
+                        : `首通必掉 2 件裝備＋1 顆寶石。輸贏都會扣 1 次（今天還剩 ${attemptsLeft} 次）`}
                     </span>
                   </p>
 
@@ -719,8 +739,13 @@ function TowerContent() {
           extraLines={[
             ...(finished.unlockedNextTower ? [`🔓 解鎖第 ${towerNumber + 1} 塔！`] : []),
             ...(finished.bagWasFull ? ["⚠️ 背包滿了，有裝備沒撿到"] : []),
-            ...(finished.won && !setup.isFirstClear ? ["重打不掉裝備，也不扣次數"] : []),
+            ...(finished.won && !setup.isFirstClear
+              ? finished.usedReplayLoot
+                ? [`重打不扣次數・今天重打掉落還剩 ${getReplayLootLeft(progress.dailyReplayLootUsed ?? 0)} 次`]
+                : [`今天 ${REPLAY_LOOT_DAILY_LIMIT} 次重打掉落用完了，明天再來`]
+              : []),
           ]}
+          gems={finished.gemDrops}
           loseHint={
             !finished.won && !finished.surrendered
               ? getLoseHint(setup.pet, getStagePlan(towerNumber, setup.stage).monsters.at(-1)!)
@@ -855,7 +880,7 @@ function PetPickCard({ pet, selected, onSelect }: { pet: DeployablePet; selected
             const item = pet[kind];
             return item ? (
               <ItemFrame key={kind} tier={item.tier} size={22}>
-                <EquipmentIcon kind={kind} tier={item.tier} size={15} />
+                <EquipmentIcon kind={kind} type={getItemType(item)} tier={item.tier} size={15} />
               </ItemFrame>
             ) : (
               <span key={kind} className="block h-[22px] w-[22px] rounded-[5px] border border-dashed border-white/25" />

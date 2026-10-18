@@ -26,8 +26,8 @@
  * 只有生「大病」才算（小病醫好不留疤）。
  */
 
-import type { EquipmentItem } from "@/lib/rpg/equipment";
-import { getEquipmentBonus } from "@/lib/rpg/equipment";
+import type { CombatTraits, EquipmentItem } from "@/lib/rpg/equipment";
+import { getEquipmentBonus, getEquipmentSpeedPct, getGemStatPercents } from "@/lib/rpg/equipment";
 
 // ============================================================
 // 1. 型別與基礎常數
@@ -211,7 +211,14 @@ export function getBareStats(jobId: string | null, severeSickCount: number): Pet
 // ============================================================
 
 /**
- * 主計算：(基礎 ＋ 裝備) × 職業 × (1 − 生病懲罰)。
+ * 主計算：
+ *   ① (基礎 ＋ 裝備固定值)          裝備固定值已含種類倍率跟品質
+ *   ② 速度 × (1 ＋ 裝備的速度 ±%)    匕首、皮甲加速；斧、重甲減速
+ *   ③ × 職業倍率 × (1 − 生病懲罰)
+ *   ④ × (1 ＋ 寶石 %)                紅寶石攻擊、藍寶石防禦、翡翠體力、黃晶速度
+ *
+ * 職業倍率放在裝備之後乘是平衡模擬的結論（見 claude/rpg-balance-numbers.md）；
+ * 寶石放最後，讓「鑲 1 顆紅寶石 = 攻擊 +4%」對學生來說是字面上的意思。
  * 畫面上所有「這隻小雞多強」的地方都叫這一個。
  *
  * weapon / armor 傳 null 代表那個欄位空著（防具可以不穿，但出戰
@@ -227,25 +234,23 @@ export function getFinalStats(
   const armorBonus = getEquipmentBonus(armor);
   const multipliers = getJobMultipliers(jobId);
   const sickScale = 1 - getSevereSickPenalty(severeSickCount);
+  const speedScale = Math.max(0.3, 1 + getEquipmentSpeedPct(weapon) + getEquipmentSpeedPct(armor));
+  const gems = getGemStatPercents(weapon, armor);
 
   const raw: PetStats = {
     hp: BASE_STATS.hp + weaponBonus.hp + armorBonus.hp,
     attack: BASE_STATS.attack + weaponBonus.attack + armorBonus.attack,
     defense: BASE_STATS.defense + weaponBonus.defense + armorBonus.defense,
-    speed: BASE_STATS.speed + weaponBonus.speed + armorBonus.speed,
+    speed: (BASE_STATS.speed + weaponBonus.speed + armorBonus.speed) * speedScale,
   };
 
   return {
-    hp: Math.round(raw.hp * multipliers.hp * sickScale),
-    attack: Math.round(raw.attack * multipliers.attack * sickScale),
-    defense: Math.round(raw.defense * multipliers.defense * sickScale),
-    speed: Math.round(raw.speed * multipliers.speed * sickScale),
+    hp: Math.round(raw.hp * multipliers.hp * sickScale * (1 + gems.hp)),
+    attack: Math.round(raw.attack * multipliers.attack * sickScale * (1 + gems.attack)),
+    defense: Math.round(raw.defense * multipliers.defense * sickScale * (1 + gems.defense)),
+    speed: Math.round(raw.speed * multipliers.speed * sickScale * (1 + gems.speed)),
   };
 }
-
-// ============================================================
-// 6. 總戰力
-// ============================================================
 
 /**
  * 總戰力：把四項壓成一個數字給排行榜跟卡片顯示用。
@@ -259,8 +264,25 @@ export function getFinalStats(
  * 這個數字只用於顯示與排序，戰鬥實際結果一律以四項分開計算為準——
  * 總戰力高不保證打得贏（攻高防低的可能被肉盾磨死）。
  */
-export function getTotalPower(stats: PetStats): number {
-  return Math.round(stats.hp / 5 + stats.attack + stats.defense + stats.speed);
+export function getTotalPower(stats: PetStats, traits?: CombatTraits | null): number {
+  const base = stats.hp / 5 + stats.attack + stats.defense + stats.speed;
+  if (!traits) return Math.round(base);
+  return Math.round(base + getTraitPowerBonus(stats, traits));
+}
+
+/**
+ * 特殊效果換算成「大概值多少戰力」，讓排行榜跟選雞畫面的總戰力
+ * 能反映匕首、法杖這些裝備的價值。只是估計值，戰鬥本身不看這個數字。
+ *
+ * 換算方式：把每個效果折算成「等效多了幾 % 的攻擊或體力」。
+ * 爆擊：期望傷害多 機率×(倍率−1)；破甲：粗估等於攻擊多 比例×0.4；
+ * 吸血、再生、閃避、反傷、護盾：粗估等於體力變多。
+ */
+export function getTraitPowerBonus(stats: PetStats, traits: CombatTraits): number {
+  const attackPct =
+    traits.critChance * (traits.critMult - 1) + traits.armorPen * 0.4 + (traits.firstStrikeMult > 0 ? 0.06 : 0);
+  const hpPct = traits.lifesteal * 0.6 + traits.regen * 8 + traits.dodge * 1.1 + traits.thorns * 0.5 + traits.shield * 1.2;
+  return stats.attack * attackPct + (stats.hp / 5) * hpPct;
 }
 
 /** 戰隊總戰力：把隊上每一隻的總戰力相加（空位不算） */

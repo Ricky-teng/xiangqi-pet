@@ -21,6 +21,11 @@ import { getCatalogEntryById } from "@/lib/pet/catalog";
 import {
   KIND_LABELS,
   getEquipmentBonusLabel,
+  getCombatTraits,
+  getItemGems,
+  getItemQuality,
+  getItemType,
+  getSocketCount,
   getEquipmentName,
   getDeployBlockReason,
   type EquipmentItem,
@@ -39,7 +44,8 @@ import { getDaysRaised } from "@/lib/collectedPets";
 import { LIVING_PET_ID } from "@/lib/rpg/deploy";
 import PetArt from "@/components/rpg/PetArt";
 import RpgHeader from "@/components/rpg/RpgHeader";
-import EquipmentIcon, { ItemFrame, getTierMaterial } from "@/components/rpg/EquipmentIcon";
+import EquipmentIcon, { ItemFrame } from "@/components/rpg/EquipmentIcon";
+import { GemSocketSheet, ItemInfoLines, ItemTile } from "@/components/rpg/ItemDetail";
 
 /** 特效字的 CSS 變數 */
 function fxStyle(fill: string, stroke: number, strokeColor: string): React.CSSProperties {
@@ -78,7 +84,7 @@ function EquipmentPicker({
   isSaving: boolean;
 }) {
   const candidates = useMemo(
-    () => bag.filter((item) => item.kind === slot).sort((a, b) => b.tier - a.tier),
+    () => bag.filter((item) => item.kind === slot).sort((a, b) => b.tier - a.tier || getItemQuality(b) - getItemQuality(a)),
     [bag, slot],
   );
 
@@ -117,22 +123,18 @@ function EquipmentPicker({
             到「物品」頁的裝備分頁買一件吧。
           </p>
         ) : (
-          <div className="mt-3 grid grid-cols-4 gap-2.5">
+          <div className="mt-3 flex flex-col gap-2">
             {candidates.map((item) => (
               <button
                 key={item.id}
                 type="button"
                 disabled={isSaving}
                 onClick={() => onPick(item)}
-                className="flex flex-col items-center gap-1 transition-transform active:scale-95 disabled:opacity-50"
+                className="flex items-center gap-3 rounded-2xl bg-white/[0.05] px-2.5 py-2 text-left ring-1 ring-white/10 transition-transform active:scale-[0.98] disabled:opacity-50"
                 aria-label={`${getEquipmentName(item)}，${getEquipmentBonusLabel(item)}`}
               >
-                <ItemFrame tier={item.tier} size={64}>
-                  <EquipmentIcon kind={item.kind} tier={item.tier} size={44} />
-                </ItemFrame>
-                <span className="text-[10px] font-black" style={{ color: getTierMaterial(item.tier).frameHi }}>
-                  {getEquipmentName(item)}
-                </span>
+                <ItemTile item={item} size={56} />
+                <ItemInfoLines item={item} compact />
               </button>
             ))}
           </div>
@@ -164,6 +166,7 @@ function PetDetail({
   const equipToPet = useGameStore((s) => s.equipToPet);
   const equipToLivingPet = useGameStore((s) => s.equipToLivingPet);
   const [pickerSlot, setPickerSlot] = useState<"weapon" | "armor" | null>(null);
+  const [socketSlot, setSocketSlot] = useState<"weapon" | "armor" | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [equipMessage, setEquipMessage] = useState<string | null>(null);
 
@@ -178,7 +181,8 @@ function PetDetail({
 
   const stats = useMemo(() => getFinalStats(pet.jobId, pet.severeSickCount, pet.weapon, pet.armor), [pet]);
   const bare = useMemo(() => getFinalStats(pet.jobId, pet.severeSickCount, null, null), [pet]);
-  const totalPower = getTotalPower(stats);
+  const traits = useMemo(() => getCombatTraits(pet.weapon, pet.armor), [pet]);
+  const totalPower = getTotalPower(stats, traits);
   const sickLabel = getSevereSickPenaltyLabel(pet.severeSickCount);
   const jobColor = getJobColor(pet.jobId);
 
@@ -287,44 +291,49 @@ function PetDetail({
             </div>
           </div>
 
-          {/* ---- 裝備格 ---- */}
-          <div className="mt-3 grid grid-cols-2 gap-2.5">
+          {/* ---- 裝備格：每一格可以換裝備，也可以鑲寶石 ---- */}
+          <div className="mt-3 flex flex-col gap-2">
             {(["weapon", "armor"] as const).map((slot) => {
               const item = slot === "weapon" ? pet.weapon : pet.armor;
               return (
-                <button
-                  key={slot}
-                  type="button"
-                  onClick={() => setPickerSlot(slot)}
-                  className="flex items-center gap-2.5 rounded-2xl bg-white/[0.05] p-2.5 text-left ring-1 ring-white/10 transition-transform active:scale-95"
-                  aria-label={item ? `更換${KIND_LABELS[slot]}，目前是${getEquipmentName(item)}` : `裝上${KIND_LABELS[slot]}`}
-                >
-                  {item ? (
-                    <ItemFrame tier={item.tier} size={52}>
-                      <EquipmentIcon kind={slot} tier={item.tier} size={36} />
-                    </ItemFrame>
-                  ) : (
-                    <span className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-[11px] border-2 border-dashed border-white/25 text-[22px] font-black text-white/40">
-                      +
-                    </span>
-                  )}
-                  <span className="min-w-0">
-                    <span className="block text-[10px] font-bold text-white/45">{KIND_LABELS[slot]}</span>
+                <div key={slot} className="flex items-center gap-3 rounded-2xl bg-white/[0.05] p-2.5 ring-1 ring-white/10">
+                  <button
+                    type="button"
+                    onClick={() => setPickerSlot(slot)}
+                    className="shrink-0 transition-transform active:scale-95"
+                    aria-label={item ? `更換${KIND_LABELS[slot]}，目前是${getEquipmentName(item)}` : `裝上${KIND_LABELS[slot]}`}
+                  >
                     {item ? (
-                      <>
-                        <span className="block truncate text-[12px] font-black" style={{ color: getTierMaterial(item.tier).frameHi }}>
-                          {getEquipmentName(item)}
-                        </span>
-                        <span className="block text-[10px] font-bold leading-tight text-white/55">{getEquipmentBonusLabel(item)}</span>
-                      </>
+                      <ItemTile item={item} size={60} />
                     ) : (
-                      <span className="block text-[12px] font-black text-white/45">點一下裝上</span>
+                      <span className="flex h-[60px] w-[60px] items-center justify-center rounded-[12px] border-2 border-dashed border-white/25 text-[22px] font-black text-white/40">+</span>
                     )}
-                  </span>
-                </button>
+                  </button>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] font-bold text-white/45">{KIND_LABELS[slot]}</p>
+                    {item ? <ItemInfoLines item={item} compact /> : <p className="text-[12px] font-black text-white/45">點左邊的格子裝上</p>}
+                  </div>
+                  {item ? (
+                    <div className="flex shrink-0 flex-col gap-1.5">
+                      <button type="button" onClick={() => setPickerSlot(slot)} className="rounded-lg bg-white/10 px-2.5 py-1.5 text-[11px] font-black text-white/85 transition-transform active:scale-95">
+                        更換
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSocketSlot(slot)}
+                        className="rounded-lg px-2.5 py-1.5 text-[11px] font-black text-white transition-transform active:scale-95"
+                        style={{ background: "linear-gradient(180deg,#6A4FC0,#3E2A8A)" }}
+                      >
+                        寶石 {getItemGems(item).length}/{getSocketCount(item.tier)}
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
               );
             })}
           </div>
+          {/* 特殊效果合計（爆擊率含紫晶、護盾含月光石） */}
+          <TraitSummary pet={pet} />
           {equipMessage ? <p className="mt-2 rounded-xl bg-white/[0.06] px-3 py-1.5 text-center text-[11.5px] font-black text-[#FFE58A]">{equipMessage}</p> : null}
           {deployBlockReason ? (
             <p className="mt-2 rounded-xl bg-[#FF4D5E]/12 px-3 py-2 text-center text-[11.5px] font-black text-[#FF9AA6] ring-1 ring-[#FF4D5E]/35">
@@ -351,6 +360,13 @@ function PetDetail({
         </div>
       </div>
 
+      {socketSlot ? (
+        <GemSocketSheet
+          target={isLiving ? { where: "living", slot: socketSlot } : { where: "pet", petId: pet.id, slot: socketSlot }}
+          onClose={() => setSocketSlot(null)}
+        />
+      ) : null}
+
       {pickerSlot ? (
         <EquipmentPicker
           slot={pickerSlot}
@@ -361,6 +377,31 @@ function PetDetail({
           onClose={() => setPickerSlot(null)}
         />
       ) : null}
+    </div>
+  );
+}
+
+/** 特殊效果合計：把武器、防具、寶石的特效加起來列成一排小標籤 */
+function TraitSummary({ pet }: { pet: CollectedPetDoc }) {
+  const t = getCombatTraits(pet.weapon, pet.armor);
+  const chips: string[] = [];
+  const p = (v: number) => `${(v * 100).toFixed(v * 100 < 10 && Math.round(v * 100) !== v * 100 ? 1 : 0)}%`;
+  if (t.critChance > 0) chips.push(`爆擊 ${p(t.critChance)}（${t.critMult} 倍）`);
+  if (t.armorPen > 0) chips.push(`破甲 ${p(t.armorPen)}`);
+  if (t.lifesteal > 0) chips.push(`吸血 ${p(t.lifesteal)}`);
+  if (t.firstStrikeMult > 0) chips.push(`先攻 ×${t.firstStrikeMult.toFixed(2)}`);
+  if (t.dodge > 0) chips.push(`閃避 ${p(t.dodge)}`);
+  if (t.thorns > 0) chips.push(`反傷 ${p(t.thorns)}`);
+  if (t.regen > 0) chips.push(`再生 ${p(t.regen)}／次`);
+  if (t.shield > 0) chips.push(`開場護盾 ${p(t.shield)}`);
+  if (chips.length === 0) return null;
+  return (
+    <div className="mt-2 flex flex-wrap justify-center gap-1.5">
+      {chips.map((c) => (
+        <span key={c} className="rounded-full bg-[#F5C542]/12 px-2.5 py-1 text-[10.5px] font-black text-[#FFE58A] ring-1 ring-[#F5C542]/35">
+          {c}
+        </span>
+      ))}
     </div>
   );
 }
@@ -386,7 +427,7 @@ function RecordChip({ label, value, unit, tone }: { label: string; value: string
 
 function PetCard({ pet, onClick, wide = false }: { pet: CollectedPetDoc; onClick: () => void; wide?: boolean }) {
   const stats = getFinalStats(pet.jobId, pet.severeSickCount, pet.weapon, pet.armor);
-  const power = getTotalPower(stats);
+  const power = getTotalPower(stats, getCombatTraits(pet.weapon, pet.armor));
   const jobColor = getJobColor(pet.jobId);
   const noWeapon = !pet.weapon;
 
@@ -435,7 +476,7 @@ function PetCard({ pet, onClick, wide = false }: { pet: CollectedPetDoc; onClick
             const item = pet[kind];
             return item ? (
               <ItemFrame key={kind} tier={item.tier} size={20}>
-                <EquipmentIcon kind={kind} tier={item.tier} size={14} />
+                <EquipmentIcon kind={kind} type={getItemType(item)} tier={item.tier} size={14} />
               </ItemFrame>
             ) : (
               <span key={kind} className="block h-5 w-5 rounded-[4px] border border-dashed border-white/25" />

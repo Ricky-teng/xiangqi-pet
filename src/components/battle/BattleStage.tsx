@@ -10,7 +10,7 @@
  * 算完了，傳進來的 result 是一整串帶時間戳的事件。播放器推進一個時間
  * 游標，把到期的事件演出來。所以：
  *   - ×1 / ×2 不會改變結果，只是游標跑得快一倍
- *   - 演出時的「暫停」（開場橫幅、Boss 登場、會心頓幀）只是把游標停住，
+ *   - 演出時的「暫停」（開場橫幅、Boss 登場、爆擊頓幀）只是把游標停住，
  *     事件順序跟結果完全不變
  *   - 中途投降是直接以失敗結束（onSurrender），不改寫結果
  *
@@ -33,7 +33,7 @@
  *   ~90ms   衝出去，留下速度線
  *   180ms   命中：目標閃白後仰、刀光、火花、衝擊波、飄字、震屏
  *   380ms   攻擊者回到原位
- * 會心一擊另外加：金色雙刀光、頓幀 80ms、鏡頭推近、金色閃光。
+ * 爆擊另外加：金色雙刀光、頓幀 80ms、鏡頭推近、金色閃光。
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -45,6 +45,7 @@ import PetArt from "@/components/rpg/PetArt";
 import BattleBackdrop, { HORIZON_RATIO } from "@/components/battle/BattleBackdrop";
 import { FxEngine, detectFxQuality } from "@/components/battle/fxEngine";
 import { getTowerArt } from "@/components/battle/towerArt";
+import type { ArmorType, WeaponType } from "@/lib/rpg/equipment";
 
 /** 可選的播放速度。規格只要 ×1 跟 ×2 兩段 */
 export const BATTLE_SPEEDS = [1, 2] as const;
@@ -61,6 +62,9 @@ export interface BattleUnitVisual {
   jobId?: string | null;
   /** 沒有圖的時候顯示的 emoji（後備） */
   emoji?: string;
+  /** 武器／防具種類：換刀光樣式、閃避與反傷特效 */
+  weaponType?: WeaponType | null;
+  armorType?: ArmorType | null;
   /** 怪物：用程式繪製（MonsterArt）。有這個欄位就不看 jobId / emoji */
   monster?: {
     tower: number;
@@ -91,6 +95,10 @@ interface RuntimeState {
   hp: Record<string, number>;
   alive: Record<string, boolean>;
   onField: Record<string, boolean>;
+  /** 護盾剩多少（月光石開場護盾） */
+  shield: Record<string, number>;
+  /** 護盾一開始有多少（畫泡泡的透明度用） */
+  shieldMax: Record<string, number>;
 }
 
 interface LogLine {
@@ -171,14 +179,20 @@ const TEXT_STYLES = {
   dmg: { size: 24, fill: "linear-gradient(180deg,#FFFFFF 30%,#FFE6B8 100%)", stroke: 6, strokeColor: "#3A1500", dur: 900 },
   // 我方被打
   hurt: { size: 22, fill: "linear-gradient(180deg,#FFE3E3 20%,#FF4D5E 100%)", stroke: 6, strokeColor: "#3A0008", dur: 900 },
-  // 會心一擊
+  // 被閃掉
+  miss: { size: 20, fill: "linear-gradient(180deg,#FFFFFF 20%,#B9C4D6 100%)", stroke: 5, strokeColor: "#1A2236", dur: 850 },
+  // 打在護盾上（吸收量）
+  shield: { size: 20, fill: "linear-gradient(180deg,#F2FBFF 20%,#7FD3FF 100%)", stroke: 5, strokeColor: "#062A40", dur: 900 },
+  // 爆擊
   crit: { size: 36, fill: "linear-gradient(180deg,#FFFBE0 10%,#FFC93D 55%,#FF7A00 100%)", stroke: 7, strokeColor: "#4A1200", dur: 1150 },
   heal: { size: 22, fill: "linear-gradient(180deg,#F0FFF6 20%,#3DDB84 100%)", stroke: 6, strokeColor: "#053A1C", dur: 1100 },
-  // 「會心一擊」「擊破！」這種中文標籤
+  // 「爆擊！」「先攻！」「擊破！」這種中文標籤
   label: { size: 15, fill: "linear-gradient(180deg,#FFFBE0 10%,#FFC93D 100%)", stroke: 5, strokeColor: "#4A1200", dur: 1000 },
   kill: { size: 26, fill: "linear-gradient(180deg,#FFFFFF 10%,#FFE07A 50%,#FF9A1F 100%)", stroke: 7, strokeColor: "#3A1500", dur: 1100 },
 } as const;
 type TextStyle = keyof typeof TEXT_STYLES;
+/** 攻擊動畫的樣式：小雞看武器種類，怪物一律爪擊 */
+type AttackStyle = WeaponType | "claw";
 
 function rand(min: number, max: number): number {
   return min + Math.random() * (max - min);
@@ -412,7 +426,7 @@ export default function BattleStage({
       alive[u.id] = true;
       onField[u.id] = false;
     }
-    return { hp, alive, onField };
+    return { hp, alive, onField, shield: {}, shieldMax: {} };
   }, [allUnits]);
 
   const [state, setState] = useState<RuntimeState>(initialState);
@@ -437,6 +451,8 @@ export default function BattleStage({
   const outerEls = useRef(new Map<string, HTMLDivElement>());
   const midEls = useRef(new Map<string, HTMLDivElement>());
   const lungeAnims = useRef(new Map<string, Animation>());
+  /** 每個攻擊者最近打的是誰（吸血的光點要從那隻飛回來） */
+  const lastTargetRef = useRef(new Map<string, string>());
   const entranceRef = useRef(new Map<string, Entrance>());
   const anchorsRef = useRef<Record<string, Anchor>>({});
   const textSlotRef = useRef<Record<string, number>>({});
@@ -872,49 +888,150 @@ export default function BattleStage({
           const target = unitById[event.targetId];
           if (!A || !T || !attacker || !target) break;
           const dir = T.x >= A.x ? 1 : -1;
-          const crit = event.isHigh;
+          const crit = event.crit;
+          const attackerVisual = visualById[event.attackerId];
+          // 攻擊方式：怪物用爪子，小雞看手上的武器種類
+          const style: AttackStyle = attackerVisual?.monster ? "claw" : (attackerVisual?.weaponType ?? "sword");
+          const jobColor = getJobColor(attackerVisual?.jobId);
+          lastTargetRef.current.set(event.attackerId, event.targetId);
 
-          // ---- 攻擊者衝刺 ----
+          // ---- 攻擊者動作 ----
           const outer = outerEls.current.get(event.attackerId);
           if (outer) {
             lungeAnims.current.get(event.attackerId)?.cancel();
             const oneOnOne = playerSlots === 1 && enemySlots === 1;
-            const contact = (A.size + T.size) * 0.3;
-            const dx = oneOnOne ? T.x - A.x - dir * contact : (T.x - A.x) * 0.42;
+            const contact = (A.size + T.size) * (style === "spear" ? 0.42 : 0.3);
+            const dx = oneOnOne ? T.x - A.x - dir * contact : (T.x - A.x) * (style === "spear" ? 0.34 : 0.42);
             const dy = oneOnOne ? 0 : (T.feetY - A.feetY) * 0.42;
-            const anim = outer.animate(
-              [
+            const hit = IMPACT_MS / LUNGE_MS;
+            let frames: Keyframe[];
+            if (style === "staff") {
+              // 法杖：原地施法，往後一縮再往前一推，不衝過去
+              frames = [
+                { transform: "translate(0,0)" },
+                { transform: `translate(${-dir * A.size * 0.08}px,0) scale(0.96,1.05)`, offset: hit * 0.5 },
+                { transform: `translate(${dir * A.size * 0.06}px,0) scale(1.06,0.96)`, offset: hit },
+                { transform: "translate(0,0)" },
+              ];
+            } else if (style === "axe") {
+              // 斧：蓄力往後拉大一點，砸下去壓扁
+              frames = [
+                { transform: "translate(0,0)" },
+                { transform: `translate(${-dir * A.size * 0.16}px,${-A.size * 0.06}px) scale(0.92,1.1)`, offset: 0.24 },
+                { transform: `translate(${dx}px,${dy}px) scale(1.14,0.88)`, offset: hit },
+                { transform: `translate(${dx * 0.97}px,${dy * 0.97}px)`, offset: 0.66 },
+                { transform: "translate(0,0)" },
+              ];
+            } else if (style === "spear") {
+              // 長槍：拉長身體直直刺出去
+              frames = [
+                { transform: "translate(0,0)" },
+                { transform: `translate(${-dir * A.size * 0.12}px,0) scale(0.92,1.04)`, offset: 0.22 },
+                { transform: `translate(${dx}px,${dy}px) scale(1.16,0.92)`, offset: hit },
+                { transform: `translate(${dx * 0.9}px,${dy * 0.9}px)`, offset: 0.6 },
+                { transform: "translate(0,0)" },
+              ];
+            } else {
+              frames = [
                 { transform: "translate(0,0)" },
                 { transform: `translate(${-dir * A.size * 0.1}px,0) scale(0.94,1.06)`, offset: 0.2 },
-                { transform: `translate(${dx}px,${dy}px) scale(1.08,0.94)`, offset: IMPACT_MS / LUNGE_MS },
+                { transform: `translate(${dx}px,${dy}px) scale(1.08,0.94)`, offset: hit },
                 { transform: `translate(${dx * 0.96}px,${dy * 0.96}px)`, offset: 0.62 },
                 { transform: "translate(0,0)" },
-              ],
-              { duration: LUNGE_MS / speedRef.current, easing: "cubic-bezier(.3,.7,.3,1)" },
-            );
+              ];
+            }
+            const anim = outer.animate(frames, { duration: LUNGE_MS / speedRef.current, easing: "cubic-bezier(.3,.7,.3,1)" });
             lungeAnims.current.set(event.attackerId, anim);
           }
-          later(80, () => {
-            const a = anchorsRef.current[event.attackerId];
-            if (a && fx) fx.speedLines(a.x, a.cy, dir, a.size, "#FFFFFF");
-          });
+
+          if (style === "staff") {
+            // 法杖：從杖頭射出一顆法球
+            later(40, () => {
+              const a = anchorsRef.current[event.attackerId];
+              const t = anchorsRef.current[event.targetId] ?? T;
+              if (a && fx) fx.projectile(a.x + dir * a.size * 0.3, a.cy - a.size * 0.1, t.x, t.cy, jobColor, (IMPACT_MS - 40) / 1000);
+            });
+          } else {
+            later(80, () => {
+              const a = anchorsRef.current[event.attackerId];
+              if (a && fx) fx.speedLines(a.x, a.cy, dir, a.size, event.firstStrike ? "#FFE58A" : "#FFFFFF");
+            });
+          }
 
           // ---- 命中 ----
           later(IMPACT_MS, () => {
-            setState((prev) => ({ ...prev, hp: { ...prev.hp, [event.targetId]: event.targetHpAfter } }));
             const t = anchorsRef.current[event.targetId] ?? T;
             const targetIsPlayer = target.side === "player";
+            const offset = nextTextOffset(event.targetId);
+
+            // 被閃掉：目標往旁邊一閃，沒有傷害
+            if (event.dodged) {
+              const mid = midEls.current.get(event.targetId);
+              mid?.animate(
+                [
+                  { transform: "translateX(0)", opacity: 1 },
+                  { transform: `translateX(${dir * t.size * 0.32}px) skewX(${-dir * 10}deg)`, opacity: 0.55, offset: 0.3 },
+                  { transform: `translateX(${dir * t.size * 0.22}px)`, opacity: 0.85, offset: 0.6 },
+                  { transform: "translateX(0)", opacity: 1 },
+                ],
+                { duration: 380 / speedRef.current, easing: "cubic-bezier(.2,.8,.3,1)" },
+              );
+              if (fx) fx.speedLines(t.x, t.cy, dir, t.size * 0.7, "#DDE6F5");
+              spawnText(t.x + offset, t.headY - 14, "閃避", "miss", { dx: offset * 0.5 });
+              pushLog(`${unitName(event.targetId)} 閃過了 ${unitName(event.attackerId)} 的攻擊`, "normal");
+              return;
+            }
+
+            setState((prev) => ({
+              ...prev,
+              hp: { ...prev.hp, [event.targetId]: event.targetHpAfter },
+              shield: event.absorbed > 0 ? { ...prev.shield, [event.targetId]: event.targetShieldAfter } : prev.shield,
+            }));
+
             const colors = targetIsPlayer ? ["#FFFFFF", "#FF9A9A", "#FF4D5E"] : art.impactColors;
-            const slashColor = targetIsPlayer ? "#FF6A7A" : attacker.side === "player" ? getJobColor(visualById[event.attackerId]?.jobId) : "#FFFFFF";
+            const slashColor = mixSlashColor(targetIsPlayer ? "#FF6A7A" : attacker.side === "player" ? jobColor : "#FFFFFF");
+            const heavy = crit || style === "axe";
 
             if (fx) {
-              fx.impact(t.x, t.cy, { colors, crit, dir, power: Math.min(1.5, t.size / 90) });
-              fx.slash(t.x - dir * t.size * 0.05, t.cy, {
-                angle: (dir > 0 ? Math.PI * 0.82 : Math.PI * 0.18) + rand(-0.25, 0.25),
-                color: mixSlashColor(slashColor),
-                crit,
-                size: t.size * 0.48,
-              });
+              fx.impact(t.x, t.cy, { colors, crit: heavy, dir, power: Math.min(1.5, t.size / 90) * (style === "dagger" ? 0.8 : 1) });
+              const baseAngle = dir > 0 ? Math.PI * 0.82 : Math.PI * 0.18;
+              const sx = t.x - dir * t.size * 0.05;
+              switch (style) {
+                case "dagger": {
+                  // 匕首：兩刀交叉、快
+                  fx.slash(sx, t.cy - t.size * 0.06, { angle: baseAngle + rand(-0.15, 0.15), color: slashColor, crit, size: t.size * 0.38 });
+                  later(70, () => fx.slash(sx, t.cy + t.size * 0.06, { angle: Math.PI - baseAngle + rand(-0.15, 0.15), color: slashColor, crit, size: t.size * 0.38 }));
+                  break;
+                }
+                case "axe": {
+                  // 斧：一刀大的往下劈，腳下一圈震波
+                  fx.slash(sx, t.cy, { angle: Math.PI / 2 + dir * 0.35, color: slashColor, crit: true, size: t.size * 0.62 });
+                  fx.shockwave(t.x, t.feetY, slashColor, t.size * 0.8);
+                  break;
+                }
+                case "staff": {
+                  // 法杖：法球炸開的魔力圈
+                  fx.shockwave(t.x, t.cy, jobColor, t.size * 0.7);
+                  break;
+                }
+                case "spear": {
+                  // 長槍：一道直線突刺
+                  fx.thrust(t.x - dir * t.size * 0.2, t.cy, dir, t.size * 0.9, slashColor);
+                  break;
+                }
+                case "claw": {
+                  // 怪物：三道平行爪痕
+                  for (let i = -1; i <= 1; i++) {
+                    fx.slash(sx + i * t.size * 0.06, t.cy + i * t.size * 0.12, { angle: baseAngle + 0.2, color: slashColor, crit, size: t.size * 0.32 });
+                  }
+                  break;
+                }
+                default: {
+                  fx.slash(sx, t.cy, { angle: baseAngle + rand(-0.25, 0.25), color: slashColor, crit, size: t.size * 0.48 });
+                }
+              }
+              // 打在護盾上
+              if (event.absorbed > 0) fx.shieldHit(t.x, t.cy, t.size, event.targetShieldAfter <= 0);
             }
 
             // 目標閃白後仰
@@ -922,35 +1039,78 @@ export default function BattleStage({
             mid?.animate(
               [
                 { transform: "translateX(0) scale(1)", filter: "brightness(1)" },
-                { transform: `translateX(${dir * t.size * 0.09}px) scale(0.94,1.04)`, filter: "brightness(2.6) saturate(0.3)", offset: 0.16 },
+                { transform: `translateX(${dir * t.size * (heavy ? 0.13 : 0.09)}px) scale(0.94,1.04)`, filter: "brightness(2.6) saturate(0.3)", offset: 0.16 },
                 { transform: `translateX(${dir * t.size * 0.04}px)`, filter: "brightness(1.2)", offset: 0.45 },
                 { transform: "translateX(0) scale(1)", filter: "brightness(1)" },
               ],
               { duration: 300 / speedRef.current, easing: "ease-out" },
             );
 
-            // 飄字
-            const offset = nextTextOffset(event.targetId);
+            // 飄字：扣血的數字；被護盾吃掉的另外用藍字
+            const hpDamage = event.damage - event.absorbed;
+            const labels = [event.firstStrike ? "先攻！" : null, crit ? "爆擊！" : null].filter(Boolean).join(" ");
+            if (labels) spawnText(t.x + offset, t.headY - 40, labels, "label");
+            if (event.absorbed > 0) {
+              spawnText(t.x + offset - (hpDamage > 0 ? 34 : 0), t.headY - (hpDamage > 0 ? 44 : 14), `◇${event.absorbed}`, "shield", { dx: offset * 0.5 - 8, scale: hpDamage > 0 ? 0.85 : 1 });
+            }
+            if (hpDamage > 0) {
+              if (crit) spawnText(t.x + offset, t.headY - 14, `${hpDamage}`, "crit", { dx: offset * 0.5 });
+              else spawnText(t.x + offset, t.headY - 14, `${hpDamage}`, targetIsPlayer ? "hurt" : "dmg", { dx: offset * 0.5, scale: event.isHigh ? 1.15 : 1 });
+            }
+
             if (crit) {
-              spawnText(t.x + offset, t.headY - 40, "會心一擊", "label");
-              spawnText(t.x + offset, t.headY - 14, `${event.damage}`, "crit", { dx: offset * 0.5 });
               holdTimeline(CRIT_HITSTOP_MS);
               shake(7, 320);
               zoomPunch(1.045, t.x, t.cy, 320);
               flash("#FFD84B", 0.22, 200);
+            } else if (style === "axe") {
+              shake(targetIsPlayer ? 6 : 4.5, 260);
             } else {
-              spawnText(t.x + offset, t.headY - 14, `${event.damage}`, targetIsPlayer ? "hurt" : "dmg", { dx: offset * 0.5 });
               shake(targetIsPlayer ? 4 : 2.5, 220);
             }
 
             // 我方被打掉一大截血：畫面四周紅一下
-            if (targetIsPlayer && event.damage >= target.maxHp * 0.12) hurtVignette();
+            if (targetIsPlayer && hpDamage >= target.maxHp * 0.12) hurtVignette();
 
+            const tags = [event.firstStrike ? "先攻" : "", crit ? "爆擊" : "", event.pierce ? "破甲" : ""].filter(Boolean).join("・");
             pushLog(
-              `${unitName(event.attackerId)} → ${unitName(event.targetId)}　${crit ? "會心 " : ""}${event.damage}`,
+              `${unitName(event.attackerId)} → ${unitName(event.targetId)}　${tags ? `${tags} ` : ""}${event.damage}${event.absorbed > 0 ? `（護盾吸收 ${event.absorbed}）` : ""}`,
               crit ? "crit" : "normal",
             );
           });
+          break;
+        }
+
+        case "thorns": {
+          // 刺甲：被打的那隻把傷害扎回攻擊者
+          later(IMPACT_MS + 20, () => {
+            const s = anchorsRef.current[event.sourceId];
+            const a = anchorsRef.current[event.targetId];
+            const victim = unitById[event.targetId];
+            if (!a || !victim) return;
+            setState((prev) => ({
+              ...prev,
+              hp: { ...prev.hp, [event.targetId]: event.targetHpAfter },
+              shield: event.absorbed > 0 ? { ...prev.shield, [event.targetId]: event.targetShieldAfter } : prev.shield,
+            }));
+            if (fx && s) fx.spikes(s.x, s.cy, a.x >= s.x ? 1 : -1);
+            if (fx && event.absorbed > 0) fx.shieldHit(a.x, a.cy, a.size, event.targetShieldAfter <= 0);
+            const hpDamage = event.damage - event.absorbed;
+            const offset = nextTextOffset(event.targetId);
+            if (hpDamage > 0) spawnText(a.x + offset, a.headY - 14, `${hpDamage}`, victim.side === "player" ? "hurt" : "dmg", { dx: offset * 0.5, scale: 0.85 });
+            if (event.absorbed > 0) spawnText(a.x + offset - 20, a.headY - 30, `◇${event.absorbed}`, "shield", { dx: offset * 0.5 - 8, scale: 0.85 });
+            pushLog(`${unitName(event.sourceId)} 的尖刺反彈 ${event.damage} 給 ${unitName(event.targetId)}`, "normal");
+          });
+          break;
+        }
+
+        case "shield": {
+          // 開場護盾（月光石）：一出場就套上泡泡
+          setState((prev) => ({
+            ...prev,
+            shield: { ...prev.shield, [event.unitId]: event.amount },
+            shieldMax: { ...prev.shieldMax, [event.unitId]: event.amount },
+          }));
           break;
         }
 
@@ -1013,13 +1173,36 @@ export default function BattleStage({
         }
 
         case "heal": {
-          later(IMPACT_MS + DEATH_MS - 200, () => {
+          const apply = (scale: number) => {
             setState((prev) => ({ ...prev, hp: { ...prev.hp, [event.unitId]: event.hpAfter } }));
             const a = anchorsRef.current[event.unitId];
-            if (a && fx) fx.heal(a.x, a.cy, a.size);
-            if (a) spawnText(a.x + 18, a.headY - 14, `+${event.amount}`, "heal", { dx: 6 });
-            pushLog(`${unitName(event.unitId)} 回復 ${event.amount}`, "heal");
-          });
+            if (a && fx) fx.heal(a.x, a.cy, a.size * scale);
+            if (a) spawnText(a.x + 18, a.headY - 14, `+${event.amount}`, "heal", { dx: 6, scale: scale < 1 ? 0.85 : 1 });
+          };
+          if (event.reason === "lifesteal") {
+            // 吸血（法杖）：紅色光點從被打的那隻飛回來
+            later(IMPACT_MS + 30, () => {
+              const a = anchorsRef.current[event.unitId];
+              const victimId = lastTargetRef.current.get(event.unitId);
+              const v = victimId ? anchorsRef.current[victimId] : undefined;
+              if (a && v && fx) fx.drain(v.x, v.cy, a.x, a.cy);
+            });
+            later(IMPACT_MS + 330, () => {
+              apply(0.6);
+              pushLog(`${unitName(event.unitId)} 吸血 ${event.amount}`, "heal");
+            });
+          } else if (event.reason === "regen") {
+            // 再生（法袍）：每次出手後小補一口
+            later(IMPACT_MS + 80, () => {
+              apply(0.5);
+              pushLog(`${unitName(event.unitId)} 再生 ${event.amount}`, "heal");
+            });
+          } else {
+            later(IMPACT_MS + DEATH_MS - 200, () => {
+              apply(1);
+              pushLog(`${unitName(event.unitId)} 回復 ${event.amount}`, "heal");
+            });
+          }
           break;
         }
 
@@ -1210,6 +1393,23 @@ export default function BattleStage({
                       {boss && alive ? <MagicCircle color="#FF2D46" size={a.size} gold={false} /> : null}
                       {/* 戰隊對戰：對手也是小雞，腳下給一圈紅色陣，一眼分得出敵我 */}
                       {!isPlayer && !visual?.monster && alive ? <MagicCircle color="#FF4D5E" size={a.size} gold={false} /> : null}
+
+                      {/* 護盾泡泡（月光石） */}
+                      {alive && (state.shield[unit.id] ?? 0) > 0 ? (
+                        <div
+                          className="shield-bubble pointer-events-none absolute rounded-full"
+                          style={{
+                            left: a.size * 0.06,
+                            top: a.size * 0.08,
+                            width: a.size * 0.88,
+                            height: a.size * 0.88,
+                            opacity: 0.35 + 0.6 * Math.min(1, (state.shield[unit.id] ?? 0) / Math.max(1, state.shieldMax[unit.id] ?? 1)),
+                            background: "radial-gradient(circle at 35% 30%, rgba(255,255,255,0.45) 0%, rgba(160,225,255,0.12) 38%, rgba(120,200,255,0.05) 62%, rgba(159,224,255,0.55) 100%)",
+                            boxShadow: "0 0 12px rgba(127,211,255,0.55), inset 0 0 10px rgba(191,239,255,0.5)",
+                            zIndex: 2,
+                          }}
+                        />
+                      ) : null}
 
                       {/* 頭上的小血條（混戰時才分得出誰快倒了） */}
                       {alive ? (

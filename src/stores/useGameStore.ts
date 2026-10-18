@@ -15,6 +15,7 @@ import {
   EQUIPMENT_SHOP_PRICE,
   EQUIPMENT_SHOP_TIER,
   KIND_LABELS,
+  SHOP_TYPE_BY_KIND,
   autoFuse,
   canFitInBag,
   checkFuse,
@@ -22,9 +23,13 @@ import {
   fuseEquipment,
   getBagCapacity,
   getEquipmentName,
+  hasFreeSocket,
+  socketGem,
+  unsocketGem,
   type EquipmentItem,
   type EquipmentKind,
 } from "@/lib/rpg/equipment";
+import { GEM_TABLE, addGemsToBag, getGemCount, type GemId } from "@/lib/rpg/gems";
 import { addCollectedPetRecord, updateCollectedPetEquipment } from "@/lib/collectedPets";
 import {
   applyStageResult,
@@ -76,6 +81,15 @@ import {
 } from "@/lib/pasture";
 
 // 定義我們遊戲總機裡面有哪些資料與開關
+/**
+ * 一件裝備「在哪裡」：背包裡、穿在某隻收藏小雞身上、或穿在正在養的那隻身上。
+ * 鑲寶石、拆寶石都要先知道裝備在哪，才知道要寫回哪一份 Firestore 文件。
+ */
+export type EquipmentTarget =
+  | { where: "bag"; itemId: string }
+  | { where: "pet"; petId: string; slot: "weapon" | "armor" }
+  | { where: "living"; slot: "weapon" | "armor" };
+
 interface GameStoreState {
   // 核心狀態
   user: UserDoc | null;
@@ -404,6 +418,15 @@ interface GameStoreState {
   ) => Promise<{ success: boolean; message: string }>;
 
   /**
+   * 鑲寶石：從寶石袋拿一顆鑲進某件裝備的空孔。
+   * 那件裝備可以在背包裡、穿在收藏小雞身上、或穿在正在養的那隻身上。
+   */
+  socketGemInto: (target: EquipmentTarget, gem: GemId) => Promise<{ success: boolean; message: string }>;
+
+  /** 拆寶石：把某件裝備第 index 顆寶石拆下來放回寶石袋（免費） */
+  unsocketGemFrom: (target: EquipmentTarget, index: number) => Promise<{ success: boolean; message: string }>;
+
+  /**
    * 幫「目前正在養的那一隻」換裝備。規則跟 equipToPet 完全一樣，
    * 只是對象是 pets/{uid} 這份文件而不是收藏小雞的子集合。
    *
@@ -430,7 +453,9 @@ interface GameStoreState {
    * 打完一關之後結算：寫進度、發掉落物、累加那隻小雞的戰績。
    *
    * @param consumedAttempt 這一場有沒有扣每日次數（重打已通關的關卡不扣）
-   * @param drops           首通掉落（呼叫端先用 rollDropCount 算好），沒有就傳空陣列
+   * @param drops           掉落的裝備（呼叫端先用 lib/rpg/loot.ts 的 rollStageLoot 算好），沒有就傳空陣列
+   * @param gemDrops        掉落的寶石
+   * @param usedReplayLoot  這一場有沒有用掉一次「重打掉落名額」
    * @param petId           出戰的收藏小雞 id；派的是「正在養的那隻」就傳 null
    */
   finishExploreStage: (args: {
@@ -439,6 +464,8 @@ interface GameStoreState {
     won: boolean;
     consumedAttempt: boolean;
     drops: EquipmentItem[];
+    gemDrops: GemId[];
+    usedReplayLoot: boolean;
     petId: string | null;
   }) => Promise<{ droppedCount: number; bagWasFull: boolean }>;
 
@@ -471,6 +498,67 @@ interface GameStoreState {
     opponentRank: number;
     memberPetIds: string[];
   }) => Promise<{ delta: number; newScore: number }>;
+}
+
+// ============================================================
+// RPG 擴充：寶石鑲嵌的共用流程
+// ------------------------------------------------------------
+// 鑲／拆寶石會同時動到「寶石袋（users/{uid}）」跟「那件裝備所在的文件」
+// （背包也在 users/{uid}、收藏小雞在 collectedPets、正在養的在 pets）。
+//
+// 採「先更新畫面、背景寫入」：Firestore 在離線時寫入不會 reject、會
+// 一直 pending 等連線，如果 await 它，學生按下去會卡在處理中（這個坑
+// 在探險結算、戰隊挑戰、送新手雞都踩過）。SDK 會把兩筆寫入排進佇列，
+// 恢復連線後一起送出，不會只寫一半。
+// ============================================================
+
+type StoreGet = () => GameStoreState;
+type StoreSet = (partial: Partial<GameStoreState>) => void;
+
+function locateEquipment(state: GameStoreState, target: EquipmentTarget): EquipmentItem | null {
+  const { user, collectedPets, pet } = state;
+  if (!user) return null;
+  if (target.where === "bag") return (user.equipmentBag ?? []).find((i) => i.id === target.itemId) ?? null;
+  if (target.where === "pet") {
+    const p = collectedPets.find((c) => c.id === target.petId);
+    return (target.slot === "weapon" ? p?.weapon : p?.armor) ?? null;
+  }
+  return (target.slot === "weapon" ? pet?.weapon : pet?.armor) ?? null;
+}
+
+function commitEquipmentChange(
+  get: StoreGet,
+  set: StoreSet,
+  target: EquipmentTarget,
+  updatedItem: EquipmentItem,
+  gemBag: UserDoc["gemBag"],
+  logLabel: string,
+): void {
+  const { user, pet } = get();
+  if (!user) return;
+  const now = Date.now();
+  const writes: Promise<unknown>[] = [];
+
+  if (target.where === "bag") {
+    const bag = (user.equipmentBag ?? []).map((i) => (i.id === updatedItem.id ? updatedItem : i));
+    set({ user: { ...user, equipmentBag: bag, gemBag, updatedAt: now } });
+    writes.push(updateDoc(doc(db, "users", user.uid), { equipmentBag: bag, gemBag, updatedAt: now }));
+  } else if (target.where === "pet") {
+    const patch: Partial<CollectedPetDoc> = target.slot === "weapon" ? { weapon: updatedItem } : { armor: updatedItem };
+    set({ user: { ...user, gemBag, updatedAt: now } });
+    get().updateCollectedPetInStore(target.petId, patch);
+    writes.push(updateDoc(doc(db, "users", user.uid), { gemBag, updatedAt: now }));
+    writes.push(updateCollectedPetEquipment(user.uid, target.petId, patch));
+  } else {
+    if (!pet) return;
+    set({ user: { ...user, gemBag, updatedAt: now }, pet: { ...pet, [target.slot]: updatedItem, updatedAt: now } });
+    writes.push(updateDoc(doc(db, "users", user.uid), { gemBag, updatedAt: now }));
+    writes.push(updateDoc(doc(db, "pets", user.uid), { [target.slot]: updatedItem, updatedAt: now }));
+  }
+
+  Promise.all(writes).catch((error) => {
+    console.error(`[useGameStore] ${logLabel} 寫回 Firestore 失敗：`, error);
+  });
 }
 
 export const useGameStore = create<GameStoreState>((set, get) => ({
@@ -2109,7 +2197,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     }
 
     const now = Date.now();
-    const item = createEquipmentItem(kind, EQUIPMENT_SHOP_TIER, now);
+    // 商店只賣劍跟盾，品質固定是標準值（只有探險掉的才有浮動）
+    const item = createEquipmentItem(SHOP_TYPE_BY_KIND[kind], EQUIPMENT_SHOP_TIER, now, 0);
     const updatedUser: UserDoc = {
       ...user,
       foodCount: user.foodCount - EQUIPMENT_SHOP_PRICE,
@@ -2182,15 +2271,18 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     if (!check.ok) return { success: false, message: check.reason };
 
     const now = Date.now();
-    const newItem = fuseEquipment(picked, now);
+    const { item: newItem, returnedGems } = fuseEquipment(picked, now);
     const pickedIds = new Set(itemIds);
     const updatedBag = bag.filter((item) => !pickedIds.has(item.id)).concat(newItem);
+    // 素材上鑲的寶石全部退回寶石袋
+    const gemBag = addGemsToBag(user.gemBag, returnedGems);
 
     const fuseCount = (user.rpgFuseCount ?? 0) + 1;
     const maxTier = Math.max(user.rpgMaxTier ?? 0, newItem.tier);
     const updatedUser: UserDoc = {
       ...user,
       equipmentBag: updatedBag,
+      gemBag,
       rpgFuseCount: fuseCount,
       rpgMaxTier: maxTier,
       updatedAt: now,
@@ -2199,6 +2291,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
     updateDoc(doc(db, "users", user.uid), {
       equipmentBag: updatedBag,
+      gemBag,
       rpgFuseCount: fuseCount,
       rpgMaxTier: maxTier,
       updatedAt: now,
@@ -2206,7 +2299,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       console.error("[useGameStore] fuseEquipmentItems 寫回 Firestore 失敗：", error);
     });
 
-    return { success: true, message: `合成出一件${getEquipmentName(newItem)}！` };
+    const gemNote = returnedGems.length > 0 ? `素材上的 ${returnedGems.length} 顆寶石已退回寶石袋。` : "";
+    return { success: true, message: `合成出一件${getEquipmentName(newItem)}！${gemNote}` };
   },
 
   autoFuseBag: () => {
@@ -2218,8 +2312,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const result = autoFuse(bag, now);
 
     if (result.fuseCount === 0) {
-      return { success: false, message: "沒有任何同階同類型湊滿 3 件的裝備可以合成。" };
+      return { success: false, message: "沒有任何同階、同種類湊滿 3 件的裝備可以合成。" };
     }
+    const gemBag = addGemsToBag(user.gemBag, result.returnedGems);
 
     const fuseCount = (user.rpgFuseCount ?? 0) + result.fuseCount;
     const maxTier = result.produced.reduce(
@@ -2229,6 +2324,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const updatedUser: UserDoc = {
       ...user,
       equipmentBag: result.bag,
+      gemBag,
       rpgFuseCount: fuseCount,
       rpgMaxTier: maxTier,
       updatedAt: now,
@@ -2237,6 +2333,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
     updateDoc(doc(db, "users", user.uid), {
       equipmentBag: result.bag,
+      gemBag,
       rpgFuseCount: fuseCount,
       rpgMaxTier: maxTier,
       updatedAt: now,
@@ -2246,7 +2343,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
 
     return {
       success: true,
-      message: `合成了 ${result.fuseCount} 次，背包剩下 ${result.bag.length} 件。`,
+      message: `合成了 ${result.fuseCount} 次，背包剩下 ${result.bag.length} 件。${
+        result.returnedGems.length > 0 ? `${result.returnedGems.length} 顆寶石已退回寶石袋。` : ""
+      }`,
     };
   },
 
@@ -2311,6 +2410,37 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       return { success: true, message: `已卸下${previous ? getEquipmentName(previous) : "裝備"}。` };
     }
     return { success: true, message: `${pet.name} 裝上了${getEquipmentName(item)}！` };
+  },
+
+  socketGemInto: async (target, gem) => {
+    const state = get();
+    const { user } = state;
+    if (!user) return { success: false, message: "找不到資料" };
+    const item = locateEquipment(state, target);
+    if (!item) return { success: false, message: "找不到這件裝備，請重新整理頁面。" };
+    if (getGemCount(user.gemBag, gem) <= 0) {
+      return { success: false, message: `寶石袋裡沒有${GEM_TABLE[gem].name}了。` };
+    }
+    if (!hasFreeSocket(item)) {
+      return { success: false, message: "這件裝備的孔已經滿了，先拆下一顆再鑲。" };
+    }
+    const updated = socketGem(item, gem);
+    const gemBag = addGemsToBag(user.gemBag, [gem], -1);
+    commitEquipmentChange(get, set, target, updated, gemBag, "socketGemInto");
+    return { success: true, message: `鑲上了${GEM_TABLE[gem].name}（${GEM_TABLE[gem].label}）！` };
+  },
+
+  unsocketGemFrom: async (target, index) => {
+    const state = get();
+    const { user } = state;
+    if (!user) return { success: false, message: "找不到資料" };
+    const item = locateEquipment(state, target);
+    if (!item) return { success: false, message: "找不到這件裝備，請重新整理頁面。" };
+    const { item: updated, gem } = unsocketGem(item, index);
+    if (!gem) return { success: false, message: "這個孔是空的。" };
+    const gemBag = addGemsToBag(user.gemBag, [gem], 1);
+    commitEquipmentChange(get, set, target, updated, gemBag, "unsocketGemFrom");
+    return { success: true, message: `拆下了${GEM_TABLE[gem].name}，放回寶石袋。` };
   },
 
   equipToLivingPet: async (slot, item) => {
@@ -2382,12 +2512,18 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     }
   },
 
-  finishExploreStage: async ({ tower, stage, won, consumedAttempt, drops, petId }) => {
+  finishExploreStage: async ({ tower, stage, won, consumedAttempt, drops, gemDrops, usedReplayLoot, petId }) => {
     const { user, exploreProgress } = get();
     if (!user || !exploreProgress) return { droppedCount: 0, bagWasFull: false };
 
     const now = Date.now();
-    const nextProgress = applyStageResult(exploreProgress, tower, stage, won, consumedAttempt);
+    const afterStage = applyStageResult(exploreProgress, tower, stage, won, consumedAttempt);
+    // 重打掉落名額：每天前 10 次贏的重打才有機會掉東西（見 lib/rpg/loot.ts）
+    const nextProgress = usedReplayLoot
+      ? { ...afterStage, dailyReplayLootUsed: (afterStage.dailyReplayLootUsed ?? 0) + 1 }
+      : afterStage;
+    // 寶石不佔背包格數，掉多少收多少
+    const gemBag = gemDrops.length > 0 ? addGemsToBag(user.gemBag, gemDrops) : user.gemBag ?? {};
 
     // 呼叫端（探險頁）已經先依背包剩餘空間截過一次了，這裡再截一次
     // 只是防呆：萬一兩次之間背包被別的分頁塞滿，也不會超過上限。
@@ -2418,6 +2554,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const updatedUser: UserDoc = {
       ...user,
       equipmentBag: updatedBag,
+      gemBag,
       rpgBossDefeated: nextProgress.bossDefeatedCount,
       rpgTowersCleared: towersCleared,
       dailyExploreProgress,
@@ -2430,6 +2567,7 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       saveExploreProgress(nextProgress),
       updateDoc(doc(db, "users", user.uid), {
         equipmentBag: updatedBag,
+        gemBag,
         rpgBossDefeated: updatedUser.rpgBossDefeated,
         rpgTowersCleared: updatedUser.rpgTowersCleared,
         dailyExploreProgress,

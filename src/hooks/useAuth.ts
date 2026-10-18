@@ -1,3 +1,4 @@
+// src/hooks/useAuth.ts
 /**
  * src/hooks/useAuth.ts
  *
@@ -100,6 +101,7 @@ function createDefaultUserDoc(
     hasClaimedStarterPet: true,
     equipmentBag: [],
     bagExpandCount: 0,
+    gemBag: {},
     collectedPetCount: 0,
     lastDailyGrantDate: null,
     createdAt: now,

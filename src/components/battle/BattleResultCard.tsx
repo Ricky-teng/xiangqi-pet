@@ -20,12 +20,11 @@
  */
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  getEquipmentBonusLabel,
-  getEquipmentName,
-  type EquipmentItem,
-} from "@/lib/rpg/equipment";
-import EquipmentIcon, { ItemFrame, getTierMaterial } from "@/components/rpg/EquipmentIcon";
+import { getEquipmentName, type EquipmentItem } from "@/lib/rpg/equipment";
+import { GEM_TABLE, type GemId } from "@/lib/rpg/gems";
+import { getTierMaterial } from "@/components/rpg/EquipmentIcon";
+import GemIcon from "@/components/rpg/GemIcon";
+import { ItemTile, QualityBadge } from "@/components/rpg/ItemDetail";
 
 export interface BattleResultCardProps {
   won: boolean;
@@ -38,8 +37,10 @@ export interface BattleResultCardProps {
   /** 打倒幾隻 / 總共幾隻 */
   defeated: number;
   totalEnemies: number;
-  /** 首通掉落（沒有就傳空陣列） */
+  /** 掉落的裝備（沒有就傳空陣列） */
   drops?: EquipmentItem[];
+  /** 掉落的寶石 */
+  gems?: GemId[];
   /** 額外要顯示的幾行（例如「積分 +25」「解鎖第 4 塔」） */
   extraLines?: string[];
   /**
@@ -95,6 +96,7 @@ export default function BattleResultCard({
   defeated,
   totalEnemies,
   drops = [],
+  gems = [],
   extraLines = [],
   loseHint,
   primaryLabel,
@@ -108,16 +110,17 @@ export default function BattleResultCard({
   const [flipped, setFlipped] = useState(0);
   const primaryRef = useRef<HTMLButtonElement | null>(null);
 
+  const dropCount = drops.length + gems.length;
   useEffect(() => {
-    if (drops.length === 0) return;
+    if (dropCount === 0) return;
     const timers: number[] = [];
-    drops.forEach((_, index) => {
+    for (let index = 0; index < dropCount; index++) {
       const t = DROP_START_MS + index * DROP_GAP_MS;
       timers.push(window.setTimeout(() => setLanded(index + 1), t));
       timers.push(window.setTimeout(() => setFlipped(index + 1), t + FLIP_DELAY_MS));
-    });
+    }
     return () => timers.forEach((id) => window.clearTimeout(id));
-  }, [drops]);
+  }, [dropCount]);
 
   // 打開時把焦點放在主要按鈕，鍵盤使用者按 Enter 就能繼續
   useEffect(() => {
@@ -246,20 +249,24 @@ export default function BattleResultCard({
           </div>
 
           {/* ---- 掉落物 ---- */}
-          {drops.length > 0 ? (
+          {dropCount > 0 ? (
             <div className="result-fade-up mt-4" style={{ animationDelay: "0.75s" }}>
-              <SectionLabel text="首通掉落" />
-              <div className="mt-2.5 flex flex-wrap justify-center gap-3" style={{ minHeight: 104 }}>
+              <SectionLabel text="掉落" />
+              <div className="mt-2.5 flex flex-wrap justify-center gap-3" style={{ minHeight: 118 }}>
                 {drops.map((item, index) => (
                   <DropCard key={item.id} item={item} landed={index < landed} flipped={index < flipped} />
                 ))}
+                {gems.map((gem, i) => {
+                  const index = drops.length + i;
+                  return <GemDropCard key={`gem-${i}`} gem={gem} landed={index < landed} flipped={index < flipped} />;
+                })}
               </div>
             </div>
           ) : null}
 
           {/* ---- 額外訊息（積分、解鎖新塔之類） ---- */}
           {extraLines.length > 0 ? (
-            <div className="result-fade-up mt-3 space-y-1.5" style={{ animationDelay: drops.length > 0 ? `${(DROP_START_MS + drops.length * DROP_GAP_MS) / 1000}s` : "0.8s" }}>
+            <div className="result-fade-up mt-3 space-y-1.5" style={{ animationDelay: dropCount > 0 ? `${(DROP_START_MS + dropCount * DROP_GAP_MS) / 1000}s` : "0.8s" }}>
               {extraLines.map((line) => (
                 <p
                   key={line}
@@ -326,49 +333,79 @@ function DropCard({ item, landed, flipped }: { item: EquipmentItem; landed: bool
   const size = 66;
   if (!landed) {
     // 還沒落下：先佔位，版面不會因為卡片一張一張出現而跳動
-    return <div style={{ width: size, height: size + 34 }} />;
+    return <div style={{ width: size + 8, height: size + 48 }} />;
   }
   return (
     <div className="drop-card-enter relative flex flex-col items-center" style={{ width: size + 8 }}>
       {/* 翻面瞬間的光柱 */}
       {flipped ? (
         <div
-          className="drop-pillar pointer-events-none absolute bottom-[34px] h-[150px] w-[46px] origin-bottom"
+          className="drop-pillar pointer-events-none absolute bottom-[48px] h-[150px] w-[46px] origin-bottom"
           style={{ left: "calc(50% - 23px)", background: `linear-gradient(0deg, ${m.frameHi}EE 0%, ${m.frame}66 45%, transparent 100%)`, filter: "blur(2px)" }}
         />
       ) : null}
-      <div className="drop-card" style={{ width: size, height: size }}>
-        <div className={["drop-card-inner h-full w-full", flipped ? "flipped" : ""].join(" ")}>
-          {/* 背面 */}
-          <div
-            className="drop-face flex items-center justify-center rounded-[14px]"
-            style={{
-              background: "linear-gradient(145deg,#3A2A6E 0%,#1A1438 100%)",
-              border: "2.5px solid #F5C542",
-              boxShadow: "inset 0 0 12px rgba(245,197,66,0.35), 0 4px 10px rgba(0,0,0,0.45)",
-            }}
-          >
-            <span className="drop-back-pulse font-display text-[30px] text-[#F5C542]" style={{ textShadow: "0 0 10px rgba(245,197,66,0.8)" }}>
-              ?
-            </span>
-          </div>
-          {/* 正面 */}
-          <div className="drop-face front">
-            <ItemFrame tier={item.tier} size={size}>
-              <EquipmentIcon kind={item.kind} tier={item.tier} size={size * 0.72} />
-            </ItemFrame>
-          </div>
-        </div>
-      </div>
-      <p
-        className="mt-1.5 text-center text-[11px] font-black leading-tight transition-opacity duration-300"
-        style={{ color: m.frameHi, opacity: flipped ? 1 : 0, textShadow: "0 1px 0 rgba(0,0,0,0.6)" }}
-      >
+      <CardFlip size={size} flipped={flipped}>
+        <ItemTile item={item} size={size} />
+      </CardFlip>
+      <p className="mt-1.5 text-center text-[11px] font-black leading-tight transition-opacity duration-300" style={{ color: m.frameHi, opacity: flipped ? 1 : 0, textShadow: "0 1px 0 rgba(0,0,0,0.6)" }}>
         {getEquipmentName(item)}
       </p>
-      <p className="text-center text-[9.5px] font-bold text-white/55 transition-opacity duration-300" style={{ opacity: flipped ? 1 : 0 }}>
-        {getEquipmentBonusLabel(item)}
+      <span className="mt-0.5 transition-opacity duration-300" style={{ opacity: flipped ? 1 : 0 }}>
+        <QualityBadge item={item} />
+      </span>
+    </div>
+  );
+}
+
+function GemDropCard({ gem, landed, flipped }: { gem: GemId; landed: boolean; flipped: boolean }) {
+  const info = GEM_TABLE[gem];
+  const size = 66;
+  if (!landed) return <div style={{ width: size + 8, height: size + 48 }} />;
+  return (
+    <div className="drop-card-enter relative flex flex-col items-center" style={{ width: size + 8 }}>
+      {flipped ? (
+        <div
+          className="drop-pillar pointer-events-none absolute bottom-[48px] h-[150px] w-[46px] origin-bottom"
+          style={{ left: "calc(50% - 23px)", background: `linear-gradient(0deg, ${info.hi}EE 0%, ${info.mid}66 45%, transparent 100%)`, filter: "blur(2px)" }}
+        />
+      ) : null}
+      <CardFlip size={size} flipped={flipped}>
+        <div
+          className="flex h-full w-full items-center justify-center rounded-[14px]"
+          style={{ background: `radial-gradient(circle at 50% 40%, ${info.mid}55 0%, #14132A 72%)`, boxShadow: `inset 0 0 0 2.5px ${info.mid}, 0 0 12px ${info.mid}66` }}
+        >
+          <GemIcon gem={gem} size={44} />
+        </div>
+      </CardFlip>
+      <p className="mt-1.5 text-center text-[11px] font-black leading-tight transition-opacity duration-300" style={{ color: info.hi, opacity: flipped ? 1 : 0, textShadow: "0 1px 0 rgba(0,0,0,0.6)" }}>
+        {info.name}
       </p>
+      <span className="text-center text-[9.5px] font-bold text-white/55 transition-opacity duration-300" style={{ opacity: flipped ? 1 : 0 }}>
+        {info.label}
+      </span>
+    </div>
+  );
+}
+
+/** 抽卡式翻牌：背面金框問號，flipped 之後翻到正面 children */
+function CardFlip({ size, flipped, children }: { size: number; flipped: boolean; children: React.ReactNode }) {
+  return (
+    <div className="drop-card" style={{ width: size, height: size }}>
+      <div className={["drop-card-inner h-full w-full", flipped ? "flipped" : ""].join(" ")}>
+        <div
+          className="drop-face flex items-center justify-center rounded-[14px]"
+          style={{
+            background: "linear-gradient(145deg,#3A2A6E 0%,#1A1438 100%)",
+            border: "2.5px solid #F5C542",
+            boxShadow: "inset 0 0 12px rgba(245,197,66,0.35), 0 4px 10px rgba(0,0,0,0.45)",
+          }}
+        >
+          <span className="drop-back-pulse font-display text-[30px] text-[#F5C542]" style={{ textShadow: "0 0 10px rgba(245,197,66,0.8)" }}>
+            ?
+          </span>
+        </div>
+        <div className="drop-face front">{children}</div>
+      </div>
     </div>
   );
 }

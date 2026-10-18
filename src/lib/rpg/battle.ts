@@ -16,10 +16,15 @@
  *   - sequential（探險）：怪一隻一隻出場，打倒一隻回復最大 HP 的 30%
  *   - melee（戰隊）：六隻同時在場混戰
  *
+ * 裝備特殊效果（見 equipment.ts 的 CombatTraits）全部在這裡結算：
+ *   爆擊、破甲、先攻（攻擊方）／閃避、反傷（防守方）／吸血、再生
+ *   （自己回血）／開場護盾（月光石）。怪物沒有裝備，traits 一律是空的。
+ *
  * 亂數用帶種子的 mulberry32，同一個 seed 一定跑出同一場戰鬥。
  */
 
 import { getAttackIntervalSeconds } from "@/lib/rpg/stats";
+import { emptyCombatTraits, type CombatTraits } from "@/lib/rpg/equipment";
 
 // ============================================================
 // 1. 型別
@@ -42,7 +47,12 @@ export interface BattleUnit {
   attack: number;
   defense: number;
   speed: number;
+  /** 裝備帶來的特殊效果；沒給就是全部沒有（怪物） */
+  traits?: CombatTraits;
 }
+
+/** 回血的原因，畫面依這個決定特效跟出現的時間點 */
+export type HealReason = "kill" | "lifesteal" | "regen";
 
 export type BattleEvent =
   /** 某個單位登場（探險是一隻一隻登場，戰隊是開場全部登場） */
@@ -56,13 +66,38 @@ export type BattleEvent =
       damage: number;
       /** 這一下打完之後目標剩多少血 */
       targetHpAfter: number;
-      /** 傷害有沒有偏高（±10% 的上緣），畫面用不同顏色表現 */
+      /** 傷害有沒有偏高（±10% 的上緣），畫面把數字放大一點點 */
       isHigh: boolean;
+      /** 爆擊（匕首、紫晶） */
+      crit: boolean;
+      /** 被閃掉了（皮甲），damage 會是 0 */
+      dodged: boolean;
+      /** 這一下有破甲（斧） */
+      pierce: boolean;
+      /** 這一下是先攻（長槍） */
+      firstStrike: boolean;
+      /** 其中被護盾吸收掉幾點（damage 是總傷害，扣血 = damage − absorbed） */
+      absorbed: number;
+      /** 打完之後目標剩多少護盾 */
+      targetShieldAfter: number;
+    }
+  /** 護盾（月光石）：開場或探險遇到新怪時套上，amount 是套完之後的護盾值 */
+  | { t: number; type: "shield"; unitId: string; amount: number }
+  /** 反傷（刺甲）：防守方把傷害還給攻擊方 */
+  | {
+      t: number;
+      type: "thorns";
+      sourceId: string;
+      targetId: string;
+      damage: number;
+      targetHpAfter: number;
+      absorbed: number;
+      targetShieldAfter: number;
     }
   /** 某個單位倒下 */
   | { t: number; type: "death"; unitId: string }
-  /** 打倒一隻怪之後的回血（只有 sequential 模式會有） */
-  | { t: number; type: "heal"; unitId: string; amount: number; hpAfter: number }
+  /** 回血：打倒敵人（探險固定 30%）、吸血（法杖）、再生（法袍） */
+  | { t: number; type: "heal"; unitId: string; amount: number; hpAfter: number; reason: HealReason }
   /** 結束 */
   | { t: number; type: "end"; winner: BattleSide };
 
@@ -169,6 +204,12 @@ interface RuntimeUnit extends BattleUnit {
   alive: boolean;
   /** 還沒登場（sequential 模式的候補） */
   onField: boolean;
+  /** 正規化過的特殊效果（沒有就是全 0） */
+  fx: CombatTraits;
+  /** 長槍：下一下是先攻 */
+  firstStrikeReady: boolean;
+  /** 目前的護盾值 */
+  shieldHp: number;
 }
 
 function toRuntime(unit: BattleUnit, slot: number, onField: boolean): RuntimeUnit {
@@ -179,6 +220,9 @@ function toRuntime(unit: BattleUnit, slot: number, onField: boolean): RuntimeUni
     slot,
     alive: true,
     onField,
+    fx: unit.traits ?? emptyCombatTraits(),
+    firstStrikeReady: false,
+    shieldHp: 0,
   };
 }
 
@@ -198,7 +242,6 @@ export function simulateBattle(
   const healPercent = options.healPercentOnKill ?? 0;
 
   const players = playerUnits.map((unit, index) => toRuntime(unit, index, true));
-  // sequential 模式只有第一隻敵人在場上，其他排隊等前一隻倒下
   const enemies = enemyUnits.map((unit, index) => toRuntime(unit, index, !sequential || index === 0));
 
   const events: BattleEvent[] = [];
@@ -206,20 +249,56 @@ export function simulateBattle(
   let enemiesDefeated = 0;
   let timedOut = false;
 
-  // 開場登場事件
   for (const unit of [...players, ...enemies]) {
     if (unit.onField) {
       events.push({ t: 0, type: "spawn", unitId: unit.id });
     }
   }
 
+  /**
+   * 先攻：遇到新對手時，帶長槍的單位下一下提早出手（第 5 階是立刻出手，
+   * 低階只提早一部分，見 equipment.ts 的 SPECIAL_SCALE_BY_TIER）
+   */
+  function armFirstStrike(units: RuntimeUnit[], now: number): void {
+    for (const u of units) {
+      if (!u.alive || !u.onField || u.fx.firstStrikeMult <= 0) continue;
+      u.firstStrikeReady = true;
+      const interval = getAttackIntervalSeconds(u.speed);
+      u.nextAt = Math.min(u.nextAt, now + interval * (1 - Math.min(1, u.fx.firstStrikeHaste)));
+    }
+  }
+  /** 月光石：套上（或補滿到）開場護盾 */
+  function raiseShields(units: RuntimeUnit[], now: number): void {
+    for (const u of units) {
+      if (!u.alive || !u.onField || u.fx.shield <= 0) continue;
+      const amount = Math.round(u.maxHp * u.fx.shield);
+      if (amount <= u.shieldHp) continue;
+      u.shieldHp = amount;
+      events.push({ t: now, type: "shield", unitId: u.id, amount });
+    }
+  }
+
+  /** 對某個單位造成傷害：先扣護盾再扣血，回傳吸收量 */
+  function applyDamage(unit: RuntimeUnit, damage: number): number {
+    const absorbed = Math.min(unit.shieldHp, damage);
+    unit.shieldHp -= absorbed;
+    unit.hp = Math.max(0, unit.hp - (damage - absorbed));
+    return absorbed;
+  }
+
+  // 開場：雙方都算「遇到新對手」
+  armFirstStrike(players, 0);
+  armFirstStrike(enemies, 0);
+  raiseShields(players, 0);
+  raiseShields(enemies, 0);
+
   const aliveOnField = (list: RuntimeUnit[]) => list.filter((u) => u.alive && u.onField);
   const anyAlive = (list: RuntimeUnit[]) => list.some((u) => u.alive);
 
   /**
-   * 選目標：先打對面站位相對的那隻；那隻已經倒了（或還沒登場）
-   * 就從還活著的裡面隨機挑一隻。人少的那邊空位，對面就直接
-   * 前進打別人——這正好就是「站位對不到就隨機挑」的效果。
+   * 挑目標：優先打「正對面」那一隻（同一個 slot），對面已經倒了才
+   * 隨機挑一隻活著的。這讓戰隊的站位有意義：你把肉盾放在對方主力
+   * 的正對面，就能替隊友擋刀。
    */
   function pickTarget(attacker: RuntimeUnit, opponents: RuntimeUnit[]): RuntimeUnit | null {
     const candidates = aliveOnField(opponents);
@@ -231,13 +310,67 @@ export function simulateBattle(
     return candidates[Math.floor(rng() * candidates.length)];
   }
 
+  function heal(unit: RuntimeUnit, amount: number, reason: HealReason): void {
+    if (!unit.alive || amount <= 0) return;
+    const before = unit.hp;
+    unit.hp = Math.min(unit.maxHp, unit.hp + Math.round(amount));
+    if (unit.hp > before) {
+      events.push({ t, type: "heal", unitId: unit.id, amount: unit.hp - before, hpAfter: unit.hp, reason });
+    }
+  }
+
+  /** 處理某個單位倒下：事件、計數、探險的回血與下一隻怪登場 */
+  function handleDeath(victim: RuntimeUnit): void {
+    victim.alive = false;
+    events.push({ t, type: "death", unitId: victim.id });
+    if (victim.side !== "enemy") return;
+
+    enemiesDefeated += 1;
+
+    if (sequential) {
+      // 探險：打倒一隻，全體回固定比例
+      for (const player of players) {
+        heal(player, player.maxHp * healPercent, "kill");
+      }
+      const next = enemies.find((u) => !u.onField);
+      if (next) {
+        next.onField = true;
+        next.nextAt = t + getAttackIntervalSeconds(next.speed);
+        events.push({ t, type: "spawn", unitId: next.id });
+        armFirstStrike(players, t);
+        raiseShields(players, t);
+      }
+    }
+  }
+
   function resolveAttack(attacker: RuntimeUnit, opponents: RuntimeUnit[]): void {
     const target = pickTarget(attacker, opponents);
     if (!target) return;
 
-    const { damage, isHigh } = computeDamage(attacker.attack, target.defense, rng);
-    target.hp = Math.max(0, target.hp - damage);
+    const firstStrike = attacker.firstStrikeReady;
+    attacker.firstStrikeReady = false;
 
+    // ---- 閃避 ----
+    const dodged = target.fx.dodge > 0 && rng() < target.fx.dodge;
+
+    let damage = 0;
+    let isHigh = false;
+    let crit = false;
+    const pierce = attacker.fx.armorPen > 0;
+    if (!dodged) {
+      const effectiveDefense = target.defense * (1 - Math.min(0.9, attacker.fx.armorPen));
+      const rolled = computeDamage(attacker.attack, effectiveDefense, rng);
+      isHigh = rolled.isHigh;
+      let mult = 1;
+      if (attacker.fx.critChance > 0 && rng() < attacker.fx.critChance) {
+        crit = true;
+        mult *= attacker.fx.critMult;
+      }
+      if (firstStrike) mult *= attacker.fx.firstStrikeMult;
+      damage = Math.max(1, Math.floor(rolled.damage * mult));
+    }
+
+    const absorbed = applyDamage(target, damage);
     events.push({
       t,
       type: "attack",
@@ -246,48 +379,51 @@ export function simulateBattle(
       damage,
       targetHpAfter: target.hp,
       isHigh,
+      crit,
+      dodged,
+      pierce: pierce && !dodged,
+      firstStrike: firstStrike && !dodged,
+      absorbed,
+      targetShieldAfter: target.shieldHp,
     });
 
-    if (target.hp > 0) return;
-
-    target.alive = false;
-    events.push({ t, type: "death", unitId: target.id });
-
-    if (target.side !== "enemy") return;
-
-    enemiesDefeated += 1;
-
-    if (!sequential) return;
-
-    // 探險：打倒一隻之後，玩家回復最大 HP 的 healPercent，下一隻才登場
-    for (const player of players) {
-      if (!player.alive || healPercent <= 0) continue;
-      const before = player.hp;
-      player.hp = Math.min(player.maxHp, player.hp + Math.round(player.maxHp * healPercent));
-      if (player.hp > before) {
-        events.push({ t, type: "heal", unitId: player.id, amount: player.hp - before, hpAfter: player.hp });
-      }
+    // ---- 吸血 ----
+    if (damage > 0 && attacker.fx.lifesteal > 0) {
+      heal(attacker, damage * attacker.fx.lifesteal, "lifesteal");
     }
 
-    const next = enemies.find((u) => !u.onField);
-    if (next) {
-      next.onField = true;
-      next.nextAt = t + getAttackIntervalSeconds(next.speed);
-      events.push({ t, type: "spawn", unitId: next.id });
+    // ---- 反傷（被打的人就算這一下倒了，刺還是會扎到攻擊者） ----
+    if (damage > 0 && target.fx.thorns > 0 && attacker.alive) {
+      const reflected = Math.max(1, Math.floor(damage * target.fx.thorns));
+      const reflectAbsorbed = applyDamage(attacker, reflected);
+      events.push({
+        t,
+        type: "thorns",
+        sourceId: target.id,
+        targetId: attacker.id,
+        damage: reflected,
+        targetHpAfter: attacker.hp,
+        absorbed: reflectAbsorbed,
+        targetShieldAfter: attacker.shieldHp,
+      });
+    }
+
+    if (target.hp <= 0 && target.alive) {
+      handleDeath(target);
+    }
+    if (attacker.hp <= 0 && attacker.alive) {
+      // 被刺甲扎死
+      handleDeath(attacker);
+      return;
+    }
+
+    // ---- 再生：每次出手回一點 ----
+    if (attacker.fx.regen > 0) {
+      heal(attacker, attacker.maxHp * attacker.fx.regen, "regen");
     }
   }
 
-  /**
-   * 事件驅動的主迴圈：每次挑出「下一個該出手的單位」，把時間直接跳到
-   * 那一刻，結算完再排下一次。
-   *
-   * ⚠️ 這裡刻意不用固定時間步長（tick）輪流跑雙方。第一版是用 tick
-   * 而且玩家方先結算，模擬出來「完全鏡像的兩隊」挑戰方勝率高達 98%
-   * ——因為雙方速度相同時，玩家永遠先落下那一刀，在六隻混戰、火力
-   * 集中的情況下這個微小優勢會滾雪球（先手方先少一個敵人，敵方輸出
-   * 就先掉三分之一）。改成事件驅動、同時出手隨機決定先後之後，鏡像
-   * 對戰才會回到 50% 附近。
-   */
+  // ---- 主迴圈：事件驅動，每次挑「下一個出手時間最早」的單位 ----
   while (t < MAX_BATTLE_SECONDS) {
     if (!anyAlive(players) || !anyAlive(enemies)) break;
 
@@ -295,7 +431,9 @@ export function simulateBattle(
     if (actors.length === 0) break;
 
     const earliest = Math.min(...actors.map((u) => u.nextAt));
-    // 同一時刻出手的（速度一樣的單位一定會一直撞在一起）隨機決定誰先
+    // 同時出手的人裡隨機挑一個先動（只挑一個，處理完再重新找下一個最早
+    // 的），避免「迴圈固定先處理我方」造成的先手優勢——
+    // 這個 bug 曾經讓鏡像對戰的挑戰方勝率衝到 98%
     const tied = actors.filter((u) => u.nextAt - earliest <= SIMULTANEOUS_EPSILON);
     const actor = tied[Math.floor(rng() * tied.length)];
 
@@ -307,8 +445,6 @@ export function simulateBattle(
       resolveAttack(actor, opponents);
     }
 
-    // 就算這一刀之後自己被反殺（不會發生，但保險），也要把時間往前推，
-    // 否則下一輪又選到同一個人會無限迴圈
     actor.nextAt = t + getAttackIntervalSeconds(actor.speed);
   }
 
@@ -318,7 +454,7 @@ export function simulateBattle(
   } else if (!anyAlive(players)) {
     winner = "enemy";
   } else {
-    // 撞到時間上限：比雙方剩餘血量百分比，平手算玩家輸
+    // 撞到安全上限：比剩餘 HP 比例。正常數值下不會走到這裡
     timedOut = true;
     const playerRatio = players.reduce((s, u) => s + u.hp, 0) / players.reduce((s, u) => s + u.maxHp, 0);
     const enemyRatio = enemies.reduce((s, u) => s + u.hp, 0) / enemies.reduce((s, u) => s + u.maxHp, 0);
