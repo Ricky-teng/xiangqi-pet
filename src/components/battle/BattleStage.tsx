@@ -42,13 +42,18 @@ import type { MonsterArchetype } from "@/lib/rpg/monsters";
 import type { BattleEngine, BattleEvent, BattleResult, BattleSide, BattleUnit, BuffStat } from "@/lib/rpg/battle";
 import { getSkill, getSkillEffect } from "@/lib/rpg/skills";
 import SkillIcon from "@/components/rpg/SkillIcon";
-import { playSfx } from "@/lib/sound/sfx";
+import { playSfx, type SfxName } from "@/lib/sound/sfx";
+import ChickRig, { RIG_BODY, RIG_VIEWBOX, type ChickRigHandle } from "@/components/pet/rig/ChickRig";
+import { getRigJob } from "@/components/pet/rig/jobs/index";
+import { SKILL_HOLD_MS, getCasterPose, playSkillFx } from "@/components/battle/skillfx/skillFx";
+import { chomp, type FxKit, type StageAnchor } from "@/components/battle/skillfx/stageFx";
+import { useBattleArtMode } from "@/lib/settings/battleArt";
 import MonsterArt from "@/components/battle/MonsterArt";
 import PetArt from "@/components/rpg/PetArt";
 import BattleBackdrop, { HORIZON_RATIO } from "@/components/battle/BattleBackdrop";
 import { FxEngine, detectFxQuality } from "@/components/battle/fxEngine";
 import { getTowerArt } from "@/components/battle/towerArt";
-import type { ArmorType, WeaponType } from "@/lib/rpg/equipment";
+import type { ArmorType, EquipmentItem, WeaponType } from "@/lib/rpg/equipment";
 
 /** 可選的播放速度。規格只要 ×1 跟 ×2 兩段 */
 export const BATTLE_SPEEDS = [1, 2] as const;
@@ -68,6 +73,9 @@ export interface BattleUnitVisual {
   /** 武器／防具種類：換刀光樣式、閃避與反傷特效 */
   weaponType?: WeaponType | null;
   armorType?: ArmorType | null;
+  /** 實際的裝備（骨架小雞畫在手上、身上用：階級顏色、寶石） */
+  weapon?: EquipmentItem | null;
+  armor?: EquipmentItem | null;
   /** 怪物：用程式繪製（MonsterArt）。有這個欄位就不看 jobId / emoji */
   monster?: {
     tower: number;
@@ -105,6 +113,8 @@ interface RuntimeState {
   shieldMax: Record<string, number>;
   /** 正在暈 */
   stunned: Record<string, boolean>;
+  /** 正在燒（身上冒火） */
+  burning: Record<string, boolean>;
   /** 身上的增益（頭上的小圖示） */
   buffs: Record<string, BuffStat[]>;
 }
@@ -141,6 +151,8 @@ interface Anchor {
 const LUNGE_MS = 380;
 const IMPACT_MS = 180;
 const DEATH_MS = 560;
+/** 骨架小雞的倒下動作（往後倒、彈一下、躺著轉星星） */
+const RIG_DOWN_MS = 1900;
 const START_BANNER_MS = 1350;
 const BOSS_INTRO_MS = 2700;
 const KILL_BEAT_MS = 380;
@@ -250,6 +262,64 @@ function MagicCircle({ color, size, gold = true }: { color: string; size: number
 /** 小雞（職業圖，沒有圖就用 emoji）。舞台上的版本 */
 function PetSprite({ jobId, emoji, size, flip }: { jobId?: string | null; emoji?: string; size: number; flip: boolean }) {
   return <PetArt jobId={jobId} emoji={emoji} size={size} flip={flip} />;
+}
+
+/**
+ * 骨架小雞（SVG 模式）：把 ChickRig 擺到單位格子裡，腳底對齊。
+ * size = 格子的邊長；小雞本體高度約佔 0.92。
+ */
+function RigSprite({
+  size,
+  flip,
+  jobId,
+  weapon,
+  armor,
+  rigRef,
+  texture,
+}: {
+  texture: boolean;
+  size: number;
+  flip: boolean;
+  jobId: string | null;
+  weapon: EquipmentItem | null;
+  armor: EquipmentItem | null;
+  rigRef: (h: ChickRigHandle | null) => void;
+}) {
+  const body = size * 0.92;
+  const vb = RIG_VIEWBOX;
+  const h = (body * vb.h) / RIG_BODY.height;
+  const w = (h * vb.w) / vb.h;
+  const fx = (RIG_BODY.cx - vb.x) / vb.w;
+  const fy = (RIG_BODY.feetY - vb.y) / vb.h;
+  return (
+    <div
+      className="pointer-events-none absolute"
+      style={{ left: size / 2 - (flip ? 1 - fx : fx) * w, top: size * 0.95 - fy * h, width: w, height: h }}
+    >
+      <ChickRig ref={rigRef} job={getRigJob(jobId)} weapon={weapon} armor={armor} size={body} flip={flip} texture={texture} />
+    </div>
+  );
+}
+
+/** 燃燒中的單位身上冒的火（CSS 動畫，跟著單位走） */
+function BurningFlames({ size }: { size: number }) {
+  return (
+    <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+      {[0.3, 0.5, 0.7, 0.42, 0.6].map((fx, i) => (
+        <span
+          key={i}
+          className="burn-flame absolute block"
+          style={{
+            left: size * fx - size * 0.08,
+            top: size * (0.45 + (i % 2) * 0.18),
+            width: size * 0.16,
+            height: size * 0.26,
+            animationDelay: `${i * 0.13}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
 }
 
 /** HUD 裡的小頭像 */
@@ -426,7 +496,7 @@ export default function BattleStage({
       alive[u.id] = true;
       onField[u.id] = false;
     }
-    return { hp, alive, onField, shield: {}, shieldMax: {}, stunned: {}, buffs: {} };
+    return { hp, alive, onField, shield: {}, shieldMax: {}, stunned: {}, buffs: {}, burning: {} };
   }, [allUnits]);
 
   const [state, setState] = useState<RuntimeState>(initialState);
@@ -444,6 +514,10 @@ export default function BattleStage({
   /** 手動模式下每 0.1 秒更新一次「游標現在幾秒」，技能鈕的冷卻圈靠這個重畫 */
   const [nowSim, setNowSim] = useState(0);
   const hasPlayerSkill = playerUnits.some((u) => u.skill);
+  /** 戰鬥畫面的小雞：SVG（會動）或原圖 */
+  const [artMode, setArtMode] = useBattleArtMode();
+  /** 省電模式（偵測到卡頓）：骨架小雞關掉手繪質感濾鏡 */
+  const [lite, setLite] = useState(false);
 
   // ---- refs ----
   const frameRef = useRef<HTMLDivElement | null>(null);
@@ -465,6 +539,27 @@ export default function BattleStage({
   const buffUntilRef = useRef(new Map<string, number>());
   /** 最近一下打在這隻身上的延遲（連打技能用） */
   const hitDelayRef = useRef(new Map<string, number>());
+  /** 骨架小雞（SVG 模式才有） */
+  const rigRefs = useRef(new Map<string, ChickRigHandle>());
+  const rigRefCache = useRef(new Map<string, (h: ChickRigHandle | null) => void>());
+  const rigRefFor = useCallback((id: string) => {
+    let fn = rigRefCache.current.get(id);
+    if (!fn) {
+      fn = (h: ChickRigHandle | null) => {
+        if (h) rigRefs.current.set(id, h);
+        else rigRefs.current.delete(id);
+      };
+      rigRefCache.current.set(id, fn);
+    }
+    return fn;
+  }, []);
+  /** 技能特效疊層（戰場座標的 SVG）、技能特寫時壓暗畫面的那一層 */
+  const skillLayerRef = useRef<SVGSVGElement | null>(null);
+  const dimRef = useRef<HTMLDivElement | null>(null);
+  const burnUntilRef = useRef(new Map<string, number>());
+  /** 卡頓偵測：連續掉幀就切到省電特效 */
+  const liteRef = useRef(false);
+  const slowFramesRef = useRef(0);
   const entranceRef = useRef(new Map<string, Entrance>());
   const anchorsRef = useRef<Record<string, Anchor>>({});
   const textSlotRef = useRef<Record<string, number>>({});
@@ -472,6 +567,8 @@ export default function BattleStage({
   const eventIndexRef = useRef(0);
   const elapsedRef = useRef(0);
   const pauseUntilRef = useRef(0);
+  /** 技能特寫期間：連同一時間點的事件也先不處理（傷害數字要等演出完） */
+  const skillPauseUntilRef = useRef(0);
   const rafRef = useRef<number | null>(null);
   const keyRef = useRef(0);
   const speedRef = useRef<number>(1);
@@ -905,6 +1002,65 @@ export default function BattleStage({
     [flash, holdTimeline, later, unitName],
   );
 
+  /** 技能特效要用的工具箱 */
+  const makeKit = useCallback((): FxKit | null => {
+    const layer = skillLayerRef.current;
+    if (!layer) return null;
+    return {
+      layer,
+      fx: fxRef.current,
+      speed: speedRef.current,
+      shake,
+      flash,
+      sfx: (name: string) => playSfx(name as SfxName),
+      lite: liteRef.current,
+    };
+  }, [flash, shake]);
+
+  /**
+   * 技能特寫：畫面變暗、鏡頭推近施放者跟目標之間、參與的單位浮到暗幕上面。
+   * 長度跟 SKILL_HOLD_MS 對齊（演出期間時間軸是停住的）。
+   */
+  const cinematic = useCallback(
+    (ids: string[], focus: { x: number; y: number }) => {
+      const sp = speedRef.current;
+      const total = (SKILL_HOLD_MS + 260) / sp;
+      dimRef.current?.animate(
+        [
+          { opacity: 0 },
+          { opacity: 0.78, offset: 0.12 },
+          { opacity: 0.78, offset: 0.8 },
+          { opacity: 0 },
+        ],
+        { duration: total, easing: "ease-in-out" },
+      );
+      for (const id of ids) {
+        const outer = outerEls.current.get(id);
+        if (!outer) continue;
+        const before = outer.style.zIndex;
+        outer.style.zIndex = String(700 + Number(before || 0) / 1000);
+        window.setTimeout(() => {
+          outer.style.zIndex = before;
+        }, total);
+      }
+      const z = zoomRef.current;
+      if (z && !reduceMotion) {
+        z.style.transformOrigin = `${focus.x}px ${focus.y}px`;
+        z.animate(
+          [
+            { transform: "scale(1)" },
+            { transform: "scale(1.28)", offset: 0.22, easing: "ease-out" },
+            { transform: "scale(1.24)", offset: 0.7 },
+            { transform: "scale(1.06)", offset: 0.9 },
+            { transform: "scale(1)" },
+          ],
+          { duration: total, easing: "ease-in-out" },
+        );
+      }
+    },
+    [reduceMotion],
+  );
+
   const applyEvent = useCallback(
     (event: BattleEvent) => {
       const fx = fxRef.current;
@@ -942,7 +1098,8 @@ export default function BattleStage({
           const skillEff = event.skillId ? getSkillEffect(event.skillId, false) : null;
           const aoeSkill = skillEff?.kind === "strike" && Boolean(skillEff.aoe);
           const hitDelay = (event.hitIndex ?? 0) * 110;
-          const doLunge = !skillDef || ((event.hitIndex ?? 0) === 0 && !aoeSkill);
+          // 技能的位移、出招都在 skill 事件的特寫裡演完了，這裡只演命中
+          const doLunge = !skillDef;
           const attackerVisual = visualById[event.attackerId];
           // 攻擊方式：怪物用爪子，小雞看手上的武器種類
           const style: AttackStyle = attackerVisual?.monster ? "claw" : (attackerVisual?.weaponType ?? "sword");
@@ -952,7 +1109,47 @@ export default function BattleStage({
 
           // ---- 攻擊者動作 ----
           const outer = outerEls.current.get(event.attackerId);
+          // 怪物的出招動作（依體型）：血牛型頭槌、攻擊型飛撲咬、均衡型揮爪、Boss 大力蓄力
+          const monster = attackerVisual?.monster;
+          if (monster && doLunge) {
+            const amid = midEls.current.get(event.attackerId);
+            const d = dir;
+            const frames: Keyframe[] = monster.isBoss
+              ? [
+                  { transform: "scale(1) rotate(0deg)", filter: "brightness(1)" },
+                  { transform: `scale(1.12,0.9) rotate(${-d * 10}deg)`, filter: "brightness(1.4) drop-shadow(0 0 10px #FF2D46)", offset: 0.3 },
+                  { transform: `scale(0.92,1.12) rotate(${d * 14}deg) translateY(-6%)`, filter: "brightness(1.2)", offset: 0.48 },
+                  { transform: "scale(1) rotate(0deg)", filter: "brightness(1)" },
+                ]
+              : monster.archetype === "tank"
+                ? [
+                    { transform: "rotate(0deg) scale(1)" },
+                    { transform: `rotate(${-d * 14}deg) scale(0.95,1.05)`, offset: 0.3 },
+                    { transform: `rotate(${d * 16}deg) scale(1.1,0.92)`, offset: 0.48 },
+                    { transform: "rotate(0deg) scale(1)" },
+                  ]
+                : monster.archetype === "attacker"
+                  ? [
+                      { transform: "translateY(0) rotate(0deg) scale(1)" },
+                      { transform: `translateY(4%) rotate(${-d * 6}deg) scale(1.08,0.9)`, offset: 0.22 },
+                      { transform: `translateY(-26%) rotate(${d * 12}deg) scale(0.94,1.08)`, offset: 0.4 },
+                      { transform: `translateY(0) rotate(${d * 4}deg) scale(1.08,0.94)`, offset: 0.55 },
+                      { transform: "translateY(0) rotate(0deg) scale(1)" },
+                    ]
+                  : [
+                      { transform: "rotate(0deg) scale(1)" },
+                      { transform: `rotate(${-d * 18}deg) scale(1.04,0.98)`, offset: 0.28 },
+                      { transform: `rotate(${d * 20}deg) scale(1.06,0.96)`, offset: 0.46 },
+                      { transform: "rotate(0deg) scale(1)" },
+                    ];
+            amid?.animate(frames, { duration: LUNGE_MS / speedRef.current, easing: "ease-out" });
+            if (monster.archetype === "attacker" && !monster.isBoss) {
+              const kit = makeKit();
+              if (kit) chomp(kit, T.x, T.cy, T.size, IMPACT_MS - 120);
+            }
+          }
           if (outer && doLunge) {
+            void rigRefs.current.get(event.attackerId)?.play("attack", { speed: 1.2 });
             lungeAnims.current.get(event.attackerId)?.cancel();
             const oneOnOne = playerSlots === 1 && enemySlots === 1;
             const contact = (A.size + T.size) * (style === "spear" ? 0.42 : 0.3);
@@ -1114,6 +1311,9 @@ export default function BattleStage({
               playSfx("stun");
             }
 
+            // 骨架小雞：被打的動作（打死的由 death 事件播倒下）
+            if (event.targetHpAfter > 0) void rigRefs.current.get(event.targetId)?.play("hurt");
+
             // 目標閃白後仰
             const mid = midEls.current.get(event.targetId);
             mid?.animate(
@@ -1210,34 +1410,86 @@ export default function BattleStage({
         }
 
         case "skill": {
-          // 放技能：施放者發光、腳下一圈技能色、頭上冒技能名
+          // 放技能：約 1.3 秒的特寫演出（每招專屬動畫見 skillfx/skillFx.ts），
+          // 演完才會跳出傷害、回血數字
           const caster = unitById[event.unitId];
-          if (!caster) break;
-          const def = getSkill(event.skillId);
-          holdTimeline(caster.side === "player" ? 280 : 220);
           const a = anchorsRef.current[event.unitId];
-          if (a) {
-            spawnText(a.x, a.headY - 46, `${def.name}${event.boosted ? "★" : ""}`, "skill", { dx: 0, scale: 1.1 });
-            if (fx) {
-              fx.shockwave(a.x, a.feetY, def.color, a.size * 0.9);
-              fx.speedLines(a.x, a.cy, caster.side === "player" ? 1 : -1, a.size * 0.8, def.color);
-            }
-          }
-          midEls.current.get(event.unitId)?.animate(
-            [
-              { filter: "brightness(1)", transform: "scale(1)" },
-              { filter: `brightness(1.9) drop-shadow(0 0 12px ${def.color})`, transform: "scale(1.08)", offset: 0.35 },
-              { filter: "brightness(1)", transform: "scale(1)" },
-            ],
-            { duration: 520 / speedRef.current, easing: "ease-out" },
-          );
-          flash(def.color, 0.16, 260);
+          if (!caster || !a) break;
+          const def = getSkill(event.skillId);
+          const boss = isBossUnit(event.unitId);
+          const dir: 1 | -1 = caster.side === "player" ? 1 : -1;
+          holdTimeline(SKILL_HOLD_MS);
+          skillPauseUntilRef.current = performance.now() + SKILL_HOLD_MS / speedRef.current;
+          const strike = getSkillEffect(event.skillId, false).kind === "strike";
+          const listed = event.targetIds.map((id) => anchorsRef.current[id]).filter((x): x is StageAnchor => Boolean(x));
+          const targets = strike ? listed : [];
+          const allies = strike ? [a] : listed.length ? listed : [a];
+          const focusT = targets[0];
+          cinematic([event.unitId, ...event.targetIds], {
+            x: focusT ? a.x + (focusT.x - a.x) * 0.35 : a.x,
+            y: focusT ? a.cy + (focusT.cy - a.cy) * 0.35 : a.cy,
+          });
+
+          spawnText(a.x, a.headY - 46, `${def.name}${event.boosted ? "★" : ""}`, "skill", { dx: 0, scale: 1.15 });
           keyRef.current += 1;
           setSkillCut({ key: keyRef.current, name: def.name, color: def.color, side: caster.side, boosted: event.boosted });
           const cutKey = keyRef.current;
-          later(900, () => setSkillCut((c) => (c?.key === cutKey ? null : c)));
+          later(1100, () => setSkillCut((c) => (c?.key === cutKey ? null : c)));
           playSfx("skill");
           pushLog(`${unitName(event.unitId)} 使出「${def.name}」`, "crit");
+
+          const kit = makeKit();
+          const rig = rigRefs.current.get(event.unitId);
+          const outer = outerEls.current.get(event.unitId);
+          const mid = midEls.current.get(event.unitId);
+          if (kit) {
+            playSkillFx({
+              kit,
+              skillId: event.skillId,
+              boosted: event.boosted,
+              boss,
+              caster: a,
+              dir,
+              targets,
+              allies,
+              moveCaster: (frames, t0, dur) => {
+                lungeAnims.current.get(event.unitId)?.cancel();
+                const anim = outer?.animate(frames, { duration: dur / speedRef.current, delay: t0 / speedRef.current, easing: "linear" });
+                if (anim) lungeAnims.current.set(event.unitId, anim);
+              },
+              pose: (p) => {
+                if (rig) {
+                  void rig.play(p, { speed: 1 });
+                } else {
+                  // 原圖模式／怪物：整張圖發光、蹲下再彈起
+                  mid?.animate(
+                    [
+                      { transform: "scale(1)", filter: "brightness(1)" },
+                      { transform: "scale(1.12,0.88)", filter: `brightness(1.6) drop-shadow(0 0 12px ${def.color})`, offset: 0.3 },
+                      { transform: "scale(0.92,1.1) translateY(-10%)", filter: `brightness(2) drop-shadow(0 0 16px ${def.color})`, offset: 0.55 },
+                      { transform: "scale(1)", filter: "brightness(1)" },
+                    ],
+                    { duration: 1300 / speedRef.current, easing: "ease-out" },
+                  );
+                }
+              },
+              tiltMount: (deg, t0, dur) => {
+                if (!rig) return;
+                later(t0, () =>
+                  rig.animatePart(
+                    "mountHead",
+                    [
+                      { transform: "rotate(0deg)" },
+                      { transform: `rotate(${deg}deg)`, offset: 0.3 },
+                      { transform: `rotate(${deg}deg)`, offset: 0.7 },
+                      { transform: "rotate(0deg)" },
+                    ],
+                    dur / speedRef.current,
+                  ),
+                );
+              },
+            });
+          }
           break;
         }
 
@@ -1270,7 +1522,13 @@ export default function BattleStage({
         }
 
         case "dot": {
-          // 燃燒：每秒一小口
+          // 燃燒：每秒一小口，身上一直冒火直到燒完
+          burnUntilRef.current.set(event.unitId, performance.now() + 1300 / speedRef.current);
+          setState((prev) => (prev.burning[event.unitId] ? prev : { ...prev, burning: { ...prev.burning, [event.unitId]: true } }));
+          later(1350, () => {
+            if ((burnUntilRef.current.get(event.unitId) ?? 0) > performance.now() + 30) return;
+            setState((prev) => ({ ...prev, burning: { ...prev.burning, [event.unitId]: false } }));
+          });
           later(80, () => {
             setState((prev) => ({
               ...prev,
@@ -1306,15 +1564,25 @@ export default function BattleStage({
               ? [art.body, art.bodyLight, art.accent, "#FFFFFF"]
               : [getJobColor(visual?.jobId), "#FFFFFF", "#FFE07A"];
 
-            mid?.animate(
-              [
-                { transform: "scale(1) translateY(0)", filter: "brightness(1)", opacity: 1 },
-                { transform: "scale(1.14,0.86) translateY(0)", filter: "brightness(3.2) saturate(0)", opacity: 1, offset: 0.22 },
-                { transform: "scale(0.85,1.15) translateY(-8%)", filter: "brightness(4)", opacity: 0.9, offset: 0.45 },
-                { transform: "scale(0.2,1.6) translateY(-30%)", filter: "brightness(6)", opacity: 0 },
-              ],
-              { duration: (boss ? 900 : DEATH_MS) / speedRef.current, easing: "cubic-bezier(.4,0,.6,1)", fill: "forwards" },
-            );
+            const rig = rigRefs.current.get(event.unitId);
+            if (rig) {
+              // 骨架小雞：搖搖晃晃往後倒、頭上轉星星，躺一下再淡出
+              void rig.play("down");
+              mid?.animate([{ opacity: 1 }, { opacity: 1, offset: 0.75 }, { opacity: 0 }], {
+                duration: RIG_DOWN_MS / speedRef.current,
+                fill: "forwards",
+              });
+            } else {
+              mid?.animate(
+                [
+                  { transform: "scale(1) translateY(0)", filter: "brightness(1)", opacity: 1 },
+                  { transform: "scale(1.14,0.86) translateY(0)", filter: "brightness(3.2) saturate(0)", opacity: 1, offset: 0.22 },
+                  { transform: "scale(0.85,1.15) translateY(-8%)", filter: "brightness(4)", opacity: 0.9, offset: 0.45 },
+                  { transform: "scale(0.2,1.6) translateY(-30%)", filter: "brightness(6)", opacity: 0 },
+                ],
+                { duration: (boss ? 900 : DEATH_MS) / speedRef.current, easing: "cubic-bezier(.4,0,.6,1)", fill: "forwards" },
+              );
+            }
 
             if (a && fx) {
               if (boss) {
@@ -1342,7 +1610,7 @@ export default function BattleStage({
             pushLog(`${unitName(event.unitId)} 倒下了！`, "kill");
 
             // 倒下動畫播完就從場上移除（不能只是變透明，屍體會擋到後面的怪）
-            later((boss ? 900 : DEATH_MS) + 20, () => {
+            later((rig ? RIG_DOWN_MS : boss ? 900 : DEATH_MS) + 20, () => {
               setState((prev) => ({ ...prev, onField: { ...prev.onField, [event.unitId]: false } }));
             });
           });
@@ -1400,6 +1668,10 @@ export default function BattleStage({
             playSfx(won ? "win" : "lose");
             if (!won) setLost(true);
             if (won) flash("#FFFFFF", 0.35, 360);
+            // 贏的那一邊還站著的骨架小雞跳起來慶祝
+            for (const u of event.winner === "player" ? playerUnits : enemyUnits) {
+              void rigRefs.current.get(u.id)?.play("victory");
+            }
             pushLog(won ? "戰鬥勝利！" : "戰鬥失敗……", "end");
           });
           later(IMPACT_MS + DEATH_MS + 200 + FINISH_BANNER_MS, () => finish(event.winner, false));
@@ -1410,8 +1682,12 @@ export default function BattleStage({
     [
       art,
       bossIntro,
+      cinematic,
       enemySlots,
+      enemyUnits,
       finish,
+      makeKit,
+      playerUnits,
       flash,
       holdTimeline,
       hurtVignette,
@@ -1450,8 +1726,16 @@ export default function BattleStage({
     let lastTs: number | null = null;
     function frame(ts: number) {
       if (lastTs === null) lastTs = ts;
-      const dt = ((ts - lastTs) / 1000) * speedRef.current;
+      const realDt = ts - lastTs;
+      const dt = (realDt / 1000) * speedRef.current;
       lastTs = ts;
+      // 卡頓偵測：累計 40 幀以上低於 30fps 就切省電特效（粒子、殘影減半）
+      if (realDt > 34 && realDt < 500) slowFramesRef.current += 1;
+      else if (slowFramesRef.current > 0) slowFramesRef.current -= 0.25;
+      if (!liteRef.current && slowFramesRef.current > 40) {
+        liteRef.current = true;
+        setLite(true);
+      }
       if (performance.now() >= pauseUntilRef.current) {
         elapsedRef.current += Math.min(dt, 0.1);
       }
@@ -1460,7 +1744,11 @@ export default function BattleStage({
       const events = engine.events;
       // 一幀可能跨過好幾個事件（×2 或掉幀時），要一次補完。
       // 但遇到「會把游標停住」的事件就先停，下一幀再繼續。
-      while (eventIndexRef.current < events.length && events[eventIndexRef.current].t <= elapsedRef.current + 1e-9) {
+      while (
+        performance.now() >= skillPauseUntilRef.current &&
+        eventIndexRef.current < events.length &&
+        events[eventIndexRef.current].t <= elapsedRef.current + 1e-9
+      ) {
         applyRef.current(events[eventIndexRef.current]);
         eventIndexRef.current += 1;
         if (performance.now() < pauseUntilRef.current) break;
@@ -1660,7 +1948,7 @@ export default function BattleStage({
 
                       <div ref={midRefFor(unit.id)} className="absolute inset-0" style={{ transformOrigin: "50% 95%" }}>
                         <div
-                          className="unit-idle absolute inset-0 flex items-end justify-center"
+                          className={[visual?.monster || artMode !== "svg" ? "unit-idle" : "", "absolute inset-0 flex items-end justify-center"].join(" ")}
                           style={{ animationDelay: `${(unit.id.charCodeAt(unit.id.length - 1) % 7) * -0.23}s` }}
                         >
                           {visual?.monster ? (
@@ -1670,15 +1958,40 @@ export default function BattleStage({
                               isBoss={visual.monster.isBoss}
                               size={a.size}
                             />
+                          ) : artMode === "svg" ? (
+                            <RigSprite
+                              size={a.size}
+                              flip={!isPlayer}
+                              jobId={visual?.jobId ?? null}
+                              weapon={visual?.weapon ?? null}
+                              armor={visual?.armor ?? null}
+                              rigRef={rigRefFor(unit.id)}
+                              texture={!lite}
+                            />
                           ) : (
                             <PetSprite jobId={visual?.jobId} emoji={visual?.emoji} size={a.size * 0.94} flip={!isPlayer} />
                           )}
                         </div>
+                        {/* 燃燒中：身上一直冒火 */}
+                        {alive && state.burning[unit.id] ? <BurningFlames size={a.size} /> : null}
                       </div>
                     </div>
                   );
                 })}
+                {/* 技能特寫的暗幕（參與的單位會浮到上面） */}
+                <div ref={dimRef} className="pointer-events-none absolute inset-0" style={{ zIndex: 650, opacity: 0, background: "radial-gradient(ellipse at center, rgba(5,4,16,0.55) 0%, rgba(5,4,16,0.92) 100%)" }} />
               </div>
+
+              {/* 技能特效（SVG，座標＝像素） */}
+              <svg
+                ref={skillLayerRef}
+                className="pointer-events-none absolute inset-0"
+                width={size.w || 1}
+                height={size.h || 1}
+                viewBox={`0 0 ${size.w || 1} ${size.h || 1}`}
+                style={{ zIndex: 880, overflow: "visible" }}
+                aria-hidden="true"
+              />
 
               {/* 粒子 */}
               <canvas ref={canvasRef} className="pointer-events-none absolute inset-0" style={{ zIndex: 900 }} />
@@ -1750,6 +2063,15 @@ export default function BattleStage({
                 })}
               </div>
             </div>
+            <button
+              type="button"
+              onClick={() => setArtMode(artMode === "svg" ? "image" : "svg")}
+              data-sfx="toggle"
+              aria-label={artMode === "svg" ? "目前是會動的 SVG 小雞，點一下換成原圖" : "目前是原圖，點一下換成會動的 SVG 小雞"}
+              className="h-8 rounded-full bg-black/45 px-2.5 text-[10.5px] font-black text-white/85 ring-1 ring-white/20 transition-transform active:scale-95"
+            >
+              {artMode === "svg" ? "動畫版" : "原圖版"}
+            </button>
             <button
               type="button"
               onClick={() => setSpeed(speed === 1 ? 2 : 1)}

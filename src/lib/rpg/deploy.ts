@@ -151,6 +151,9 @@ export function toBattleVisual(pet: DeployablePet, id: string): BattleUnitVisual
     // getItemType 對武器一定回傳武器種類、防具一定回傳防具種類（見 equipment.ts）
     weaponType: pet.weapon ? (getItemType(pet.weapon) as WeaponType) : null,
     armorType: pet.armor ? (getItemType(pet.armor) as ArmorType) : null,
+    // 骨架小雞把實際的裝備畫在手上、身上（階級顏色、寶石）
+    weapon: pet.weapon,
+    armor: pet.armor,
   };
 }
 

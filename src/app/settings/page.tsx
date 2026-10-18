@@ -10,6 +10,7 @@
 "use client";
 
 import VolumeSetting from "@/components/sound/VolumeSetting";
+import BattleArtSetting from "@/components/sound/BattleArtSetting";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { doc, updateDoc } from "firebase/firestore";
@@ -319,6 +320,7 @@ function SettingsContent() {
 
         {/* ---- 音效音量 ---- */}
         <VolumeSetting />
+        <BattleArtSetting />
 
         {/* ---- 開啟推播通知 ---- */}
         <button
