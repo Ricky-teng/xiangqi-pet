@@ -171,7 +171,11 @@ function AdminTasksContent() {
       id: trimmedId,
       taskType,
       requiredCount:
-        taskType === "vs_computer" || taskType === "pasture_interact" || taskType === "puzzle_submit"
+        taskType === "vs_computer" ||
+        taskType === "pasture_interact" ||
+        taskType === "puzzle_submit" ||
+        taskType === "explore" ||
+        taskType === "team_battle"
           ? requiredCount
           : 1,
       title: trimmedTitle,
@@ -295,6 +299,8 @@ function AdminTasksContent() {
                 <option value="vs_computer">🤖 對弈電腦</option>
                 <option value="pasture_interact">🐣 牧場互動</option>
                 <option value="puzzle_submit">📮 投稿殘局</option>
+                <option value="explore">🗺️ 探險</option>
+                <option value="team_battle">⚔️ 戰隊挑戰</option>
               </select>
             </Field>
 
@@ -312,6 +318,30 @@ function AdminTasksContent() {
 
             {taskType === "puzzle_submit" ? (
               <Field label="需要投稿幾題殘局">
+                <input
+                  type="number"
+                  min={1}
+                  value={requiredCount}
+                  onChange={(e) => setRequiredCount(Number(e.target.value))}
+                  className={INPUT_CLASS_NAME}
+                />
+              </Field>
+            ) : null}
+
+            {taskType === "explore" ? (
+              <Field label="需要探險幾次（重打已通關的關卡不算）">
+                <input
+                  type="number"
+                  min={1}
+                  value={requiredCount}
+                  onChange={(e) => setRequiredCount(Number(e.target.value))}
+                  className={INPUT_CLASS_NAME}
+                />
+              </Field>
+            ) : null}
+
+            {taskType === "team_battle" ? (
+              <Field label="需要挑戰幾次戰隊">
                 <input
                   type="number"
                   min={1}

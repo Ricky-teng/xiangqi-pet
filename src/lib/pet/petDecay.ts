@@ -114,6 +114,20 @@ export function applyPetTimeDecay(pet: PetDoc, now: number): PetDecayResult {
     changed = true;
   }
 
+  // ---- 0.1 RPG 擴充的兩個新欄位，舊帳號沒有就補上 ----
+  // severeSickCount：這一世生過幾次大病，影響戰鬥數值。舊帳號一律
+  // 從 0 開始算（沒辦法回溯以前生過幾次病，也不該回頭懲罰他們）。
+  // lifeStartedAt：這一世從什麼時候開始養，收藏時用來算「養了幾天」。
+  // 舊帳號補 pet.createdAt（小雞文件建立時間），是目前最接近的值。
+  if (pet.severeSickCount == null) {
+    next.severeSickCount = 0;
+    changed = true;
+  }
+  if (pet.lifeStartedAt == null) {
+    next.lifeStartedAt = pet.createdAt;
+    changed = true;
+  }
+
   // ---- 1. 飽食度隨時間下降（死掉就不再繼續扣，沒有意義） ----
   const isFullnessProtected =
     !!pet.fullnessProtectionUntil && now < pet.fullnessProtectionUntil;
@@ -205,6 +219,11 @@ export function applyPetTimeDecay(pet: PetDoc, now: number): PetDecayResult {
       next.healthStatus = "severely_sick";
       next.severeSickStartTime = severeStartTime;
       next.sickStartTime = null;
+      // RPG 擴充：累計「這一世生過幾次大病」。每一次讓四項戰鬥數值
+      // 永久 −1%（上限 −15%），見 lib/rpg/stats.ts 的 getSevereSickPenalty。
+      // 只有「小病加重成大病」這個轉折會 +1，維持在大病狀態不會一直加。
+      // 死掉復活或收藏成新小雞時會歸零（見 useGameStore 的 resurrectPet）。
+      next.severeSickCount = (next.severeSickCount ?? 0) + 1;
       changed = true;
       if (!pet.notifiedFlags.severelySick) {
         notifications.push(

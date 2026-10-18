@@ -51,6 +51,7 @@
 
 "use client";
 
+import PuzzleRpgReward from "@/components/rpg/PuzzleRpgReward";
 import { use, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -672,6 +673,8 @@ function PuzzleSolverSection({
                   ? "但結算獎勵時發生錯誤，請稍後查看飼料數量是否有更新。"
                   : "正在結算獎勵…"}
             </p>
+
+            {rewardOutcome?.status === "granted" ? <PuzzleRpgReward {...rewardOutcome.rpg} /> : null}
 
             {/* 升段的慶祝改成全站共用的滿版慶祝頁（見 RankUpCelebration），
                 由 store 的 pendingRankUp 觸發，這裡不用再顯示小字提示。 */}

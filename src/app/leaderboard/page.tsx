@@ -3,7 +3,7 @@
  *
  * 學生排行榜
  * ------------------------------------------------------------
- * 提供五種排行依據（解題數／轉職次數／對電腦勝場／對戰勝率／消費排行），
+ * 提供五種排行依據（解題數／收藏小雞／對電腦勝場／對戰勝率／消費排行），
  * 讓不同強項的學生都有機會看到自己名次靠前，增加好勝心跟回頭率，不是只比
  * 單一指標。目前使用者的那一列會特別標示出來，即使沒有排進
  * 列表可視範圍，也會在底下另外顯示「你的名次」。
@@ -36,7 +36,7 @@ import { useAppBackground } from "@/lib/useAppBackground";
 import { getBattleWinRate } from "@/lib/stats";
 
 type FetchStatus = "loading" | "success" | "error";
-type SortKey = "totalSolved" | "totalJobChanges" | "vsComputerWins" | "battleWinRate" | "totalFoodSpent";
+type SortKey = "totalSolved" | "collectedPetCount" | "vsComputerWins" | "battleWinRate" | "totalFoodSpent";
 
 interface SortOption {
   key: SortKey;
@@ -47,7 +47,7 @@ interface SortOption {
 
 const SORT_OPTIONS: SortOption[] = [
   { key: "totalSolved",       label: "解題數",     icon: "🧩", unit: "題" },
-  { key: "totalJobChanges",   label: "轉職次數",   icon: "✨", unit: "次" },
+  { key: "collectedPetCount", label: "收藏小雞",   icon: "🐣", unit: "隻" },
   { key: "vsComputerWins",    label: "對電腦勝場", icon: "🤖", unit: "場" },
   { key: "battleWinRate",     label: "對戰勝率",   icon: "⚔️", unit: "%" },
   { key: "totalFoodSpent",    label: "消費排行",   icon: "🌾", unit: "飼料" },
@@ -62,7 +62,7 @@ const RANK_MEDAL: Record<number, string> = {
 function getSortValue(student: UserDoc, key: SortKey): number {
   switch (key) {
     case "totalSolved":       return student.stats.totalSolved;
-    case "totalJobChanges":   return student.totalJobChanges ?? 0;
+    case "collectedPetCount": return student.collectedPetCount ?? 0;
     case "vsComputerWins":    return student.stats.vsComputerWins ?? 0;
     case "battleWinRate":     return getBattleWinRate(student);
     case "totalFoodSpent":    return student.totalFoodSpent ?? 0;

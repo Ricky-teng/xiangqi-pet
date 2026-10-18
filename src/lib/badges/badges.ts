@@ -155,6 +155,153 @@ export const BADGES: BadgeDefinition[] = [
     rewardFood: 100,
     check: (user) => (user.totalFoodSpent ?? 0) >= 1000,
   },
+
+  // ============================================================
+  // RPG 擴充的 16 個勳章
+  // ------------------------------------------------------------
+  // rewardFood 一律先填 0，由老師在勳章後台自己調——數字要配合班級
+  // 的飼料流通量，寫死在程式裡反而不好改。
+  //
+  // 這幾個 check() 讀的是 UserDoc 上的 rpg* 計數器（見
+  // types/database.ts 的說明）：探險進度跟戰隊戰績存在別的文件，
+  // 勳章的純函式簽章讀不到，所以事件發生時順手在 user 上 +1。
+  // ============================================================
+
+  // ---- 探險 ----
+  {
+    id: "rpg_first_explore",
+    name: "初次探險",
+    description: "第一次通關任何一關",
+    icon: "🗺️",
+    rewardFood: 0,
+    check: (user) => (user.rpgBossDefeated ?? 0) >= 1,
+  },
+  {
+    id: "rpg_tower_1",
+    name: "塔主",
+    description: "通關第 1 座塔（10 關全破）",
+    icon: "🏯",
+    rewardFood: 0,
+    check: (user) => (user.rpgTowersCleared ?? 0) >= 1,
+  },
+  {
+    id: "rpg_tower_5",
+    name: "登高者",
+    description: "通關第 5 座塔",
+    icon: "🏰",
+    rewardFood: 0,
+    check: (user) => (user.rpgTowersCleared ?? 0) >= 5,
+  },
+  {
+    id: "rpg_tower_10",
+    name: "通天塔主",
+    description: "通關第 10 座塔（全部 100 關）",
+    icon: "👑",
+    rewardFood: 0,
+    check: (user) => (user.rpgTowersCleared ?? 0) >= 10,
+  },
+  {
+    id: "rpg_boss_50",
+    name: "屠龍者",
+    description: "累計擊敗 50 隻 Boss",
+    icon: "💀",
+    rewardFood: 0,
+    check: (user) => (user.rpgBossDefeated ?? 0) >= 50,
+  },
+
+  // ---- 戰隊 ----
+  {
+    id: "rpg_team_first_win",
+    name: "初戰告捷",
+    description: "戰隊第一次獲勝",
+    icon: "⚔️",
+    rewardFood: 0,
+    check: (user) => (user.rpgTeamWins ?? 0) >= 1,
+  },
+  {
+    id: "rpg_team_streak_5",
+    name: "五連勝",
+    description: "戰隊連續獲勝 5 場",
+    icon: "🔥",
+    rewardFood: 0,
+    check: (user) => (user.rpgTeamBestStreak ?? 0) >= 5,
+  },
+  {
+    id: "rpg_season_champion",
+    name: "賽季冠軍",
+    description: "賽季結算時排名第 1",
+    icon: "🥇",
+    rewardFood: 0,
+    check: (user) => (user.rpgSeasonBestRank ?? 999) <= 1,
+  },
+  {
+    id: "rpg_season_top3",
+    name: "賽季前三",
+    description: "賽季結算時排名前 3",
+    icon: "🏅",
+    rewardFood: 0,
+    check: (user) => (user.rpgSeasonBestRank ?? 999) <= 3,
+  },
+  {
+    id: "rpg_season_improve_10",
+    name: "飛躍進步",
+    description: "賽季名次比上一季進步 10 名以上",
+    icon: "📈",
+    rewardFood: 0,
+    check: (user) => (user.rpgSeasonBestImprove ?? 0) >= 10,
+  },
+
+  // ---- 收藏 ----
+  {
+    id: "rpg_collector_5",
+    name: "收藏家 I",
+    description: "收藏 5 隻小雞",
+    icon: "🐣",
+    rewardFood: 0,
+    check: (user) => (user.collectedPetCount ?? 0) >= 5,
+  },
+  {
+    id: "rpg_collector_10",
+    name: "收藏家 II",
+    description: "收藏 10 隻小雞",
+    icon: "🐔",
+    rewardFood: 0,
+    check: (user) => (user.collectedPetCount ?? 0) >= 10,
+  },
+  {
+    id: "rpg_collector_20",
+    name: "收藏家 III",
+    description: "收藏 20 隻小雞",
+    icon: "🦅",
+    rewardFood: 0,
+    check: (user) => (user.collectedPetCount ?? 0) >= 20,
+  },
+  {
+    id: "rpg_all_jobs",
+    name: "八職集齊",
+    description: "8 種職業各收藏過至少 1 隻",
+    icon: "🌈",
+    rewardFood: 0,
+    check: (user) => (user.collectedJobIds?.length ?? 0) >= 8,
+  },
+
+  // ---- 裝備 ----
+  {
+    id: "rpg_first_fuse",
+    name: "初次合成",
+    description: "第一次合成裝備",
+    icon: "⚒️",
+    rewardFood: 0,
+    check: (user) => (user.rpgFuseCount ?? 0) >= 1,
+  },
+  {
+    id: "rpg_legendary_smith",
+    name: "傳說工匠",
+    description: "合成出第 5 階裝備",
+    icon: "🗡️",
+    rewardFood: 0,
+    check: (user) => (user.rpgMaxTier ?? 0) >= 5,
+  },
 ];
 
 /**

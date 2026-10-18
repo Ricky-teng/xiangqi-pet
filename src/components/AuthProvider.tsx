@@ -42,6 +42,8 @@ import PetAlertBanner from "@/components/PetAlertBanner";
 import GlobalRainOverlay from "@/components/GlobalRainOverlay";
 import SubmissionResultModal from "@/components/SubmissionResultModal";
 import RankUpCelebration from "@/components/RankUpCelebration";
+import SeasonRewardModal from "@/components/SeasonRewardModal";
+import RpgAnnouncementModal from "@/components/RpgAnnouncementModal";
 
 export default function AuthProvider({ children }: { children: ReactNode }) {
   useAuthBootstrap();
@@ -58,6 +60,8 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
       <PetAlertBanner />
       <GlobalRainOverlay />
       <SubmissionResultModal />
+      <SeasonRewardModal />
+      <RpgAnnouncementModal />
       <RankUpCelebration />
     </>
   );

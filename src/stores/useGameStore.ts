@@ -1,13 +1,68 @@
 // src/stores/useGameStore.ts
 import { create } from "zustand";
-import { doc, setDoc, updateDoc } from "firebase/firestore";
+import { collection, doc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { UserDoc, PetDoc, DailyTaskDoc } from "@/types/database";
 import { resolveStageForXp } from "@/lib/pet/petGrowth";
 import { LOW_FULLNESS_THRESHOLD as SICKNESS_CURE_MIN_FULLNESS, getPoopCount, PET_CLEAN_BASE_COST } from "@/lib/pet/petDecay";
 import { CATALOG_ENTRIES, getNextCatalogEntry, getXpNeededForNextJob, isMaxJobLevel } from "@/lib/pet/catalog";
 import { getTodayDateString, getTodaysCompletedTaskIds } from "@/lib/tasks/dailyTasks";
-import { getPrestigeXpMultiplier, getPrestigeBonusPercent } from "@/lib/pet/prestige";
+import { createCollectedPet, fetchCollectedPets, getDaysRaised, validatePetName } from "@/lib/collectedPets";
+import type { CollectedPetDoc } from "@/types/rpg";
+import {
+  BAG_EXPAND_COST,
+  BAG_EXPAND_SLOTS,
+  EQUIPMENT_SHOP_PRICE,
+  EQUIPMENT_SHOP_TIER,
+  KIND_LABELS,
+  SHOP_TYPE_BY_KIND,
+  autoFuse,
+  canFitInBag,
+  checkFuse,
+  createEquipmentItem,
+  fuseEquipment,
+  getBagCapacity,
+  getEquipmentName,
+  hasFreeSocket,
+  socketGem,
+  unsocketGem,
+  type EquipmentItem,
+  type EquipmentKind,
+} from "@/lib/rpg/equipment";
+import { GEM_TABLE, addGemsToBag, getGemCount, type GemId } from "@/lib/rpg/gems";
+import { addCollectedPetRecord, updateCollectedPetEquipment, updateCollectedPetSkill } from "@/lib/collectedPets";
+import { SKILL_REROLL_COST, getSkill, isSkillId, rollSkill, type SkillId } from "@/lib/rpg/skills";
+import {
+  SEAL_PUZZLE_GEMS,
+  applyPuzzleSolve,
+  getSealPuzzleLevel,
+  getTodayPuzzleDaily,
+  pickSealPuzzleId,
+  type SealPuzzle,
+} from "@/lib/rpg/chessLink";
+import { rollGem } from "@/lib/rpg/gems";
+import {
+  applyStageResult,
+  fetchExploreProgress,
+  isTowerCleared,
+  normalizeDailyAttempts,
+  saveExploreProgress,
+} from "@/lib/exploreProgress";
+import { TOWER_COUNT } from "@/lib/rpg/monsters";
+import { getTaipeiDateString } from "@/lib/server/serverDate";
+import type { ExploreProgressDoc, TeamDoc } from "@/types/rpg";
+import {
+  createDefaultTeam,
+  fetchTeam,
+  normalizeTeam,
+  patchTeam,
+  saveTeam,
+  toMemberRefs,
+  validateTeamName,
+} from "@/lib/teams";
+import { TEAM_MAX_MEMBERS, getScoreChange } from "@/lib/rpg/teamScore";
+import { getTotalPower } from "@/lib/rpg/stats";
+import type { DeployablePet } from "@/lib/rpg/deploy";
 import { applyChessLevelPoints, getChessRankLabel, getVsComputerWinPoints } from "@/lib/chessRank";
 import {
   calculateWinRewardFood,
@@ -36,16 +91,46 @@ import {
 } from "@/lib/pasture";
 
 // 定義我們遊戲總機裡面有哪些資料與開關
+/**
+ * 一件裝備「在哪裡」：背包裡、穿在某隻收藏小雞身上、或穿在正在養的那隻身上。
+ * 鑲寶石、拆寶石都要先知道裝備在哪，才知道要寫回哪一份 Firestore 文件。
+ */
+export type EquipmentTarget =
+  | { where: "bag"; itemId: string }
+  | { where: "pet"; petId: string; slot: "weapon" | "armor" }
+  | { where: "living"; slot: "weapon" | "armor" };
+
 interface GameStoreState {
   // 核心狀態
   user: UserDoc | null;
   pet: PetDoc | null;
   isLoading: boolean;
 
+  /**
+   * 收藏小雞（RPG 擴充）。資料實際存在
+   * users/{uid}/collectedPets 子集合，這裡是快取。
+   *
+   * 刻意「不」在開 App 時就載入——大部分頁面根本用不到，而且數量
+   * 無上限。由需要的頁面（我的小雞、戰隊編隊、探險準備頁）自己
+   * 呼叫 loadCollectedPets()，載過一次之後就留在 store 裡共用。
+   */
+  collectedPets: CollectedPetDoc[];
+  /** 是否已經載入過收藏小雞（區分「還沒載」跟「載過但是空的」） */
+  collectedPetsLoaded: boolean;
+
   // 修改資料的動作（Actions）
   setUser: (user: UserDoc | null) => void;
   setPet: (pet: PetDoc | null) => void;
   setLoading: (isLoading: boolean) => void;
+
+  /**
+   * 載入收藏小雞。預設只在還沒載過時才真的去讀 Firestore；
+   * 傳 force = true 可以強制重讀（例如換完裝備要刷新）。
+   */
+  loadCollectedPets: (force?: boolean) => Promise<void>;
+
+  /** 就地更新一隻收藏小雞的快取（換裝備後不用整包重讀） */
+  updateCollectedPetInStore: (petId: string, patch: Partial<CollectedPetDoc>) => void;
 
   /**
    * 全域「小雞狀態警示」訊息（例如：太久沒醫治，病情加重了）。
@@ -117,11 +202,26 @@ interface GameStoreState {
   changeJob: () => { success: boolean; message: string };
 
   /**
-   * 轉生：小雞必須在 master（大師雞）階段，且已經轉職到最後一款
-   * （鳳凰雞）才能呼叫。免費。重置小雞回到蛋的狀態（含職業歸零），
-   * rebirthCount + 1。圖鑑蒐集紀錄（unlockedCatalogIds）不受影響。
+   * 收藏（RPG 擴充，取代原本的「轉生」）。
+   *
+   * 小雞只要長到 master（大師雞）階段就可以收藏，**不需要**先轉職到
+   * 鳳凰雞——這跟舊的轉生規則不一樣，是刻意放寬的：收藏後就定型，
+   * 學生自己決定要現在收（拿一隻弱一點的）還是繼續養、轉職到更好的
+   * 職業再收。
+   *
+   * 收藏會做三件事：
+   *   1. 依「收藏當下的職業 + 生過幾次大病 + 養了幾天」寫一筆
+   *      CollectedPetDoc 到 users/{uid}/collectedPets
+   *   2. 把目前這隻小雞重置回蛋（等於馬上拿到一顆新蛋）
+   *   3. UserDoc.collectedPetCount + 1（排行榜用）
+   *
+   * 是 async 的（要等 Firestore 寫完才知道成功與否），跟其他同步的
+   * store action 不一樣——因為收藏是不可逆的，不能樂觀更新完才發現
+   * 寫失敗、結果小雞歸零了但收藏沒存到。
+   *
+   * @param name 學生取的名字，收藏後不能改
    */
-  rebirthPet: () => { success: boolean; message: string };
+  collectPet: (name: string) => Promise<{ success: boolean; message: string }>;
 
   /**
    * 復活：小雞必須在 dead（死亡）狀態才能呼叫，跟「轉生」是兩個不同的
@@ -218,6 +318,10 @@ interface GameStoreState {
   /** 當天已投稿幾題殘局（給 /tasks 顯示進度、claimDailyTask 驗證用）。
    *  進度由伺服器端的 /api/puzzle/submit 寫入，這裡只負責讀。 */
   getDailyPuzzleSubmitCount: () => number;
+  /** 今天探險了幾次（每日任務 explore 用） */
+  getDailyExploreCount: () => number;
+  /** 今天戰隊挑戰了幾次（每日任務 team_battle 用） */
+  getDailyTeamBattleCount: () => number;
 
   /**
    * 記錄一次牧場互動（拍拍 / 送表情共用這個 function，用 kind 區分）。
@@ -280,6 +384,211 @@ interface GameStoreState {
 
   /** 取得目前雙倍飼料券是否有效 */
   isDoubleRewardActive: () => boolean;
+
+  // ============================================================
+  // RPG 擴充：裝備
+  // ------------------------------------------------------------
+  // 背包（UserDoc.equipmentBag）是一個陣列，穿在小雞身上的裝備
+  // 「不在」裡面——換裝備就是在「背包陣列」跟「收藏小雞的欄位」
+  // 之間搬移同一個物件。這樣同一件裝備永遠只存在一個地方，不會
+  // 出現「背包裡有一把、小雞身上也有一把」的複製 bug。
+  // ============================================================
+
+  /** 買一件第 1 階裝備（武器或防具），各 100 飼料 */
+  buyEquipment: (kind: EquipmentKind) => { success: boolean; message: string };
+  /**
+   * 花 SKILL_REROLL_COST 飼料替一隻收藏小雞重抽技能（不會抽到一樣的）。
+   * 樂觀更新：畫面先換，Firestore 背景寫。
+   */
+  rerollPetSkill: (petId: string) => { success: boolean; message: string; skillId?: SkillId };
+  /**
+   * 解對一題之後呼叫（usePuzzleSolver 結算完飼料之後）：更新今天的解題
+   * 計數、擲解題掉寶石、檢查是不是某座塔的封印殘局。樂觀更新＋背景寫回。
+   */
+  recordPuzzleSolveForRpg: (puzzleId: string) => {
+    gem: GemId | null;
+    sealTowers: number[];
+    sealGems: GemId[];
+    solvedToday: number;
+  };
+  /**
+   * 替 Boss 已經首通、但還沒指定封印殘局的塔挑題目（依難度從題庫挑）。
+   * 探險頁載入時呼叫；技能上線前就打過 Boss 的人也會在這裡補上。
+   */
+  ensureSealPuzzles: (clearedTowers: number[]) => Promise<void>;
+
+  /** 花 1000 飼料把背包 +20 格（無上限） */
+  expandBag: () => { success: boolean; message: string };
+
+  /**
+   * 手動合成：挑 3 件同階同類型，合成 1 件高一階的。
+   * 傳的是背包裡的 item id。
+   */
+  fuseEquipmentItems: (itemIds: string[]) => { success: boolean; message: string };
+
+  /**
+   * 一鍵合成：從第 1 階往上，只要湊滿 3 件就合，一路合到底。
+   * 呼叫端應該先用 lib/rpg/equipment.ts 的 autoFuse 算一次結果給
+   * 使用者看確認頁，按下確定才呼叫這個。
+   */
+  autoFuseBag: () => { success: boolean; message: string };
+
+  /**
+   * 換裝備。把 item 從背包穿到某隻收藏小雞身上；該格原本穿的那件
+   * 會回到背包。item 傳 null 代表卸下。
+   *
+   * 是 async 的，因為要等 Firestore 寫完——換裝備會同時動到
+   * users/{uid}（背包）跟 users/{uid}/collectedPets/{petId}（裝備欄），
+   * 兩邊不同步的話會讓裝備憑空消失或複製。
+   */
+  equipToPet: (
+    petId: string,
+    slot: "weapon" | "armor",
+    item: EquipmentItem | null,
+  ) => Promise<{ success: boolean; message: string }>;
+
+  /**
+   * 鑲寶石：從寶石袋拿一顆鑲進某件裝備的空孔。
+   * 那件裝備可以在背包裡、穿在收藏小雞身上、或穿在正在養的那隻身上。
+   */
+  socketGemInto: (target: EquipmentTarget, gem: GemId) => Promise<{ success: boolean; message: string }>;
+
+  /** 拆寶石：把某件裝備第 index 顆寶石拆下來放回寶石袋（免費） */
+  unsocketGemFrom: (target: EquipmentTarget, index: number) => Promise<{ success: boolean; message: string }>;
+
+  /**
+   * 幫「目前正在養的那一隻」換裝備。規則跟 equipToPet 完全一樣，
+   * 只是對象是 pets/{uid} 這份文件而不是收藏小雞的子集合。
+   *
+   * 正在養的那隻也能出戰（探險、戰隊），而出戰必須有武器，所以牠
+   * 也需要裝備欄。收藏時這兩件會一起被帶進收藏小雞裡。
+   */
+  equipToLivingPet: (
+    slot: "weapon" | "armor",
+    item: EquipmentItem | null,
+  ) => Promise<{ success: boolean; message: string }>;
+
+  // ============================================================
+  // RPG 擴充：探險
+  // ============================================================
+
+  /** 探險進度（10 塔 × 10 關打到哪、今天用掉幾次） */
+  exploreProgress: ExploreProgressDoc | null;
+  exploreProgressLoaded: boolean;
+
+  /** 載入探險進度。預設只在還沒載過時才讀，force = true 強制重讀 */
+  loadExploreProgress: (force?: boolean) => Promise<void>;
+
+  /**
+   * 打完一關之後結算：寫進度、發掉落物、累加那隻小雞的戰績。
+   *
+   * @param consumedAttempt 這一場有沒有扣每日次數（重打已通關的關卡不扣）
+   * @param drops           掉落的裝備（呼叫端先用 lib/rpg/loot.ts 的 rollStageLoot 算好），沒有就傳空陣列
+   * @param gemDrops        掉落的寶石
+   * @param usedReplayLoot  這一場有沒有用掉一次「重打掉落名額」
+   * @param petId           出戰的收藏小雞 id；派的是「正在養的那隻」就傳 null
+   */
+  finishExploreStage: (args: {
+    tower: number;
+    stage: number;
+    won: boolean;
+    consumedAttempt: boolean;
+    drops: EquipmentItem[];
+    gemDrops: GemId[];
+    usedReplayLoot: boolean;
+    petId: string | null;
+  }) => Promise<{ droppedCount: number; bagWasFull: boolean }>;
+
+  // ============================================================
+  // RPG 擴充：戰隊
+  // ============================================================
+
+  /** 自己的戰隊。null = 還沒建立（第一次進戰隊頁會強制取隊名） */
+  team: TeamDoc | null;
+  teamLoaded: boolean;
+
+  loadTeam: (force?: boolean) => Promise<void>;
+
+  /** 第一次取隊名並建立戰隊 */
+  createTeam: (teamName: string) => Promise<{ success: boolean; message: string }>;
+
+  /** 改隊名。一季只能改一次（第一次取名不算） */
+  renameTeam: (teamName: string) => Promise<{ success: boolean; message: string }>;
+
+  /** 存編隊結果（最多 3 隻，順序就是站位） */
+  saveTeamMembers: (pets: DeployablePet[]) => Promise<{ success: boolean; message: string }>;
+
+  /**
+   * 記錄一場戰隊對戰的結果。只動「挑戰方」——被挑戰方不加不減、
+   * 也不會收到通知（規格拍板）。
+   */
+  finishTeamBattle: (args: {
+    won: boolean;
+    myRank: number;
+    opponentRank: number;
+    memberPetIds: string[];
+  }) => Promise<{ delta: number; newScore: number }>;
+}
+
+// ============================================================
+// RPG 擴充：寶石鑲嵌的共用流程
+// ------------------------------------------------------------
+// 鑲／拆寶石會同時動到「寶石袋（users/{uid}）」跟「那件裝備所在的文件」
+// （背包也在 users/{uid}、收藏小雞在 collectedPets、正在養的在 pets）。
+//
+// 採「先更新畫面、背景寫入」：Firestore 在離線時寫入不會 reject、會
+// 一直 pending 等連線，如果 await 它，學生按下去會卡在處理中（這個坑
+// 在探險結算、戰隊挑戰、送新手雞都踩過）。SDK 會把兩筆寫入排進佇列，
+// 恢復連線後一起送出，不會只寫一半。
+// ============================================================
+
+type StoreGet = () => GameStoreState;
+type StoreSet = (partial: Partial<GameStoreState>) => void;
+
+function locateEquipment(state: GameStoreState, target: EquipmentTarget): EquipmentItem | null {
+  const { user, collectedPets, pet } = state;
+  if (!user) return null;
+  if (target.where === "bag") return (user.equipmentBag ?? []).find((i) => i.id === target.itemId) ?? null;
+  if (target.where === "pet") {
+    const p = collectedPets.find((c) => c.id === target.petId);
+    return (target.slot === "weapon" ? p?.weapon : p?.armor) ?? null;
+  }
+  return (target.slot === "weapon" ? pet?.weapon : pet?.armor) ?? null;
+}
+
+function commitEquipmentChange(
+  get: StoreGet,
+  set: StoreSet,
+  target: EquipmentTarget,
+  updatedItem: EquipmentItem,
+  gemBag: UserDoc["gemBag"],
+  logLabel: string,
+): void {
+  const { user, pet } = get();
+  if (!user) return;
+  const now = Date.now();
+  const writes: Promise<unknown>[] = [];
+
+  if (target.where === "bag") {
+    const bag = (user.equipmentBag ?? []).map((i) => (i.id === updatedItem.id ? updatedItem : i));
+    set({ user: { ...user, equipmentBag: bag, gemBag, updatedAt: now } });
+    writes.push(updateDoc(doc(db, "users", user.uid), { equipmentBag: bag, gemBag, updatedAt: now }));
+  } else if (target.where === "pet") {
+    const patch: Partial<CollectedPetDoc> = target.slot === "weapon" ? { weapon: updatedItem } : { armor: updatedItem };
+    set({ user: { ...user, gemBag, updatedAt: now } });
+    get().updateCollectedPetInStore(target.petId, patch);
+    writes.push(updateDoc(doc(db, "users", user.uid), { gemBag, updatedAt: now }));
+    writes.push(updateCollectedPetEquipment(user.uid, target.petId, patch));
+  } else {
+    if (!pet) return;
+    set({ user: { ...user, gemBag, updatedAt: now }, pet: { ...pet, [target.slot]: updatedItem, updatedAt: now } });
+    writes.push(updateDoc(doc(db, "users", user.uid), { gemBag, updatedAt: now }));
+    writes.push(updateDoc(doc(db, "pets", user.uid), { [target.slot]: updatedItem, updatedAt: now }));
+  }
+
+  Promise.all(writes).catch((error) => {
+    console.error(`[useGameStore] ${logLabel} 寫回 Firestore 失敗：`, error);
+  });
 }
 
 export const useGameStore = create<GameStoreState>((set, get) => ({
@@ -290,9 +599,47 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   // RequireAuth 元件依此判斷要顯示載入畫面還是導向 /login。
   isLoading: true,
 
+  collectedPets: [],
+  collectedPetsLoaded: false,
+  exploreProgress: null,
+  exploreProgressLoaded: false,
+  team: null,
+  teamLoaded: false,
+
   setUser: (user) => set({ user }),
   setPet: (pet) => set({ pet }),
   setLoading: (isLoading) => set({ isLoading }),
+
+  loadCollectedPets: async (force = false) => {
+    const { user, collectedPetsLoaded } = get();
+    if (!user) return;
+    if (collectedPetsLoaded && !force) return;
+
+    try {
+      const fetched = await fetchCollectedPets(user.uid);
+      // 技能上線前就收藏的小雞沒有技能：第一次載入時補一個（背景寫回）
+      const pets = fetched.map((p) => {
+        if (isSkillId(p.skillId)) return p;
+        const skillId = rollSkill(p.jobId);
+        updateCollectedPetSkill(user.uid, p.id, skillId).catch((error) => {
+          console.error("[useGameStore] 補發技能寫回失敗：", error);
+        });
+        return { ...p, skillId };
+      });
+      set({ collectedPets: pets, collectedPetsLoaded: true });
+    } catch (error) {
+      console.error("[useGameStore] loadCollectedPets 失敗：", error);
+      // 失敗時不要把 collectedPetsLoaded 設成 true，下次進頁面才會重試
+    }
+  },
+
+  updateCollectedPetInStore: (petId, patch) => {
+    set({
+      collectedPets: get().collectedPets.map((p) =>
+        p.id === petId ? { ...p, ...patch, updatedAt: Date.now() } : p
+      ),
+    });
+  },
 
   petAlertMessage: null,
   setPetAlertMessage: (petAlertMessage) => set({ petAlertMessage }),
@@ -320,8 +667,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     };
 
     // 飽食度 +5 (上限 100)，XP +10（再乘上轉生印記加成，見
-    // lib/pet/prestige.ts：每轉生一次餵食 XP +10%，上限 +100%）
-    const xpGain = Math.round(10 * getPrestigeXpMultiplier(user.rebirthCount ?? 0));
+    // RPG 擴充把「轉生印記」制度整個拿掉了（轉生改成收藏，收藏本身
+    // 就是獎勵），所以餵食固定 +10 XP，不再有任何倍率。
+    const xpGain = 10;
     const newXp = pet.xp + xpGain;
     // 修正：XP 累積到門檻時，要實際推進孵化／進化階段，
     // 不能只加 XP 數字卻讓 stage 原地不動（之前這裡有留 TODO 註解，
@@ -583,27 +931,58 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   },
 
   // 4.5 轉生：只有轉職到最後一款（鳳凰雞）之後才能呼叫，免費，
-  // 真正把小雞整隻重置回蛋（含職業歸零），rebirthCount + 1。
-  rebirthPet: () => {
+  // 收藏（取代原本的轉生）：把這一隻存成永久的收藏小雞，目前這隻
+  // 重置回蛋。詳細說明見上面介面的註解。
+  collectPet: async (name: string) => {
     const { user, pet } = get();
     if (!user || !pet) return { success: false, message: "找不到資料" };
     if (pet.stage !== "master") {
-      return { success: false, message: "小雞還沒長大成熟（大師雞），無法轉生。" };
+      return { success: false, message: "小雞還沒長大成熟（大師雞），還不能收藏。" };
     }
-    if (!isMaxJobLevel(pet.currentAppearanceId)) {
-      const finalEntry = CATALOG_ENTRIES[CATALOG_ENTRIES.length - 1];
-      return { success: false, message: `要先轉職到「${finalEntry.name}」才能轉生喔，繼續加油！` };
+    if (pet.healthStatus === "dead") {
+      return { success: false, message: "小雞已經死掉了，要先復活才能收藏。" };
     }
 
+    const nameError = validatePetName(name);
+    if (nameError) return { success: false, message: nameError };
+
     const now = Date.now();
-    const newRebirthCount = user.rebirthCount + 1;
+    const daysRaised = getDaysRaised(pet.lifeStartedAt ?? pet.createdAt, now);
+    const severeSickCount = pet.severeSickCount ?? 0;
+
+    // 先把收藏寫進 Firestore，成功了才敢把小雞歸零。順序反過來的話，
+    // 寫入失敗就等於憑空弄丟一隻養了很久的小雞。
+    let created;
+    try {
+      created = await createCollectedPet({
+        uid: user.uid,
+        name,
+        jobId: pet.currentAppearanceId,
+        severeSickCount,
+        daysRaised,
+        // 身上穿的裝備跟著收藏走——不然換回蛋之後那兩件會憑空消失
+        weapon: pet.weapon ?? null,
+        armor: pet.armor ?? null,
+      });
+    } catch (error) {
+      console.error("[useGameStore] collectPet 寫入收藏小雞失敗：", error);
+      return { success: false, message: "收藏失敗，請檢查網路後再試一次（小雞還在，沒有消失）。" };
+    }
+
+    // collectedJobIds 給「八職集齊」勳章用。未轉職收藏的 jobId 是
+    // null，不算任何一個職業。
+    const jobIds = new Set(user.collectedJobIds ?? []);
+    if (pet.currentAppearanceId) jobIds.add(pet.currentAppearanceId);
 
     const updatedUser: UserDoc = {
       ...user,
-      rebirthCount: newRebirthCount,
+      collectedPetCount: (user.collectedPetCount ?? 0) + 1,
+      collectedJobIds: [...jobIds],
       updatedAt: now,
     };
 
+    // 重置成一顆全新的蛋。severeSickCount 跟 lifeStartedAt 一起歸零／
+    // 重設，新的這一隻才是從頭算起的。
     const updatedPet: PetDoc = {
       ...pet,
       stage: "egg",
@@ -618,17 +997,31 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       lastCleanedTime: now,
       notifiedFlags: { lowFullness: false, slightlySick: false, severelySick: false, dead: false },
       currentAppearanceId: null,
+      severeSickCount: 0,
+      lifeStartedAt: now,
+      // 裝備已經跟著收藏走了，新的蛋是空手的
+      weapon: null,
+      armor: null,
       updatedAt: now,
     };
 
-    set({ user: updatedUser, pet: updatedPet });
+    set({
+      user: updatedUser,
+      pet: updatedPet,
+      collectedPets: [created, ...get().collectedPets],
+    });
 
-    Promise.all([
-      updateDoc(doc(db, "users", user.uid), {
-        rebirthCount: updatedUser.rebirthCount,
-        updatedAt: now,
-      }),
-      updateDoc(doc(db, "pets", user.uid), {
+    // collectedPetCount 在 createCollectedPet 裡面已經 increment 過了，
+    // 這裡只補寫 collectedJobIds
+    void updateDoc(doc(db, "users", user.uid), {
+      collectedJobIds: updatedUser.collectedJobIds,
+      updatedAt: now,
+    }).catch((error) => {
+      console.error("[useGameStore] collectPet 寫回 collectedJobIds 失敗：", error);
+    });
+
+    try {
+      await updateDoc(doc(db, "pets", user.uid), {
         stage: "egg",
         xp: 0,
         fullness: 100,
@@ -641,17 +1034,19 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         lastCleanedTime: now,
         notifiedFlags: updatedPet.notifiedFlags,
         currentAppearanceId: null,
+        severeSickCount: 0,
+        lifeStartedAt: now,
+        weapon: null,
+        armor: null,
         updatedAt: now,
-      }),
-    ]).catch((error) => {
-      console.error("[useGameStore] rebirthPet 同步寫回 Firestore 失敗：", error);
-    });
+      });
+    } catch (error) {
+      console.error("[useGameStore] collectPet 重置小雞寫回 Firestore 失敗：", error);
+    }
 
     return {
       success: true,
-      message: `轉生成功！獲得第 ${newRebirthCount} 枚轉生印記 ✨，餵食經驗值 +${getPrestigeBonusPercent(
-        newRebirthCount
-      )}%！小雞重新回到蛋，這一輪會長得比上一輪更快！`,
+      message: `「${created.name}」已經收藏起來了！牠會永遠留在你的小雞收藏裡，可以派去探險跟戰隊。一顆新的蛋已經送到你手上囉 🥚`,
     };
   },
 
@@ -699,6 +1094,9 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
       lastCleanedTime: now,
       notifiedFlags: { lowFullness: false, slightlySick: false, severelySick: false, dead: false },
       currentAppearanceId: null,
+      // RPG 擴充：復活等於重新養一隻，生大病次數歸零、養成天數重新算
+      severeSickCount: 0,
+      lifeStartedAt: now,
       updatedAt: now,
     };
 
@@ -723,6 +1121,8 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         lastCleanedTime: now,
         notifiedFlags: updatedPet.notifiedFlags,
         currentAppearanceId: null,
+        severeSickCount: 0,
+        lifeStartedAt: now,
         updatedAt: now,
       }),
     ]).catch((error) => {
@@ -764,6 +1164,28 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
         return {
           success: false,
           message: `今天還需要再投稿 ${(task.requiredCount ?? 1) - todayCount} 題才能領取！`,
+        };
+      }
+    }
+
+    // 驗證 explore / team_battle 任務是否達標
+    if (task.taskType === "explore") {
+      const prog = user.dailyExploreProgress;
+      const todayCount = prog?.date === today ? prog.count : 0;
+      if (todayCount < (task.requiredCount ?? 1)) {
+        return {
+          success: false,
+          message: `今天還需要再探險 ${(task.requiredCount ?? 1) - todayCount} 次才能領取！`,
+        };
+      }
+    }
+    if (task.taskType === "team_battle") {
+      const prog = user.dailyTeamBattleProgress;
+      const todayCount = prog?.date === today ? prog.count : 0;
+      if (todayCount < (task.requiredCount ?? 1)) {
+        return {
+          success: false,
+          message: `今天還需要再挑戰 ${(task.requiredCount ?? 1) - todayCount} 次才能領取！`,
         };
       }
     }
@@ -1154,6 +1576,24 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     const today = getTodayDateString();
     const prog = user.dailyPuzzleSubmitProgress;
     return prog?.date === today ? prog.count : 0;
+  },
+
+  // 探險跟戰隊的每日進度刻意用「台北時間」的日期，跟這兩個功能的
+  // 每日次數重置基準一致（見 exploreProgress.ts / teams.ts）。
+  // 上面那幾個舊任務用的是瀏覽器本地時區，沒有一起改是因為改了會
+  // 讓現有任務在跨日那一刻的行為變動，不值得在這次一起動。
+  getDailyExploreCount: () => {
+    const { user } = get();
+    if (!user) return 0;
+    const prog = user.dailyExploreProgress;
+    return prog?.date === getTaipeiDateString() ? prog.count : 0;
+  },
+
+  getDailyTeamBattleCount: () => {
+    const { user } = get();
+    if (!user) return 0;
+    const prog = user.dailyTeamBattleProgress;
+    return prog?.date === getTaipeiDateString() ? prog.count : 0;
   },
 
   recordPastureInteraction: (targetUid, kind) => {
@@ -1772,5 +2212,694 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     if (!user) return false;
     const expiry = user.doubleRewardExpiry ?? 0;
     return expiry > Date.now();
+  },
+
+  // ============================================================
+  // RPG 擴充：裝備
+  // ============================================================
+
+  recordPuzzleSolveForRpg: (puzzleId) => {
+    const { user } = get();
+    if (!user) return { gem: null, sealTowers: [], sealGems: [], solvedToday: 0 };
+    const today = getTaipeiDateString();
+    const { daily, gem } = applyPuzzleSolve(getTodayPuzzleDaily(user.puzzleRpgDaily, today));
+
+    // 封印殘局：這題是某座塔指定、還沒領過的，就送寶石
+    const seals: Record<string, SealPuzzle> = { ...(user.sealPuzzles ?? {}) };
+    const sealTowers: number[] = [];
+    const sealGems: GemId[] = [];
+    for (const [tower, seal] of Object.entries(seals)) {
+      if (seal.puzzleId !== puzzleId || seal.claimed) continue;
+      seals[tower] = { ...seal, claimed: true };
+      sealTowers.push(Number(tower));
+      for (let i = 0; i < SEAL_PUZZLE_GEMS; i++) sealGems.push(rollGem());
+    }
+
+    const gained = [...(gem ? [gem] : []), ...sealGems];
+    const gemBag = gained.length > 0 ? addGemsToBag(user.gemBag ?? {}, gained, 1) : user.gemBag ?? {};
+    const now = Date.now();
+    set({ user: { ...user, puzzleRpgDaily: daily, sealPuzzles: seals, gemBag, updatedAt: now } });
+
+    const payload: Record<string, unknown> = { puzzleRpgDaily: daily, updatedAt: now };
+    if (gained.length > 0) payload.gemBag = gemBag;
+    if (sealTowers.length > 0) payload.sealPuzzles = seals;
+    updateDoc(doc(db, "users", user.uid), payload).catch((error) => {
+      console.error("[useGameStore] recordPuzzleSolveForRpg 寫回失敗：", error);
+    });
+
+    return { gem, sealTowers, sealGems, solvedToday: daily.solved };
+  },
+
+  ensureSealPuzzles: async (clearedTowers) => {
+    const { user } = get();
+    if (!user) return;
+    const existing = user.sealPuzzles ?? {};
+    const missing = clearedTowers.filter((t) => !existing[String(t)]);
+    if (missing.length === 0) return;
+
+    const assigned: Record<string, SealPuzzle> = {};
+    for (const tower of missing) {
+      try {
+        const snapshot = await getDocs(
+          query(collection(db, "puzzles"), where("isPublished", "==", true), where("level", "==", getSealPuzzleLevel(tower))),
+        );
+        const id = pickSealPuzzleId(user.uid, tower, snapshot.docs.map((d) => d.id));
+        if (id) assigned[String(tower)] = { puzzleId: id, claimed: false };
+      } catch (error) {
+        console.error("[useGameStore] ensureSealPuzzles 讀題庫失敗：", error);
+      }
+    }
+    if (Object.keys(assigned).length === 0) return;
+
+    // 讀題庫的期間 user 可能變了，用最新的再合併
+    const latest = get().user;
+    if (!latest) return;
+    const merged = { ...(latest.sealPuzzles ?? {}), ...assigned };
+    set({ user: { ...latest, sealPuzzles: merged } });
+    updateDoc(doc(db, "users", latest.uid), { sealPuzzles: merged, updatedAt: Date.now() }).catch((error) => {
+      console.error("[useGameStore] ensureSealPuzzles 寫回失敗：", error);
+    });
+  },
+
+  rerollPetSkill: (petId) => {
+    const { user, collectedPets } = get();
+    if (!user) return { success: false, message: "找不到資料" };
+    const pet = collectedPets.find((p) => p.id === petId);
+    if (!pet) return { success: false, message: "找不到這隻小雞" };
+    if (user.foodCount < SKILL_REROLL_COST) {
+      return { success: false, message: `需要 ${SKILL_REROLL_COST} 飼料，飼料不夠喔！` };
+    }
+
+    const now = Date.now();
+    const current = isSkillId(pet.skillId) ? pet.skillId : null;
+    const skillId = rollSkill(pet.jobId, Math.random, current);
+    const updatedUser: UserDoc = {
+      ...user,
+      foodCount: user.foodCount - SKILL_REROLL_COST,
+      totalFoodSpent: (user.totalFoodSpent ?? 0) + SKILL_REROLL_COST,
+      updatedAt: now,
+    };
+    set({
+      user: updatedUser,
+      collectedPets: collectedPets.map((p) => (p.id === petId ? { ...p, skillId, updatedAt: now } : p)),
+    });
+
+    updateDoc(doc(db, "users", user.uid), {
+      foodCount: updatedUser.foodCount,
+      totalFoodSpent: updatedUser.totalFoodSpent,
+      updatedAt: now,
+    }).catch((error) => {
+      console.error("[useGameStore] rerollPetSkill 扣飼料寫回 Firestore 失敗：", error);
+    });
+    updateCollectedPetSkill(user.uid, petId, skillId).catch((error) => {
+      console.error("[useGameStore] rerollPetSkill 寫技能失敗：", error);
+    });
+
+    return { success: true, message: `學會了「${getSkill(skillId).name}」！`, skillId };
+  },
+
+  buyEquipment: (kind) => {
+    const { user } = get();
+    if (!user) return { success: false, message: "找不到資料" };
+
+    const bag = user.equipmentBag ?? [];
+    const expandCount = user.bagExpandCount ?? 0;
+
+    if (!canFitInBag(bag, expandCount, 1)) {
+      return {
+        success: false,
+        message: `背包滿了（${bag.length}/${getBagCapacity(expandCount)}）。先合成幾件，或花 ${BAG_EXPAND_COST} 飼料擴充背包。`,
+      };
+    }
+    if (user.foodCount < EQUIPMENT_SHOP_PRICE) {
+      return { success: false, message: `需要 ${EQUIPMENT_SHOP_PRICE} 飼料，飼料不夠喔！` };
+    }
+
+    const now = Date.now();
+    // 商店只賣劍跟盾，品質固定是標準值（只有探險掉的才有浮動）
+    const item = createEquipmentItem(SHOP_TYPE_BY_KIND[kind], EQUIPMENT_SHOP_TIER, now, 0);
+    const updatedUser: UserDoc = {
+      ...user,
+      foodCount: user.foodCount - EQUIPMENT_SHOP_PRICE,
+      totalFoodSpent: (user.totalFoodSpent ?? 0) + EQUIPMENT_SHOP_PRICE,
+      equipmentBag: [...bag, item],
+      bagExpandCount: expandCount,
+      updatedAt: now,
+    };
+    set({ user: updatedUser });
+
+    updateDoc(doc(db, "users", user.uid), {
+      foodCount: updatedUser.foodCount,
+      totalFoodSpent: updatedUser.totalFoodSpent,
+      equipmentBag: updatedUser.equipmentBag,
+      updatedAt: now,
+    }).catch((error) => {
+      console.error("[useGameStore] buyEquipment 寫回 Firestore 失敗：", error);
+    });
+
+    return { success: true, message: `買到一件${getEquipmentName(item)}！` };
+  },
+
+  expandBag: () => {
+    const { user } = get();
+    if (!user) return { success: false, message: "找不到資料" };
+    if (user.foodCount < BAG_EXPAND_COST) {
+      return { success: false, message: `擴充背包需要 ${BAG_EXPAND_COST} 飼料，飼料不夠喔！` };
+    }
+
+    const now = Date.now();
+    const newExpandCount = (user.bagExpandCount ?? 0) + 1;
+    const updatedUser: UserDoc = {
+      ...user,
+      foodCount: user.foodCount - BAG_EXPAND_COST,
+      totalFoodSpent: (user.totalFoodSpent ?? 0) + BAG_EXPAND_COST,
+      bagExpandCount: newExpandCount,
+      updatedAt: now,
+    };
+    set({ user: updatedUser });
+
+    updateDoc(doc(db, "users", user.uid), {
+      foodCount: updatedUser.foodCount,
+      totalFoodSpent: updatedUser.totalFoodSpent,
+      bagExpandCount: newExpandCount,
+      updatedAt: now,
+    }).catch((error) => {
+      console.error("[useGameStore] expandBag 寫回 Firestore 失敗：", error);
+    });
+
+    return {
+      success: true,
+      message: `背包 +${BAG_EXPAND_SLOTS} 格！現在可以放 ${getBagCapacity(newExpandCount)} 件。`,
+    };
+  },
+
+  fuseEquipmentItems: (itemIds) => {
+    const { user } = get();
+    if (!user) return { success: false, message: "找不到資料" };
+
+    const bag = user.equipmentBag ?? [];
+    const picked = itemIds
+      .map((id) => bag.find((item) => item.id === id))
+      .filter((item): item is EquipmentItem => Boolean(item));
+
+    if (picked.length !== itemIds.length) {
+      return { success: false, message: "有裝備已經不在背包裡了，請重新選擇。" };
+    }
+
+    const check = checkFuse(picked);
+    if (!check.ok) return { success: false, message: check.reason };
+
+    const now = Date.now();
+    const { item: newItem, returnedGems } = fuseEquipment(picked, now);
+    const pickedIds = new Set(itemIds);
+    const updatedBag = bag.filter((item) => !pickedIds.has(item.id)).concat(newItem);
+    // 素材上鑲的寶石全部退回寶石袋
+    const gemBag = addGemsToBag(user.gemBag, returnedGems);
+
+    const fuseCount = (user.rpgFuseCount ?? 0) + 1;
+    const maxTier = Math.max(user.rpgMaxTier ?? 0, newItem.tier);
+    const updatedUser: UserDoc = {
+      ...user,
+      equipmentBag: updatedBag,
+      gemBag,
+      rpgFuseCount: fuseCount,
+      rpgMaxTier: maxTier,
+      updatedAt: now,
+    };
+    set({ user: updatedUser });
+
+    updateDoc(doc(db, "users", user.uid), {
+      equipmentBag: updatedBag,
+      gemBag,
+      rpgFuseCount: fuseCount,
+      rpgMaxTier: maxTier,
+      updatedAt: now,
+    }).catch((error) => {
+      console.error("[useGameStore] fuseEquipmentItems 寫回 Firestore 失敗：", error);
+    });
+
+    const gemNote = returnedGems.length > 0 ? `素材上的 ${returnedGems.length} 顆寶石已退回寶石袋。` : "";
+    return { success: true, message: `合成出一件${getEquipmentName(newItem)}！${gemNote}` };
+  },
+
+  autoFuseBag: () => {
+    const { user } = get();
+    if (!user) return { success: false, message: "找不到資料" };
+
+    const bag = user.equipmentBag ?? [];
+    const now = Date.now();
+    const result = autoFuse(bag, now);
+
+    if (result.fuseCount === 0) {
+      return { success: false, message: "沒有任何同階、同種類湊滿 3 件的裝備可以合成。" };
+    }
+    const gemBag = addGemsToBag(user.gemBag, result.returnedGems);
+
+    const fuseCount = (user.rpgFuseCount ?? 0) + result.fuseCount;
+    const maxTier = result.produced.reduce(
+      (max, item) => Math.max(max, item.tier),
+      user.rpgMaxTier ?? 0,
+    );
+    const updatedUser: UserDoc = {
+      ...user,
+      equipmentBag: result.bag,
+      gemBag,
+      rpgFuseCount: fuseCount,
+      rpgMaxTier: maxTier,
+      updatedAt: now,
+    };
+    set({ user: updatedUser });
+
+    updateDoc(doc(db, "users", user.uid), {
+      equipmentBag: result.bag,
+      gemBag,
+      rpgFuseCount: fuseCount,
+      rpgMaxTier: maxTier,
+      updatedAt: now,
+    }).catch((error) => {
+      console.error("[useGameStore] autoFuseBag 寫回 Firestore 失敗：", error);
+    });
+
+    return {
+      success: true,
+      message: `合成了 ${result.fuseCount} 次，背包剩下 ${result.bag.length} 件。${
+        result.returnedGems.length > 0 ? `${result.returnedGems.length} 顆寶石已退回寶石袋。` : ""
+      }`,
+    };
+  },
+
+  equipToPet: async (petId, slot, item) => {
+    const { user, collectedPets } = get();
+    if (!user) return { success: false, message: "找不到資料" };
+
+    const pet = collectedPets.find((p) => p.id === petId);
+    if (!pet) return { success: false, message: "找不到這隻小雞，請重新整理頁面。" };
+
+    const bag = user.equipmentBag ?? [];
+    const expandCount = user.bagExpandCount ?? 0;
+    const previous = slot === "weapon" ? pet.weapon : pet.armor;
+
+    // 型別不符的裝備不能穿進去（例如把防具塞進武器格）
+    if (item && item.kind !== slot) {
+      return { success: false, message: `${KIND_LABELS[slot]}格只能放${KIND_LABELS[slot]}。` };
+    }
+
+    // 要穿的那件必須真的在背包裡，避免畫面資料過期造成裝備憑空複製
+    if (item && !bag.some((b) => b.id === item.id)) {
+      return { success: false, message: "這件裝備已經不在背包裡了，請重新整理頁面。" };
+    }
+
+    // 卸下時要確認背包塞得下。穿新的同時卸舊的是一進一出，不會變多，
+    // 所以只有「純卸下」跟「空手穿上（背包 -1）」兩種情況要檢查——
+    // 前者背包 +1，後者背包 -1，只有前者可能爆。
+    if (!item && previous && !canFitInBag(bag, expandCount, 1)) {
+      return {
+        success: false,
+        message: `背包滿了（${bag.length}/${getBagCapacity(expandCount)}），沒有空間放卸下來的裝備。`,
+      };
+    }
+
+    const now = Date.now();
+    let updatedBag = bag;
+    if (item) updatedBag = updatedBag.filter((b) => b.id !== item.id);
+    if (previous) updatedBag = [...updatedBag, previous];
+
+    const updatedUser: UserDoc = { ...user, equipmentBag: updatedBag, updatedAt: now };
+    const patch: Partial<CollectedPetDoc> = slot === "weapon" ? { weapon: item } : { armor: item };
+
+    // 先寫 Firestore 再更新畫面。換裝備牽涉兩份文件，如果先樂觀更新
+    // 畫面、寫入才失敗，學生會看到一件裝備在畫面上，重新整理後卻不見。
+    try {
+      await Promise.all([
+        updateDoc(doc(db, "users", user.uid), {
+          equipmentBag: updatedBag,
+          updatedAt: now,
+        }),
+        updateCollectedPetEquipment(user.uid, petId, patch),
+      ]);
+    } catch (error) {
+      console.error("[useGameStore] equipToPet 寫回 Firestore 失敗：", error);
+      return { success: false, message: "換裝備失敗，請檢查網路後再試一次。" };
+    }
+
+    set({ user: updatedUser });
+    get().updateCollectedPetInStore(petId, patch);
+
+    if (!item) {
+      return { success: true, message: `已卸下${previous ? getEquipmentName(previous) : "裝備"}。` };
+    }
+    return { success: true, message: `${pet.name} 裝上了${getEquipmentName(item)}！` };
+  },
+
+  socketGemInto: async (target, gem) => {
+    const state = get();
+    const { user } = state;
+    if (!user) return { success: false, message: "找不到資料" };
+    const item = locateEquipment(state, target);
+    if (!item) return { success: false, message: "找不到這件裝備，請重新整理頁面。" };
+    if (getGemCount(user.gemBag, gem) <= 0) {
+      return { success: false, message: `寶石袋裡沒有${GEM_TABLE[gem].name}了。` };
+    }
+    if (!hasFreeSocket(item)) {
+      return { success: false, message: "這件裝備的孔已經滿了，先拆下一顆再鑲。" };
+    }
+    const updated = socketGem(item, gem);
+    const gemBag = addGemsToBag(user.gemBag, [gem], -1);
+    commitEquipmentChange(get, set, target, updated, gemBag, "socketGemInto");
+    return { success: true, message: `鑲上了${GEM_TABLE[gem].name}（${GEM_TABLE[gem].label}）！` };
+  },
+
+  unsocketGemFrom: async (target, index) => {
+    const state = get();
+    const { user } = state;
+    if (!user) return { success: false, message: "找不到資料" };
+    const item = locateEquipment(state, target);
+    if (!item) return { success: false, message: "找不到這件裝備，請重新整理頁面。" };
+    const { item: updated, gem } = unsocketGem(item, index);
+    if (!gem) return { success: false, message: "這個孔是空的。" };
+    const gemBag = addGemsToBag(user.gemBag, [gem], 1);
+    commitEquipmentChange(get, set, target, updated, gemBag, "unsocketGemFrom");
+    return { success: true, message: `拆下了${GEM_TABLE[gem].name}，放回寶石袋。` };
+  },
+
+  equipToLivingPet: async (slot, item) => {
+    const { user, pet } = get();
+    if (!user || !pet) return { success: false, message: "找不到資料" };
+
+    const bag = user.equipmentBag ?? [];
+    const expandCount = user.bagExpandCount ?? 0;
+    const previous = (slot === "weapon" ? pet.weapon : pet.armor) ?? null;
+
+    if (item && item.kind !== slot) {
+      return { success: false, message: `${KIND_LABELS[slot]}格只能放${KIND_LABELS[slot]}。` };
+    }
+    if (item && !bag.some((b) => b.id === item.id)) {
+      return { success: false, message: "這件裝備已經不在背包裡了，請重新整理頁面。" };
+    }
+    if (!item && previous && !canFitInBag(bag, expandCount, 1)) {
+      return {
+        success: false,
+        message: `背包滿了（${bag.length}/${getBagCapacity(expandCount)}），沒有空間放卸下來的裝備。`,
+      };
+    }
+
+    const now = Date.now();
+    let updatedBag = bag;
+    if (item) updatedBag = updatedBag.filter((b) => b.id !== item.id);
+    if (previous) updatedBag = [...updatedBag, previous];
+
+    try {
+      await Promise.all([
+        updateDoc(doc(db, "users", user.uid), { equipmentBag: updatedBag, updatedAt: now }),
+        updateDoc(doc(db, "pets", user.uid), {
+          [slot]: item,
+          updatedAt: now,
+        }),
+      ]);
+    } catch (error) {
+      console.error("[useGameStore] equipToLivingPet 寫回 Firestore 失敗：", error);
+      return { success: false, message: "換裝備失敗，請檢查網路後再試一次。" };
+    }
+
+    set({
+      user: { ...user, equipmentBag: updatedBag, updatedAt: now },
+      pet: { ...pet, [slot]: item, updatedAt: now },
+    });
+
+    if (!item) {
+      return { success: true, message: `已卸下${previous ? getEquipmentName(previous) : "裝備"}。` };
+    }
+    return { success: true, message: `裝上了${getEquipmentName(item)}！` };
+  },
+
+  // ============================================================
+  // RPG 擴充：探險
+  // ============================================================
+
+  loadExploreProgress: async (force = false) => {
+    const { user, exploreProgressLoaded } = get();
+    if (!user) return;
+    if (exploreProgressLoaded && !force) return;
+
+    try {
+      const progress = await fetchExploreProgress(user.uid);
+      // 讀進來就先把「今天用掉幾次」正規化到台北時間的今天，
+      // 不然跨日之後畫面會顯示昨天的次數
+      set({ exploreProgress: normalizeDailyAttempts(progress), exploreProgressLoaded: true });
+    } catch (error) {
+      console.error("[useGameStore] loadExploreProgress 失敗：", error);
+    }
+  },
+
+  finishExploreStage: async ({ tower, stage, won, consumedAttempt, drops, gemDrops, usedReplayLoot, petId }) => {
+    const { user, exploreProgress } = get();
+    if (!user || !exploreProgress) return { droppedCount: 0, bagWasFull: false };
+
+    const now = Date.now();
+    const afterStage = applyStageResult(exploreProgress, tower, stage, won, consumedAttempt);
+    // 重打掉落名額：每天前 10 次贏的重打才有機會掉東西（見 lib/rpg/loot.ts）
+    const nextProgress = usedReplayLoot
+      ? { ...afterStage, dailyReplayLootUsed: (afterStage.dailyReplayLootUsed ?? 0) + 1 }
+      : afterStage;
+    // 寶石不佔背包格數，掉多少收多少
+    const gemBag = gemDrops.length > 0 ? addGemsToBag(user.gemBag, gemDrops) : user.gemBag ?? {};
+
+    // 呼叫端（探險頁）已經先依背包剩餘空間截過一次了，這裡再截一次
+    // 只是防呆：萬一兩次之間背包被別的分頁塞滿，也不會超過上限。
+    const bag = user.equipmentBag ?? [];
+    const expandCount = user.bagExpandCount ?? 0;
+    const free = getBagCapacity(expandCount) - bag.length;
+    const accepted = drops.slice(0, Math.max(0, free));
+    const bagWasFull = accepted.length < drops.length;
+
+    const updatedBag = accepted.length > 0 ? [...bag, ...accepted] : bag;
+
+    // 勳章計數器（見 types/database.ts 的說明）。全破幾座塔直接從
+    // 新的進度重算，不用自己記——100 關的判斷很便宜，而且永遠不會
+    // 跟真相來源對不上。
+    let towersCleared = 0;
+    for (let tower = 1; tower <= TOWER_COUNT; tower++) {
+      if (isTowerCleared(nextProgress, tower)) towersCleared += 1;
+    }
+
+    // 每日任務「探險 N 次」的進度。只算真的扣到次數的那幾場，
+    // 重打已通關的關卡不算，不然刷第 1 關就能完成任務。
+    const today = getTaipeiDateString();
+    const prevExplore = user.dailyExploreProgress;
+    const exploreCount =
+      (prevExplore?.date === today ? prevExplore.count : 0) + (consumedAttempt ? 1 : 0);
+    const dailyExploreProgress = { date: today, count: exploreCount };
+
+    const updatedUser: UserDoc = {
+      ...user,
+      equipmentBag: updatedBag,
+      gemBag,
+      rpgBossDefeated: nextProgress.bossDefeatedCount,
+      rpgTowersCleared: towersCleared,
+      dailyExploreProgress,
+      updatedAt: now,
+    };
+
+    set({ exploreProgress: nextProgress, user: updatedUser });
+
+    const writes: Promise<unknown>[] = [
+      saveExploreProgress(nextProgress),
+      updateDoc(doc(db, "users", user.uid), {
+        equipmentBag: updatedBag,
+        gemBag,
+        rpgBossDefeated: updatedUser.rpgBossDefeated,
+        rpgTowersCleared: updatedUser.rpgTowersCleared,
+        dailyExploreProgress,
+        updatedAt: now,
+      }),
+    ];
+    // 出戰的是收藏小雞才累加戰績；「正在養的那隻」沒有獨立的戰績欄位
+    if (petId) {
+      writes.push(
+        addCollectedPetRecord(user.uid, petId, {
+          exploreStagesPlayed: 1,
+          exploreStagesCleared: won ? 1 : 0,
+        }),
+      );
+      get().updateCollectedPetInStore(petId, {});
+    }
+
+    try {
+      await Promise.all(writes);
+    } catch (error) {
+      console.error("[useGameStore] finishExploreStage 寫回 Firestore 失敗：", error);
+    }
+
+    // 收藏小雞的戰績是用 increment 寫的，本地快取拿不到新值，
+    // 下次進「我的小雞」頁再重讀就好
+    if (petId) set({ collectedPetsLoaded: false });
+
+    return { droppedCount: accepted.length, bagWasFull };
+  },
+
+  // ============================================================
+  // RPG 擴充：戰隊
+  // ============================================================
+
+  loadTeam: async (force = false) => {
+    const { user, teamLoaded } = get();
+    if (!user) return;
+    if (teamLoaded && !force) return;
+
+    try {
+      const team = await fetchTeam(user.uid);
+      // 讀到就先正規化到「現在」：換季歸零、跨日重置挑戰次數。
+      // 如果真的有變動就順便寫回去，不然學生每次開 App 都會看到
+      // 正確的數字、但資料庫裡還是舊的。
+      if (team) {
+        const normalized = normalizeTeam(team);
+        set({ team: normalized, teamLoaded: true });
+        if (normalized !== team) {
+          void saveTeam(normalized);
+        }
+      } else {
+        set({ team: null, teamLoaded: true });
+      }
+    } catch (error) {
+      console.error("[useGameStore] loadTeam 失敗：", error);
+    }
+  },
+
+  createTeam: async (teamName) => {
+    const { user, team } = get();
+    if (!user) return { success: false, message: "找不到資料" };
+    if (team) return { success: false, message: "已經有戰隊了" };
+
+    const nameError = validateTeamName(teamName);
+    if (nameError) return { success: false, message: nameError };
+
+    const created = createDefaultTeam(user.uid, user.displayName, teamName);
+    try {
+      await saveTeam(created);
+    } catch (error) {
+      console.error("[useGameStore] createTeam 失敗：", error);
+      return { success: false, message: "建立戰隊失敗，請檢查網路後再試一次。" };
+    }
+    set({ team: created, teamLoaded: true });
+    return { success: true, message: `「${created.teamName}」成立了！` };
+  },
+
+  renameTeam: async (teamName) => {
+    const { user, team } = get();
+    if (!user || !team) return { success: false, message: "還沒有戰隊" };
+
+    const nameError = validateTeamName(teamName);
+    if (nameError) return { success: false, message: nameError };
+    if (team.renameCountThisSeason >= 1) {
+      return { success: false, message: "這一季已經改過一次隊名了，下一季才能再改。" };
+    }
+
+    const next: TeamDoc = {
+      ...team,
+      teamName: teamName.trim(),
+      renameCountThisSeason: team.renameCountThisSeason + 1,
+      updatedAt: Date.now(),
+    };
+    set({ team: next });
+    try {
+      await patchTeam(user.uid, {
+        teamName: next.teamName,
+        renameCountThisSeason: next.renameCountThisSeason,
+      });
+    } catch (error) {
+      console.error("[useGameStore] renameTeam 失敗：", error);
+    }
+    return { success: true, message: `隊名改成「${next.teamName}」了！這一季不能再改囉。` };
+  },
+
+  saveTeamMembers: async (pets) => {
+    const { user, team } = get();
+    if (!user || !team) return { success: false, message: "還沒有戰隊" };
+
+    const members = toMemberRefs(pets.slice(0, TEAM_MAX_MEMBERS));
+    // 冗餘存一份總戰力給排行榜顯示用。真正對戰時仍然即時重算，
+    // 不看這個欄位（對手的裝備隨時可能換）。
+    const totalPower = pets.reduce((sum, p) => sum + getTotalPower(p.stats), 0);
+
+    const next: TeamDoc = { ...team, members, totalPower, updatedAt: Date.now() };
+    set({ team: next });
+    try {
+      await patchTeam(user.uid, { members, totalPower });
+    } catch (error) {
+      console.error("[useGameStore] saveTeamMembers 失敗：", error);
+      return { success: false, message: "存檔失敗，請檢查網路後再試一次。" };
+    }
+    return { success: true, message: "編隊已儲存" };
+  },
+
+  finishTeamBattle: async ({ won, myRank, opponentRank, memberPetIds }) => {
+    const { user, team } = get();
+    if (!user || !team) return { delta: 0, newScore: 0 };
+
+    const change = getScoreChange(myRank, opponentRank, team.score, won);
+    const newStreak = won ? team.winStreak + 1 : 0;
+
+    const next: TeamDoc = {
+      ...team,
+      score: change.newScore,
+      wins: team.wins + (won ? 1 : 0),
+      losses: team.losses + (won ? 0 : 1),
+      winStreak: newStreak,
+      bestWinStreak: Math.max(team.bestWinStreak, newStreak),
+      dailyAttemptsUsed: team.dailyAttemptsUsed + 1,
+      updatedAt: Date.now(),
+    };
+    set({ team: next });
+
+    // 寫入丟背景跑，不要讓結算卡片等網路（跟探險同一個理由：
+    // Firebase SDK 離線時會把寫入排進佇列，promise 不會 resolve）
+    void patchTeam(user.uid, {
+      score: next.score,
+      wins: next.wins,
+      losses: next.losses,
+      winStreak: next.winStreak,
+      bestWinStreak: next.bestWinStreak,
+      dailyAttemptsUsed: next.dailyAttemptsUsed,
+      dailyAttemptsDate: next.dailyAttemptsDate,
+    }).catch((error) => {
+      console.error("[useGameStore] finishTeamBattle 寫回 Firestore 失敗：", error);
+    });
+
+    // 勳章計數器 ＋ 每日任務「戰隊挑戰 N 次」的進度
+    const today = getTaipeiDateString();
+    const prevTeamProgress = user.dailyTeamBattleProgress;
+    const teamCount = (prevTeamProgress?.date === today ? prevTeamProgress.count : 0) + 1;
+    const dailyTeamBattleProgress = { date: today, count: teamCount };
+    const rpgTeamWins = (user.rpgTeamWins ?? 0) + (won ? 1 : 0);
+    const rpgTeamBestStreak = Math.max(user.rpgTeamBestStreak ?? 0, newStreak);
+
+    set({
+      user: {
+        ...user,
+        rpgTeamWins,
+        rpgTeamBestStreak,
+        dailyTeamBattleProgress,
+        updatedAt: Date.now(),
+      },
+    });
+    void updateDoc(doc(db, "users", user.uid), {
+      rpgTeamWins,
+      rpgTeamBestStreak,
+      dailyTeamBattleProgress,
+      updatedAt: Date.now(),
+    }).catch((error) => {
+      console.error("[useGameStore] finishTeamBattle 寫回使用者計數失敗：", error);
+    });
+
+    // 上場的收藏小雞累加戰績（「正在養的那隻」沒有獨立戰績欄位）
+    for (const petId of memberPetIds) {
+      void addCollectedPetRecord(user.uid, petId, {
+        teamWins: won ? 1 : 0,
+        teamLosses: won ? 0 : 1,
+      }).catch(() => undefined);
+    }
+    if (memberPetIds.length > 0) set({ collectedPetsLoaded: false });
+
+    return { delta: change.delta, newScore: change.newScore };
   },
 }));

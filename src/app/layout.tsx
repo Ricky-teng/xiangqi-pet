@@ -1,7 +1,10 @@
+// src/app/layout.tsx
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
 import AuthProvider from "@/components/AuthProvider";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
+import SfxInstaller from "@/components/sound/SfxInstaller";
+import { displayFont } from "@/lib/fonts";
 
 export const metadata: Metadata = {
   title: "象棋小雞",
@@ -25,10 +28,11 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="zh-TW">
+    <html lang="zh-TW" className={displayFont.variable}>
       <body>
         <AuthProvider>{children}</AuthProvider>
         <ServiceWorkerRegister />
+        <SfxInstaller />
       </body>
     </html>
   )
