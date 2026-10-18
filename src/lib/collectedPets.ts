@@ -14,6 +14,7 @@
  * 而是在 UserDoc.collectedPetCount 冗餘存一份，收藏時一起 +1。
  */
 
+import { rollSkill, type SkillId } from "@/lib/rpg/skills";
 import {
   collection,
   deleteDoc,
@@ -93,6 +94,8 @@ export interface CreateCollectedPetInput {
   armor?: EquipmentItem | null;
   /** 戰績，預設全 0；上線送新手雞時也是全 0 */
   record?: CollectedPetRecord;
+  /** 技能；沒給就依職業隨機抽一個（見 lib/rpg/skills.ts） */
+  skillId?: SkillId | null;
   /**
    * 指定文件 id。只有「一次性補發」才會用到（例如 RPG 上線送的新手雞
    * 固定用 "starter"）——這樣萬一寫入逾時、學生下次開 App 再試一次，
@@ -125,6 +128,7 @@ export async function createCollectedPet(input: CreateCollectedPetInput): Promis
     weapon: input.weapon ?? null,
     armor: input.armor ?? null,
     record: input.record ?? createEmptyPetRecord(),
+    skillId: input.skillId ?? rollSkill(input.jobId),
     collectedAt: now,
     updatedAt: now,
   };
@@ -162,6 +166,11 @@ export async function updateCollectedPetEquipment(
   if (changes.weapon !== undefined) payload.weapon = changes.weapon;
   if (changes.armor !== undefined) payload.armor = changes.armor;
   await updateDoc(doc(db, "users", uid, "collectedPets", petId), payload);
+}
+
+/** 換技能（刷新、補發都用這支） */
+export async function updateCollectedPetSkill(uid: string, petId: string, skillId: SkillId): Promise<void> {
+  await updateDoc(doc(db, "users", uid, "collectedPets", petId), { skillId, updatedAt: Date.now() });
 }
 
 /** 累加戰績。探險打完一關、戰隊打完一場之後呼叫 */

@@ -6,13 +6,13 @@
  * ------------------------------------------------------------
  * 這個元件「只負責播放」，完全不做任何戰鬥判定。
  *
- * 勝負在按下開始的那一刻就已經由 lib/rpg/battle.ts 的 simulateBattle()
- * 算完了，傳進來的 result 是一整串帶時間戳的事件。播放器推進一個時間
- * 游標，把到期的事件演出來。所以：
- *   - ×1 / ×2 不會改變結果，只是游標跑得快一倍
+ * 戰鬥判定全部在 lib/rpg/battle.ts 的 BattleEngine。播放器推進一個時間
+ * 游標，每一幀叫引擎「結算到現在」，再把新冒出來的事件演出來。所以：
+ *   - ×1 / ×2 只是游標跑得快一倍
  *   - 演出時的「暫停」（開場橫幅、Boss 登場、爆擊頓幀）只是把游標停住，
- *     事件順序跟結果完全不變
- *   - 中途投降是直接以失敗結束（onSurrender），不改寫結果
+ *     引擎也跟著停，不會偷跑
+ *   - 手動放技能：按鈕 → engine.castSkill(單位, 目前游標)，在那一刻放出去
+ *   - 中途投降是直接以失敗結束，不再推進引擎
  *
  * 畫面分層（由下到上）：
  *   場景背景（BattleBackdrop，SVG）
@@ -39,7 +39,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getJobColor } from "@/lib/rpg/jobVisual";
 import type { MonsterArchetype } from "@/lib/rpg/monsters";
-import type { BattleEvent, BattleResult, BattleSide, BattleUnit } from "@/lib/rpg/battle";
+import type { BattleEngine, BattleEvent, BattleResult, BattleSide, BattleUnit, BuffStat } from "@/lib/rpg/battle";
+import { getSkill, getSkillEffect } from "@/lib/rpg/skills";
+import SkillIcon from "@/components/rpg/SkillIcon";
+import { playSfx } from "@/lib/sound/sfx";
 import MonsterArt from "@/components/battle/MonsterArt";
 import PetArt from "@/components/rpg/PetArt";
 import BattleBackdrop, { HORIZON_RATIO } from "@/components/battle/BattleBackdrop";
@@ -77,7 +80,8 @@ interface BattleStageProps {
   playerUnits: BattleUnit[];
   enemyUnits: BattleUnit[];
   visuals: BattleUnitVisual[];
-  result: BattleResult;
+  /** 戰鬥引擎（呼叫端 new 好傳進來；這個元件負責推進它） */
+  engine: BattleEngine;
   /** 第幾座塔：決定場景、怪物配色、環境粒子。不給 = 競技場（戰隊） */
   tower?: number | null;
   /** 舊參數，保留相容；場景顏色現在由 tower 決定 */
@@ -88,7 +92,7 @@ interface BattleStageProps {
   playerLabel?: string;
   enemyLabel?: string;
   /** 播完（或投降）之後呼叫，保證只呼叫一次。surrendered = 中途按投降 */
-  onFinish: (outcome: { winner: BattleSide; surrendered: boolean }) => void;
+  onFinish: (outcome: { winner: BattleSide; surrendered: boolean; result: BattleResult }) => void;
 }
 
 interface RuntimeState {
@@ -99,6 +103,10 @@ interface RuntimeState {
   shield: Record<string, number>;
   /** 護盾一開始有多少（畫泡泡的透明度用） */
   shieldMax: Record<string, number>;
+  /** 正在暈 */
+  stunned: Record<string, boolean>;
+  /** 身上的增益（頭上的小圖示） */
+  buffs: Record<string, BuffStat[]>;
 }
 
 interface LogLine {
@@ -179,6 +187,10 @@ const TEXT_STYLES = {
   dmg: { size: 24, fill: "linear-gradient(180deg,#FFFFFF 30%,#FFE6B8 100%)", stroke: 6, strokeColor: "#3A1500", dur: 900 },
   // 我方被打
   hurt: { size: 22, fill: "linear-gradient(180deg,#FFE3E3 20%,#FF4D5E 100%)", stroke: 6, strokeColor: "#3A0008", dur: 900 },
+  // 技能名（中文）
+  skill: { size: 17, fill: "linear-gradient(180deg,#FFFFFF 10%,#BFE9FF 55%,#7FB8FF 100%)", stroke: 5, strokeColor: "#0A1A40", dur: 1100 },
+  // 燃燒
+  burn: { size: 18, fill: "linear-gradient(180deg,#FFF3C8 15%,#FF8A3D 100%)", stroke: 5, strokeColor: "#3A0E00", dur: 800 },
   // 被閃掉
   miss: { size: 20, fill: "linear-gradient(180deg,#FFFFFF 20%,#B9C4D6 100%)", stroke: 5, strokeColor: "#1A2236", dur: 850 },
   // 打在護盾上（吸收量）
@@ -191,6 +203,13 @@ const TEXT_STYLES = {
   kill: { size: 26, fill: "linear-gradient(180deg,#FFFFFF 10%,#FFE07A 50%,#FF9A1F 100%)", stroke: 7, strokeColor: "#3A1500", dur: 1100 },
 } as const;
 type TextStyle = keyof typeof TEXT_STYLES;
+
+/** 增益圖示的顏色 */
+const BUFF_COLORS: Record<BuffStat, string> = { attack: "#FF7A5C", speed: "#7FE8A8", guard: "#C9D3E0" };
+const BUFF_GLYPH: Record<BuffStat, string> = { attack: "攻", speed: "速", guard: "防" };
+
+/** 我方 AUTO 開關記在這台裝置（預設開） */
+const AUTO_KEY = "xq-battle-auto";
 /** 攻擊動畫的樣式：小雞看武器種類，怪物一律爪擊 */
 type AttackStyle = WeaponType | "claw";
 
@@ -198,20 +217,6 @@ function rand(min: number, max: number): number {
   return min + Math.random() * (max - min);
 }
 
-/** 掃一遍事件，算出某一邊「同時在場」最多幾隻（決定用幾人陣型） */
-function maxConcurrent(events: BattleEvent[], ids: Set<string>): number {
-  let current = 0;
-  let max = 0;
-  for (const e of events) {
-    if (e.type === "spawn" && ids.has(e.unitId)) {
-      current += 1;
-      max = Math.max(max, current);
-    } else if (e.type === "death" && ids.has(e.unitId)) {
-      current -= 1;
-    }
-  }
-  return Math.max(1, Math.min(3, max));
-}
 
 // ============================================================
 // 子元件
@@ -373,7 +378,7 @@ export default function BattleStage({
   playerUnits,
   enemyUnits,
   visuals,
-  result,
+  engine,
   tower = null,
   title,
   playerLabel,
@@ -403,14 +408,9 @@ export default function BattleStage({
     return map;
   }, [playerUnits]);
 
-  const playerSlots = useMemo(
-    () => maxConcurrent(result.events, new Set(playerUnits.map((u) => u.id))),
-    [result.events, playerUnits],
-  );
-  const enemySlots = useMemo(
-    () => maxConcurrent(result.events, new Set(enemyUnits.map((u) => u.id))),
-    [result.events, enemyUnits],
-  );
+  // 幾人陣型：探險的怪一隻一隻上（敵方 1 格），戰隊全部同時在場
+  const playerSlots = Math.max(1, Math.min(3, playerUnits.length));
+  const enemySlots = engine.mode === "sequential" ? 1 : Math.max(1, Math.min(3, enemyUnits.length));
   /** 探險：怪物一隻一隻上；血條顯示「目前這隻」而不是全隊加總 */
   const isWaveMode = enemySlots === 1 && enemyUnits.length > 1;
 
@@ -426,7 +426,7 @@ export default function BattleStage({
       alive[u.id] = true;
       onField[u.id] = false;
     }
-    return { hp, alive, onField, shield: {}, shieldMax: {} };
+    return { hp, alive, onField, shield: {}, shieldMax: {}, stunned: {}, buffs: {} };
   }, [allUnits]);
 
   const [state, setState] = useState<RuntimeState>(initialState);
@@ -437,6 +437,13 @@ export default function BattleStage({
   const [banner, setBanner] = useState<Banner | null>(null);
   const [lost, setLost] = useState(false);
   const [size, setSize] = useState({ w: 0, h: 0 });
+  /** 放技能時畫面一側滑過的技能名橫條 */
+  const [skillCut, setSkillCut] = useState<{ key: number; name: string; color: string; side: BattleSide; boosted: boolean } | null>(null);
+  /** 我方是不是自動放技能 */
+  const [auto, setAuto] = useState(true);
+  /** 手動模式下每 0.1 秒更新一次「游標現在幾秒」，技能鈕的冷卻圈靠這個重畫 */
+  const [nowSim, setNowSim] = useState(0);
+  const hasPlayerSkill = playerUnits.some((u) => u.skill);
 
   // ---- refs ----
   const frameRef = useRef<HTMLDivElement | null>(null);
@@ -453,6 +460,11 @@ export default function BattleStage({
   const lungeAnims = useRef(new Map<string, Animation>());
   /** 每個攻擊者最近打的是誰（吸血的光點要從那隻飛回來） */
   const lastTargetRef = useRef(new Map<string, string>());
+  /** 暈、增益什麼時候結束（performance.now 的時間）：被刷新過就不要提早拿掉 */
+  const stunUntilRef = useRef(new Map<string, number>());
+  const buffUntilRef = useRef(new Map<string, number>());
+  /** 最近一下打在這隻身上的延遲（連打技能用） */
+  const hitDelayRef = useRef(new Map<string, number>());
   const entranceRef = useRef(new Map<string, Entrance>());
   const anchorsRef = useRef<Record<string, Anchor>>({});
   const textSlotRef = useRef<Record<string, number>>({});
@@ -557,6 +569,40 @@ export default function BattleStage({
     fxRef.current?.setTimeScale(speed);
   }, [speed]);
 
+  // AUTO：讀上次的選擇（掛上去之後才讀，避免 SSR 不一致）
+  useEffect(() => {
+    try {
+      if (window.localStorage.getItem(AUTO_KEY) === "0") setAuto(false);
+    } catch {
+      // 讀不到就維持預設的自動
+    }
+  }, []);
+
+  useEffect(() => {
+    engine.setPlayerAuto(auto);
+    if (auto) return;
+    const id = window.setInterval(() => setNowSim(elapsedRef.current), 100);
+    return () => window.clearInterval(id);
+  }, [auto, engine]);
+
+  function toggleAuto() {
+    const next = !auto;
+    setAuto(next);
+    setNowSim(elapsedRef.current);
+    try {
+      window.localStorage.setItem(AUTO_KEY, next ? "1" : "0");
+    } catch {
+      // 存不了就只有這場有效
+    }
+  }
+
+  function handleCast(unitId: string) {
+    if (finishedRef.current || stoppedRef.current) return;
+    const ok = engine.castSkill(unitId, elapsedRef.current);
+    if (!ok) playSfx("error");
+    setNowSim(elapsedRef.current);
+  }
+
   // ============================================================
   // 排程工具
   // ============================================================
@@ -654,9 +700,10 @@ export default function BattleStage({
       const scale = opts?.scale ?? 1;
       // 字會往上飄約 50px，起點太高會飄進上方血條底下被蓋住
       // （上方 HUD 約 80px 高）
-      y = Math.max(y, style === "label" ? 116 : 140);
+      const chinese = style === "label" || style === "skill";
+      y = Math.max(y, chinese ? 116 : 140);
       const el = document.createElement("span");
-      el.className = style === "label" ? "fx-text" : "fx-text font-display";
+      el.className = chinese ? "fx-text" : "fx-text font-display";
       el.textContent = text;
       el.dataset.text = text;
       el.style.cssText = [
@@ -835,9 +882,9 @@ export default function BattleStage({
     (winner: BattleSide, surrendered: boolean) => {
       if (finishedRef.current) return;
       finishedRef.current = true;
-      onFinish({ winner, surrendered });
+      onFinish({ winner, surrendered, result: engine.getResult() });
     },
-    [onFinish],
+    [engine, onFinish],
   );
 
   const bossIntro = useCallback(
@@ -847,6 +894,7 @@ export default function BattleStage({
         keyRef.current += 1;
         setBanner({ kind: "boss", key: keyRef.current, title: unitName(unitId) });
         flash("#FF2D46", 0.25, 500);
+        playSfx("bossRoar");
       });
       later(delayMs + 1500, () => {
         entranceRef.current.set(unitId, "drop");
@@ -889,15 +937,22 @@ export default function BattleStage({
           if (!A || !T || !attacker || !target) break;
           const dir = T.x >= A.x ? 1 : -1;
           const crit = event.crit;
+          // 技能造成的傷害：連打、全體的第 2 下之後不再衝刺，命中時間往後錯開
+          const skillDef = event.skillId ? getSkill(event.skillId) : null;
+          const skillEff = event.skillId ? getSkillEffect(event.skillId, false) : null;
+          const aoeSkill = skillEff?.kind === "strike" && Boolean(skillEff.aoe);
+          const hitDelay = (event.hitIndex ?? 0) * 110;
+          const doLunge = !skillDef || ((event.hitIndex ?? 0) === 0 && !aoeSkill);
           const attackerVisual = visualById[event.attackerId];
           // 攻擊方式：怪物用爪子，小雞看手上的武器種類
           const style: AttackStyle = attackerVisual?.monster ? "claw" : (attackerVisual?.weaponType ?? "sword");
           const jobColor = getJobColor(attackerVisual?.jobId);
           lastTargetRef.current.set(event.attackerId, event.targetId);
+          hitDelayRef.current.set(event.targetId, hitDelay);
 
           // ---- 攻擊者動作 ----
           const outer = outerEls.current.get(event.attackerId);
-          if (outer) {
+          if (outer && doLunge) {
             lungeAnims.current.get(event.attackerId)?.cancel();
             const oneOnOne = playerSlots === 1 && enemySlots === 1;
             const contact = (A.size + T.size) * (style === "spear" ? 0.42 : 0.3);
@@ -944,8 +999,11 @@ export default function BattleStage({
             lungeAnims.current.set(event.attackerId, anim);
           }
 
-          if (style === "staff") {
+          if (!doLunge) {
+            // 技能的後續段數／全體攻擊：不衝刺，直接在目標身上炸開
+          } else if (style === "staff") {
             // 法杖：從杖頭射出一顆法球
+            playSfx("magic");
             later(40, () => {
               const a = anchorsRef.current[event.attackerId];
               const t = anchorsRef.current[event.targetId] ?? T;
@@ -959,7 +1017,7 @@ export default function BattleStage({
           }
 
           // ---- 命中 ----
-          later(IMPACT_MS, () => {
+          later(IMPACT_MS + hitDelay, () => {
             const t = anchorsRef.current[event.targetId] ?? T;
             const targetIsPlayer = target.side === "player";
             const offset = nextTextOffset(event.targetId);
@@ -978,6 +1036,7 @@ export default function BattleStage({
               );
               if (fx) fx.speedLines(t.x, t.cy, dir, t.size * 0.7, "#DDE6F5");
               spawnText(t.x + offset, t.headY - 14, "閃避", "miss", { dx: offset * 0.5 });
+              playSfx("dodge");
               pushLog(`${unitName(event.targetId)} 閃過了 ${unitName(event.attackerId)} 的攻擊`, "normal");
               return;
             }
@@ -990,7 +1049,7 @@ export default function BattleStage({
 
             const colors = targetIsPlayer ? ["#FFFFFF", "#FF9A9A", "#FF4D5E"] : art.impactColors;
             const slashColor = mixSlashColor(targetIsPlayer ? "#FF6A7A" : attacker.side === "player" ? jobColor : "#FFFFFF");
-            const heavy = crit || style === "axe";
+            const heavy = crit || style === "axe" || Boolean(skillDef);
 
             if (fx) {
               fx.impact(t.x, t.cy, { colors, crit: heavy, dir, power: Math.min(1.5, t.size / 90) * (style === "dagger" ? 0.8 : 1) });
@@ -1030,8 +1089,29 @@ export default function BattleStage({
                   fx.slash(sx, t.cy, { angle: baseAngle + rand(-0.25, 0.25), color: slashColor, crit, size: t.size * 0.48 });
                 }
               }
+              // 技能：在目標身上再炸一圈技能色
+              if (skillDef) {
+                fx.shockwave(t.x, aoeSkill ? t.feetY : t.cy, skillDef.color, t.size * (aoeSkill ? 1 : 0.7));
+                fx.impact(t.x, t.cy, { colors: [skillDef.color, "#FFFFFF"], crit: true, dir, power: Math.min(1.5, t.size / 90) });
+              }
               // 打在護盾上
               if (event.absorbed > 0) fx.shieldHit(t.x, t.cy, t.size, event.targetShieldAfter <= 0);
+            }
+            if (event.absorbed > 0) playSfx(event.targetShieldAfter <= 0 ? "shieldBreak" : "shieldHit");
+            if (skillDef) playSfx(aoeSkill ? "explode" : "skillStrike");
+            else playSfx(crit ? "crit" : heavy ? "hitHeavy" : "hit");
+
+            // 暈：頭上轉星星
+            if (event.stun) {
+              const stunMs = event.stun * 1000;
+              setState((prev) => ({ ...prev, stunned: { ...prev.stunned, [event.targetId]: true } }));
+              stunUntilRef.current.set(event.targetId, performance.now() + stunMs / speedRef.current);
+              later(stunMs, () => {
+                if ((stunUntilRef.current.get(event.targetId) ?? 0) > performance.now() + 30) return;
+                setState((prev) => ({ ...prev, stunned: { ...prev.stunned, [event.targetId]: false } }));
+              });
+              spawnText(t.x, t.headY - 58, "暈眩", "label", { dx: 0 });
+              playSfx("stun");
             }
 
             // 目標閃白後仰
@@ -1055,7 +1135,7 @@ export default function BattleStage({
             }
             if (hpDamage > 0) {
               if (crit) spawnText(t.x + offset, t.headY - 14, `${hpDamage}`, "crit", { dx: offset * 0.5 });
-              else spawnText(t.x + offset, t.headY - 14, `${hpDamage}`, targetIsPlayer ? "hurt" : "dmg", { dx: offset * 0.5, scale: event.isHigh ? 1.15 : 1 });
+              else spawnText(t.x + offset, t.headY - 14, `${hpDamage}`, targetIsPlayer ? "hurt" : "dmg", { dx: offset * 0.5, scale: skillDef ? 1.3 : event.isHigh ? 1.15 : 1 });
             }
 
             if (crit) {
@@ -1072,7 +1152,7 @@ export default function BattleStage({
             // 我方被打掉一大截血：畫面四周紅一下
             if (targetIsPlayer && hpDamage >= target.maxHp * 0.12) hurtVignette();
 
-            const tags = [event.firstStrike ? "先攻" : "", crit ? "爆擊" : "", event.pierce ? "破甲" : ""].filter(Boolean).join("・");
+            const tags = [skillDef ? skillDef.name : "", event.firstStrike ? "先攻" : "", crit ? "爆擊" : "", event.pierce ? "破甲" : ""].filter(Boolean).join("・");
             pushLog(
               `${unitName(event.attackerId)} → ${unitName(event.targetId)}　${tags ? `${tags} ` : ""}${event.damage}${event.absorbed > 0 ? `（護盾吸收 ${event.absorbed}）` : ""}`,
               crit ? "crit" : "normal",
@@ -1094,6 +1174,7 @@ export default function BattleStage({
               shield: event.absorbed > 0 ? { ...prev.shield, [event.targetId]: event.targetShieldAfter } : prev.shield,
             }));
             if (fx && s) fx.spikes(s.x, s.cy, a.x >= s.x ? 1 : -1);
+            playSfx("thorns");
             if (fx && event.absorbed > 0) fx.shieldHit(a.x, a.cy, a.size, event.targetShieldAfter <= 0);
             const hpDamage = event.damage - event.absorbed;
             const offset = nextTextOffset(event.targetId);
@@ -1105,12 +1186,105 @@ export default function BattleStage({
         }
 
         case "shield": {
-          // 開場護盾（月光石）：一出場就套上泡泡
-          setState((prev) => ({
-            ...prev,
-            shield: { ...prev.shield, [event.unitId]: event.amount },
-            shieldMax: { ...prev.shieldMax, [event.unitId]: event.amount },
-          }));
+          // 月光石開場護盾、技能護盾：套上泡泡。amount 是套完之後的總量
+          const apply = () =>
+            setState((prev) => ({
+              ...prev,
+              shield: { ...prev.shield, [event.unitId]: event.amount },
+              shieldMax: {
+                ...prev.shieldMax,
+                [event.unitId]: Math.max(event.amount, (prev.shield[event.unitId] ?? 0) > 0 ? prev.shieldMax[event.unitId] ?? 0 : 0),
+              },
+            }));
+          if (event.t === 0) {
+            apply();
+            break;
+          }
+          later(200, () => {
+            apply();
+            const a = anchorsRef.current[event.unitId];
+            if (a && fx) fx.shieldHit(a.x, a.cy, a.size, false);
+            playSfx("shieldUp");
+          });
+          break;
+        }
+
+        case "skill": {
+          // 放技能：施放者發光、腳下一圈技能色、頭上冒技能名
+          const caster = unitById[event.unitId];
+          if (!caster) break;
+          const def = getSkill(event.skillId);
+          holdTimeline(caster.side === "player" ? 280 : 220);
+          const a = anchorsRef.current[event.unitId];
+          if (a) {
+            spawnText(a.x, a.headY - 46, `${def.name}${event.boosted ? "★" : ""}`, "skill", { dx: 0, scale: 1.1 });
+            if (fx) {
+              fx.shockwave(a.x, a.feetY, def.color, a.size * 0.9);
+              fx.speedLines(a.x, a.cy, caster.side === "player" ? 1 : -1, a.size * 0.8, def.color);
+            }
+          }
+          midEls.current.get(event.unitId)?.animate(
+            [
+              { filter: "brightness(1)", transform: "scale(1)" },
+              { filter: `brightness(1.9) drop-shadow(0 0 12px ${def.color})`, transform: "scale(1.08)", offset: 0.35 },
+              { filter: "brightness(1)", transform: "scale(1)" },
+            ],
+            { duration: 520 / speedRef.current, easing: "ease-out" },
+          );
+          flash(def.color, 0.16, 260);
+          keyRef.current += 1;
+          setSkillCut({ key: keyRef.current, name: def.name, color: def.color, side: caster.side, boosted: event.boosted });
+          const cutKey = keyRef.current;
+          later(900, () => setSkillCut((c) => (c?.key === cutKey ? null : c)));
+          playSfx("skill");
+          pushLog(`${unitName(event.unitId)} 使出「${def.name}」`, "crit");
+          break;
+        }
+
+        case "buff": {
+          // 增益：頭上掛小圖示，時間到自己拿掉
+          const untilMs = (event.until - event.t) * 1000;
+          const key = `${event.unitId}:${event.stat}`;
+          later(200, () => {
+            setState((prev) => {
+              const cur = prev.buffs[event.unitId] ?? [];
+              return cur.includes(event.stat) ? prev : { ...prev, buffs: { ...prev.buffs, [event.unitId]: [...cur, event.stat] } };
+            });
+            const a = anchorsRef.current[event.unitId];
+            if (a) {
+              const label = event.stat === "attack" ? "攻擊↑" : event.stat === "speed" ? "速度↑" : "減傷";
+              spawnText(a.x + 16, a.headY - 14, label, "label", { dx: 6 });
+              if (fx) fx.shockwave(a.x, a.cy, BUFF_COLORS[event.stat], a.size * 0.6);
+            }
+            playSfx("buff");
+          });
+          buffUntilRef.current.set(key, performance.now() + untilMs / speedRef.current);
+          later(untilMs + 200, () => {
+            if ((buffUntilRef.current.get(key) ?? 0) > performance.now() + 30) return;
+            setState((prev) => ({
+              ...prev,
+              buffs: { ...prev.buffs, [event.unitId]: (prev.buffs[event.unitId] ?? []).filter((b) => b !== event.stat) },
+            }));
+          });
+          break;
+        }
+
+        case "dot": {
+          // 燃燒：每秒一小口
+          later(80, () => {
+            setState((prev) => ({
+              ...prev,
+              hp: { ...prev.hp, [event.unitId]: event.hpAfter },
+              shield: event.absorbed > 0 ? { ...prev.shield, [event.unitId]: event.shieldAfter } : prev.shield,
+            }));
+            const a = anchorsRef.current[event.unitId];
+            if (a) {
+              if (fx) fx.impact(a.x, a.cy, { colors: ["#FFE07A", "#FF8A3D", "#FF4D2E"], crit: false, dir: 0, power: 0.6 });
+              const offset = nextTextOffset(event.unitId);
+              spawnText(a.x + offset, a.headY - 14, `${event.damage - event.absorbed}`, "burn", { dx: offset * 0.5 });
+            }
+            playSfx("burn");
+          });
           break;
         }
 
@@ -1119,9 +1293,12 @@ export default function BattleStage({
           if (!unit) break;
           const boss = isBossUnit(event.unitId);
           if (unit.side === "enemy") holdTimeline(boss ? 900 : KILL_BEAT_MS);
+          // 連打技能的最後一下才打死的話，倒下要等那一下演完
+          const extraDelay = hitDelayRef.current.get(event.unitId) ?? 0;
 
-          later(IMPACT_MS + 40, () => {
+          later(IMPACT_MS + 40 + extraDelay, () => {
             setState((prev) => ({ ...prev, alive: { ...prev.alive, [event.unitId]: false } }));
+            playSfx(boss ? "bossDeath" : "death");
             const a = anchorsRef.current[event.unitId];
             const mid = midEls.current.get(event.unitId);
             const visual = visualById[event.unitId];
@@ -1189,7 +1366,15 @@ export default function BattleStage({
             });
             later(IMPACT_MS + 330, () => {
               apply(0.6);
+              playSfx("drain");
               pushLog(`${unitName(event.unitId)} 吸血 ${event.amount}`, "heal");
+            });
+          } else if (event.reason === "skill") {
+            // 技能回血：放出去之後馬上補
+            later(220, () => {
+              apply(1);
+              playSfx("heal");
+              pushLog(`${unitName(event.unitId)} 回復 ${event.amount}`, "heal");
             });
           } else if (event.reason === "regen") {
             // 再生（法袍）：每次出手後小補一口
@@ -1200,6 +1385,7 @@ export default function BattleStage({
           } else {
             later(IMPACT_MS + DEATH_MS - 200, () => {
               apply(1);
+              playSfx("heal");
               pushLog(`${unitName(event.unitId)} 回復 ${event.amount}`, "heal");
             });
           }
@@ -1210,7 +1396,8 @@ export default function BattleStage({
           const won = event.winner === "player";
           later(IMPACT_MS + DEATH_MS + 200, () => {
             keyRef.current += 1;
-            setBanner({ kind: result.timedOut ? "timeup" : won ? "win" : "lose", key: keyRef.current });
+            setBanner({ kind: engine.timedOut ? "timeup" : won ? "win" : "lose", key: keyRef.current });
+            playSfx(won ? "win" : "lose");
             if (!won) setLost(true);
             if (won) flash("#FFFFFF", 0.35, 360);
             pushLog(won ? "戰鬥勝利！" : "戰鬥失敗……", "end");
@@ -1233,7 +1420,7 @@ export default function BattleStage({
       nextTextOffset,
       playerSlots,
       pushLog,
-      result.timedOut,
+      engine,
       shake,
       spawnText,
       unitById,
@@ -1256,6 +1443,7 @@ export default function BattleStage({
     // 開場橫幅：先把游標停住，t=0 的登場事件照樣在第一幀播
     keyRef.current += 1;
     setBanner({ kind: "start", key: keyRef.current, title });
+    playSfx("start");
     holdTimeline(START_BANNER_MS);
     later(START_BANNER_MS, () => setBanner((b) => (b?.kind === "start" ? null : b)));
 
@@ -1267,15 +1455,17 @@ export default function BattleStage({
       if (performance.now() >= pauseUntilRef.current) {
         elapsedRef.current += Math.min(dt, 0.1);
       }
-      const events = result.events;
+      // 叫引擎結算到目前的游標
+      engine.advanceTo(elapsedRef.current);
+      const events = engine.events;
       // 一幀可能跨過好幾個事件（×2 或掉幀時），要一次補完。
       // 但遇到「會把游標停住」的事件就先停，下一幀再繼續。
-      while (eventIndexRef.current < events.length && events[eventIndexRef.current].t <= elapsedRef.current) {
+      while (eventIndexRef.current < events.length && events[eventIndexRef.current].t <= elapsedRef.current + 1e-9) {
         applyRef.current(events[eventIndexRef.current]);
         eventIndexRef.current += 1;
         if (performance.now() < pauseUntilRef.current) break;
       }
-      if (eventIndexRef.current >= events.length) {
+      if (engine.finished && eventIndexRef.current >= events.length) {
         rafRef.current = null;
         return;
       }
@@ -1435,6 +1625,39 @@ export default function BattleStage({
                         </div>
                       ) : null}
 
+                      {/* 增益小圖示（血條上方） */}
+                      {alive && (state.buffs[unit.id]?.length ?? 0) > 0 ? (
+                        <div
+                          className="pointer-events-none absolute flex justify-center gap-[2px]"
+                          style={{ left: 0, width: a.size, top: a.headY - (a.feetY - a.size * 0.95) - 26, zIndex: 3 }}
+                        >
+                          {state.buffs[unit.id].map((b) => (
+                            <span
+                              key={b}
+                              className="buff-chip flex h-[13px] min-w-[13px] items-center justify-center rounded-[4px] px-[2px] text-[8.5px] font-black leading-none text-[#14132A]"
+                              style={{ background: BUFF_COLORS[b], boxShadow: `0 0 6px ${BUFF_COLORS[b]}` }}
+                            >
+                              {BUFF_GLYPH[b]}↑
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
+                      {/* 暈眩：頭上轉圈的星星 */}
+                      {alive && state.stunned[unit.id] ? (
+                        <div
+                          className="pointer-events-none absolute"
+                          style={{ left: a.size * 0.3, width: a.size * 0.4, height: a.size * 0.16, top: a.headY - (a.feetY - a.size * 0.95) - 4, zIndex: 4 }}
+                        >
+                          <div className="stun-orbit absolute inset-0">
+                            {[0, 120, 240].map((deg) => (
+                              <span key={deg} className="absolute text-[11px] leading-none text-[#FFE58A]" style={{ left: "50%", top: "50%", transform: `rotate(${deg}deg) translateX(${a.size * 0.18}px) rotate(-${deg}deg) translate(-50%,-50%)`, textShadow: "0 0 4px #FFB300" }}>
+                                ★
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+
                       <div ref={midRefFor(unit.id)} className="absolute inset-0" style={{ transformOrigin: "50% 95%" }}>
                         <div
                           className="unit-idle absolute inset-0 flex items-end justify-center"
@@ -1545,9 +1768,97 @@ export default function BattleStage({
             </button>
           </div>
 
+          {/* ---- 技能名橫條：從施放者那一側滑進來 ---- */}
+          {skillCut ? (
+            <div key={skillCut.key} className="pointer-events-none absolute inset-x-0 top-[38%] flex" style={{ zIndex: 975, justifyContent: skillCut.side === "player" ? "flex-start" : "flex-end" }}>
+              <div
+                className={skillCut.side === "player" ? "skill-cut-l" : "skill-cut-r"}
+                style={{
+                  background: `linear-gradient(${skillCut.side === "player" ? 90 : 270}deg, ${skillCut.color}EE 0%, ${skillCut.color}99 60%, transparent 100%)`,
+                  padding: "6px 34px 6px 16px",
+                }}
+              >
+                <span className="fx-text text-[20px] font-black" data-text={skillCut.name} style={{ ["--fx-fill" as string]: "linear-gradient(180deg,#FFFFFF 20%,#FFF2B0 100%)", ["--fx-stroke" as string]: "5px", ["--fx-stroke-color" as string]: "#1A1206" }}>
+                  {skillCut.name}
+                </span>
+                {skillCut.boosted ? <span className="ml-1.5 align-top text-[10px] font-black text-[#FFE58A]">職業搭配★</span> : null}
+              </div>
+            </div>
+          ) : null}
+
           {/* ---- 演出橫幅 ---- */}
           {banner ? <BattleBanner banner={banner} /> : null}
         </div>
+
+        {/* ---- 技能列：AUTO 開關；關掉之後出現每隻小雞的技能鈕 ---- */}
+        {hasPlayerSkill ? (
+          <div className="flex items-center gap-2 border-t border-white/10 bg-[#100E22] px-2.5 py-2">
+            <button
+              type="button"
+              onClick={toggleAuto}
+              data-sfx="toggle"
+              aria-pressed={auto}
+              className="flex h-10 shrink-0 flex-col items-center justify-center rounded-xl px-2.5 transition-transform active:scale-95"
+              style={{
+                background: auto ? "linear-gradient(180deg,#7FE8A8,#2E9E5E)" : "linear-gradient(180deg,#3A3760,#24223F)",
+                boxShadow: auto ? "0 0 10px rgba(127,232,168,0.5), inset 0 1px 0 rgba(255,255,255,0.4)" : "inset 0 1px 0 rgba(255,255,255,0.15)",
+              }}
+            >
+              <span className={["font-display text-[13px] leading-none", auto ? "text-[#0B2A18]" : "text-white/70"].join(" ")}>AUTO</span>
+              <span className={["mt-0.5 text-[9px] font-black leading-none", auto ? "text-[#0B2A18]/80" : "text-white/45"].join(" ")}>{auto ? "自動放技能" : "手動"}</span>
+            </button>
+            {auto ? (
+              <p className="min-w-0 flex-1 text-[11px] font-bold leading-snug text-white/50">技能冷卻好就自動放。關掉 AUTO 可以自己抓時機按。</p>
+            ) : (
+              <div className="flex min-w-0 flex-1 gap-2 overflow-x-auto">
+                {playerUnits.map((u) => {
+                  const st = engine.getSkillStatus(u.id);
+                  if (!st) return null;
+                  const remain = Math.max(0, st.readyAt - nowSim);
+                  const pct = st.cooldown > 0 ? Math.min(1, remain / st.cooldown) : 0;
+                  const ready = remain <= 0 && !st.stunned && !st.unavailable && !engine.finished;
+                  const def = getSkill(st.skillId);
+                  return (
+                    <button
+                      key={u.id}
+                      type="button"
+                      data-sfx="none"
+                      disabled={st.unavailable || engine.finished}
+                      onClick={() => handleCast(u.id)}
+                      className={["relative flex shrink-0 items-center gap-1.5 rounded-xl py-1 pl-1 pr-2.5 transition-transform active:scale-95 disabled:opacity-35", ready ? "skill-ready" : ""].join(" ")}
+                      style={{ background: ready ? `linear-gradient(180deg, ${def.color}55, rgba(255,255,255,0.06))` : "rgba(255,255,255,0.06)", boxShadow: ready ? `0 0 0 1.5px ${def.color}, 0 0 12px ${def.color}88` : "0 0 0 1px rgba(255,255,255,0.12)" }}
+                      aria-label={`${u.name}：${def.name}${ready ? "（可以放）" : `（冷卻 ${Math.ceil(remain)} 秒）`}`}
+                    >
+                      <span className="relative block">
+                        <SkillIcon skillId={st.skillId} size={36} boosted={st.boosted} dim={!ready} />
+                        {!ready && pct > 0 ? (
+                          <span
+                            className="absolute inset-0 rounded-full"
+                            style={{ background: `conic-gradient(rgba(0,0,0,0.6) ${Math.round(pct * 360)}deg, transparent 0deg)`, WebkitMaskImage: "radial-gradient(circle, #000 64%, transparent 66%)", maskImage: "radial-gradient(circle, #000 64%, transparent 66%)" }}
+                          />
+                        ) : null}
+                        {st.stunned && !st.unavailable ? (
+                          <span className="absolute inset-0 flex items-center justify-center text-[12px] font-black text-[#FFE58A]" style={{ textShadow: "0 1px 2px #000" }}>
+                            暈
+                          </span>
+                        ) : null}
+                        {!ready && !st.stunned && remain > 0 ? (
+                          <span className="font-display absolute inset-0 flex items-center justify-center text-[13px] text-white" style={{ textShadow: "0 1px 2px #000" }}>
+                            {Math.ceil(remain)}
+                          </span>
+                        ) : null}
+                      </span>
+                      <span className="text-left">
+                        <span className="block max-w-[64px] truncate text-[9.5px] font-bold leading-tight text-white/55">{u.name}</span>
+                        <span className="block text-[12px] font-black leading-tight text-white">{def.name}</span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        ) : null}
 
         {/* ---- 戰鬥日誌：平常只顯示最新兩行，點開看完整 ---- */}
         <button

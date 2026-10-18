@@ -3,6 +3,7 @@ import "./globals.css";
 import type { Metadata, Viewport } from "next";
 import AuthProvider from "@/components/AuthProvider";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
+import SfxInstaller from "@/components/sound/SfxInstaller";
 import { displayFont } from "@/lib/fonts";
 
 export const metadata: Metadata = {
@@ -31,6 +32,7 @@ export default function RootLayout({
       <body>
         <AuthProvider>{children}</AuthProvider>
         <ServiceWorkerRegister />
+        <SfxInstaller />
       </body>
     </html>
   )

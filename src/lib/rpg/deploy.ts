@@ -28,6 +28,7 @@ import {
   type WeaponType,
 } from "@/lib/rpg/equipment";
 import { getFinalStats, getTotalPower, type PetStats } from "@/lib/rpg/stats";
+import { getBossSkill, isSkillBoosted, isSkillId, type SkillId, type UnitSkill } from "@/lib/rpg/skills";
 
 /** 畫面上用來代表「一隻可以出戰的小雞」的統一形狀 */
 export interface DeployablePet {
@@ -47,6 +48,10 @@ export interface DeployablePet {
   totalPower: number;
   /** 不能出戰的原因，null = 可以出戰 */
   blockReason: string | null;
+  /** 技能（只有收藏小雞有；正在養的那隻是 null） */
+  skillId: SkillId | null;
+  /** 技能跟職業搭配上了（效果 +30%、冷卻 −20%） */
+  skillBoosted: boolean;
 }
 
 /** 正在養的那一隻在畫面上的固定 id */
@@ -60,6 +65,7 @@ function build(
   severeSickCount: number,
   weapon: EquipmentItem | null,
   armor: EquipmentItem | null,
+  skillId: SkillId | null = null,
 ): DeployablePet {
   const stats = getFinalStats(jobId, severeSickCount, weapon, armor);
   const traits = getCombatTraits(weapon, armor);
@@ -75,11 +81,14 @@ function build(
     traits,
     totalPower: getTotalPower(stats, traits),
     blockReason: getDeployBlockReason(weapon),
+    skillId,
+    skillBoosted: skillId ? isSkillBoosted(skillId, jobId) : false,
   };
 }
 
 export function fromCollectedPet(pet: CollectedPetDoc): DeployablePet {
-  return build(pet.id, false, pet.name, pet.jobId, pet.severeSickCount, pet.weapon, pet.armor);
+  const skillId = isSkillId(pet.skillId) ? pet.skillId : null;
+  return build(pet.id, false, pet.name, pet.jobId, pet.severeSickCount, pet.weapon, pet.armor, skillId);
 }
 
 /**
@@ -115,16 +124,22 @@ export function getDeployablePets(
 // 轉成戰鬥單位
 // ============================================================
 
-export function toBattleUnit(pet: DeployablePet, id: string, side: "player" | "enemy"): BattleUnit {
+/**
+ * @param statBonus 四項一起加幾成（探險的「當天解題加成」，戰隊不給）
+ */
+export function toBattleUnit(pet: DeployablePet, id: string, side: "player" | "enemy", statBonus = 0): BattleUnit {
+  const k = 1 + statBonus;
+  const skill: UnitSkill | null = pet.skillId ? { id: pet.skillId, boosted: pet.skillBoosted } : null;
   return {
     id,
     side,
     name: pet.name,
-    maxHp: pet.stats.hp,
-    attack: pet.stats.attack,
-    defense: pet.stats.defense,
-    speed: pet.stats.speed,
+    maxHp: Math.round(pet.stats.hp * k),
+    attack: Math.round(pet.stats.attack * k),
+    defense: Math.round(pet.stats.defense * k),
+    speed: Math.round(pet.stats.speed * k),
     traits: pet.traits,
+    skill,
   };
 }
 
@@ -140,7 +155,10 @@ export function toBattleVisual(pet: DeployablePet, id: string): BattleUnitVisual
 }
 
 export function monsterToBattleUnit(monster: MonsterTemplate, id: string): BattleUnit {
+  // 只有 Boss 有技能：每座塔一個，血量剩一半才第一次放
+  const isBoss = monster.id.endsWith("-boss");
   return {
+    skill: isBoss ? { id: getBossSkill(monster.tower), boosted: false, bossTrigger: true } : null,
     id,
     side: "enemy",
     name: monster.name,

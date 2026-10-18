@@ -31,6 +31,7 @@ import {
 import { GEM_IDS, GEM_TABLE, getGemCount, type GemId } from "@/lib/rpg/gems";
 import EquipmentIcon, { ItemFrame, getTierMaterial } from "@/components/rpg/EquipmentIcon";
 import GemIcon from "@/components/rpg/GemIcon";
+import { playSfx } from "@/lib/sound/sfx";
 
 export function ItemTile({
   item,
@@ -121,6 +122,7 @@ export function GemSocketSheet({ target, onClose }: { target: EquipmentTarget; o
     const r = await socketGemInto(target, gem);
     setMessage(r.message);
     if (r.success) setPopIndex(gems.length);
+    playSfx(r.success ? "gem" : "error");
   }
 
   async function handleUnsocket(index: number) {

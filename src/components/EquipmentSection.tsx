@@ -19,6 +19,7 @@
  * 聚攏 → 爆光 → 新裝備背面朝上落下再翻面、光柱衝上去。
  */
 
+import { playSfx } from "@/lib/sound/sfx";
 import { useEffect, useMemo, useState } from "react";
 import { useGameStore } from "@/stores/useGameStore";
 import RulesButton from "@/components/RulesButton";
@@ -644,9 +645,20 @@ function FuseCeremony({ show, onClose }: { show: FuseShow; onClose: () => void }
 
   useEffect(() => {
     const timers: number[] = [];
-    timers.push(window.setTimeout(() => setPhase("reveal"), 800));
+    playSfx("fuseCharge");
+    timers.push(
+      window.setTimeout(() => {
+        setPhase("reveal");
+        playSfx("fuseDone");
+      }, 800),
+    );
     show.produced.forEach((_, i) => {
-      timers.push(window.setTimeout(() => setFlipped(i + 1), 1250 + i * 380));
+      timers.push(
+        window.setTimeout(() => {
+          setFlipped(i + 1);
+          playSfx("cardFlip");
+        }, 1250 + i * 380),
+      );
     });
     return () => timers.forEach((id) => window.clearTimeout(id));
   }, [show]);

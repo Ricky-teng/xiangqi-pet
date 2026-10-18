@@ -19,6 +19,8 @@
  * 「我在哪一棟」一眼就看得到。
  */
 
+import { getExtraExploreAttempts, getTodayPuzzleDaily } from "@/lib/rpg/chessLink";
+import { getTaipeiDateString } from "@/lib/server/serverDate";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import RequireAuth from "@/components/RequireAuth";
@@ -55,9 +57,12 @@ function ExploreContent() {
 
   if (!user) return null;
 
+  // 解題換到的額外次數也算進去（見 lib/rpg/chessLink.ts）
+  const maxAttempts =
+    DAILY_EXPLORE_ATTEMPTS + getExtraExploreAttempts(getTodayPuzzleDaily(user.puzzleRpgDaily, getTaipeiDateString()).solved);
   const attemptsLeft = progress
-    ? Math.max(0, DAILY_EXPLORE_ATTEMPTS - progress.dailyAttemptsUsed)
-    : DAILY_EXPLORE_ATTEMPTS;
+    ? Math.max(0, maxAttempts - progress.dailyAttemptsUsed)
+    : maxAttempts;
   const totalStages = TOWER_COUNT * STAGES_PER_TOWER;
   const totalCleared = progress?.clearedStageKeys.length ?? 0;
 
@@ -70,7 +75,7 @@ function ExploreContent() {
           right={
             <>
               <RulesButton topic="explore" variant="dark" />
-              <AttemptsBadge left={attemptsLeft} max={DAILY_EXPLORE_ATTEMPTS} />
+              <AttemptsBadge left={attemptsLeft} max={maxAttempts} />
             </>
           }
         />
@@ -100,7 +105,7 @@ function ExploreContent() {
             />
           </div>
           <p className="mt-1.5 text-[10.5px] text-white/45">
-            每天 {DAILY_EXPLORE_ATTEMPTS} 次，台北時間 00:00 重置。打過的關卡重打不扣次數。
+            每天 {DAILY_EXPLORE_ATTEMPTS} 次，台北時間 00:00 重置；當天每解對 3 題殘局多 1 次（最多多 5 次）。打過的關卡重打不扣次數。
           </p>
         </div>
 

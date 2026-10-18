@@ -10,8 +10,8 @@
  *   prep   → 準備頁：選小雞、看裝備、看這一關有幾隻怪
  *   battle → 戰鬥（BattleStage）→ 結算卡片（BattleResultCard）
  *
- * 重要：勝負在按下「開始」的那一刻就由 simulateBattle 算完了，
- * 之後的畫面只是播放。所以中途投降不會改寫結果，是直接以失敗結束。
+ * 戰鬥判定在 BattleEngine（lib/rpg/battle.ts）；BattleStage 一邊播一邊
+ * 推進它，手動放技能也是透過它。中途投降是直接以失敗結束。
  *
  * 次數規則：輸贏都扣一次，但「重打已經通關過的關卡」不扣。
  * 掉寶只有首通會掉。
@@ -22,8 +22,11 @@ import { useParams, useRouter } from "next/navigation";
 import RequireAuth from "@/components/RequireAuth";
 import { useGameStore } from "@/stores/useGameStore";
 import BattleStage, { type BattleUnitVisual } from "@/components/battle/BattleStage";
+import { getExtraExploreAttempts, getPuzzleStatBonus, getTodayPuzzleDaily } from "@/lib/rpg/chessLink";
+import { getTaipeiDateString } from "@/lib/server/serverDate";
+import SkillIcon from "@/components/rpg/SkillIcon";
 import BattleResultCard from "@/components/battle/BattleResultCard";
-import { simulateBattle, type BattleResult, type BattleUnit } from "@/lib/rpg/battle";
+import { BattleEngine, type BattleResult, type BattleUnit } from "@/lib/rpg/battle";
 import { getBagCapacity, getItemType, type EquipmentItem } from "@/lib/rpg/equipment";
 import { getReplayLootLeft, rollStageLoot, REPLAY_LOOT_DAILY_LIMIT } from "@/lib/rpg/loot";
 import type { GemId } from "@/lib/rpg/gems";
@@ -66,7 +69,7 @@ interface BattleSetup {
   playerUnits: BattleUnit[];
   enemyUnits: BattleUnit[];
   visuals: BattleUnitVisual[];
-  result: BattleResult;
+  engine: BattleEngine;
   /** 這一場有沒有扣掉每日次數 */
   consumedAttempt: boolean;
   /** 是不是首通（決定掉不掉寶） */
@@ -75,6 +78,8 @@ interface BattleSetup {
 
 interface FinishedState {
   won: boolean;
+  /** 打完（或投降當下）的戰鬥結果：花多久、打倒幾隻 */
+  result: BattleResult;
   surrendered: boolean;
   drops: EquipmentItem[];
   gemDrops: GemId[];
@@ -149,9 +154,27 @@ function TowerContent() {
   }, [deployables, selectedPetId]);
 
   const selectedPet = deployables.find((p) => p.id === selectedPetId) ?? null;
+  // 解題 × RPG：今天解對的題數 → 探險加成、額外次數（見 lib/rpg/chessLink.ts）
+  const puzzleSolvedToday = getTodayPuzzleDaily(user?.puzzleRpgDaily, getTaipeiDateString()).solved;
+  const puzzleBonus = getPuzzleStatBonus(puzzleSolvedToday);
+  const maxAttempts = DAILY_EXPLORE_ATTEMPTS + getExtraExploreAttempts(puzzleSolvedToday);
   const attemptsLeft = progress
-    ? Math.max(0, DAILY_EXPLORE_ATTEMPTS - progress.dailyAttemptsUsed)
+    ? Math.max(0, maxAttempts - progress.dailyAttemptsUsed)
     : 0;
+
+  // Boss 首通過的塔，替它挑一題封印殘局（已經挑過的不會重挑）
+  const ensureSealPuzzles = useGameStore((s) => s.ensureSealPuzzles);
+  const bossClearedTowers = useMemo(() => {
+    if (!progress) return [];
+    const list: number[] = [];
+    for (let t = 1; t <= TOWER_COUNT; t++) if (isStageCleared(progress, t, STAGES_PER_TOWER)) list.push(t);
+    return list;
+  }, [progress]);
+  useEffect(() => {
+    if (bossClearedTowers.length > 0) void ensureSealPuzzles(bossClearedTowers);
+  }, [bossClearedTowers, ensureSealPuzzles]);
+  const seal = user?.sealPuzzles?.[String(towerNumber)] ?? null;
+  const bossCleared = bossClearedTowers.includes(towerNumber);
   const replayLootLeft = getReplayLootLeft(progress?.dailyReplayLootUsed ?? 0);
 
   const handleStart = useCallback(() => {
@@ -170,14 +193,14 @@ function TowerContent() {
     }
 
     const plan = getStagePlan(towerNumber, prepStage);
-    const playerUnits = [toBattleUnit(selectedPet, "p0", "player")];
+    const playerUnits = [toBattleUnit(selectedPet, "p0", "player", puzzleBonus)];
     const enemyUnits = plan.monsters.map((m, i) => monsterToBattleUnit(m, `e${i}`));
     const visuals: BattleUnitVisual[] = [
       toBattleVisual(selectedPet, "p0"),
       ...plan.monsters.map((m, i) => monsterToBattleVisual(m, `e${i}`)),
     ];
 
-    const result = simulateBattle(playerUnits, enemyUnits, {
+    const engine = new BattleEngine(playerUnits, enemyUnits, {
       mode: "sequential",
       // 種子帶上時間，讓同一關每次重打的 ±10% 浮動不一樣
       seed: (towerNumber * 1000 + prepStage) * 7919 + (Date.now() % 100000),
@@ -190,17 +213,17 @@ function TowerContent() {
       playerUnits,
       enemyUnits,
       visuals,
-      result,
+      engine,
       consumedAttempt,
       isFirstClear: !alreadyCleared,
     });
     finishHandledRef.current = false;
     setErrorMessage(null);
     setView("battle");
-  }, [attemptsLeft, prepStage, progress, selectedPet, towerNumber]);
+  }, [attemptsLeft, prepStage, progress, puzzleBonus, selectedPet, towerNumber]);
 
   const handleBattleFinish = useCallback(
-    (outcome: { winner: string; surrendered: boolean }) => {
+    (outcome: { winner: string; surrendered: boolean; result: BattleResult }) => {
       if (!setup || !progress) return;
       if (finishHandledRef.current) return;
       finishHandledRef.current = true;
@@ -238,6 +261,7 @@ function TowerContent() {
       // 本地算完了，沒有理由等網路。
       setFinished({
         won,
+        result: outcome.result,
         surrendered: outcome.surrendered,
         drops: accepted,
         gemDrops: loot.gems,
@@ -337,7 +361,7 @@ function TowerContent() {
             accent={theme.accentColor}
             backLabel={view === "tower" ? "塔清單" : "返回"}
             onBack={() => (view === "tower" ? router.push("/explore") : backToTower())}
-            right={<AttemptsBadge left={attemptsLeft} max={DAILY_EXPLORE_ATTEMPTS} />}
+            right={<AttemptsBadge left={attemptsLeft} max={maxAttempts} />}
           />
         ) : null}
 
@@ -506,6 +530,38 @@ function TowerContent() {
             >
               <span className="absolute inset-0 flex items-center justify-center text-[10.5px] font-black tracking-[0.3em] text-white/45">入口</span>
             </div>
+
+            {/* ---- Boss 封印殘局：首通 Boss 之後解鎖一題，解開送 2 顆寶石 ---- */}
+            <div className="rpg-panel mt-4 flex items-center gap-3 rounded-2xl px-3.5 py-3">
+              <span
+                className={["flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-[24px]", bossCleared && seal && !seal.claimed ? "skill-ready" : ""].join(" ")}
+                style={{ background: bossCleared ? "linear-gradient(145deg,#6A4FC0,#24184F)" : "rgba(255,255,255,0.06)", boxShadow: bossCleared && seal && !seal.claimed ? "0 0 14px rgba(159,123,255,0.7)" : undefined }}
+                aria-hidden="true"
+              >
+                {!bossCleared ? "🔒" : seal?.claimed ? "📜" : "♟️"}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-[13px] font-black text-white">封印殘局</p>
+                <p className="mt-0.5 text-[11px] font-bold leading-snug text-white/60">
+                  {!bossCleared
+                    ? "打倒第 10 層的首領，就會解鎖一題這座塔的殘局（難度 " + towerNumber + "），第一次解開送 2 顆寶石。"
+                    : !seal
+                      ? "正在從題庫挑題目…"
+                      : seal.claimed
+                        ? "已經解開了！還是可以再挑戰一次當練習。"
+                        : "解開它就能拿到 2 顆寶石！"}
+                </p>
+              </div>
+              {bossCleared && seal ? (
+                <button
+                  type="button"
+                  onClick={() => router.push(`/puzzle/${seal.puzzleId}`)}
+                  className="btn-gold shrink-0 rounded-xl px-3 py-2 text-[12px] font-black"
+                >
+                  {seal.claimed ? "再解一次" : "去解題"}
+                </button>
+              ) : null}
+            </div>
           </section>
         ) : null}
 
@@ -613,6 +669,22 @@ function TowerContent() {
                     </InfoChip>
                   </div>
 
+                  {/* ---- 解題加成：今天解的題越多，探險越強 ---- */}
+                  <button
+                    type="button"
+                    onClick={() => router.push("/puzzle")}
+                    className="mt-2 flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left ring-1 ring-[#9F7BFF]/45 transition-transform active:scale-[0.98]"
+                    style={{ background: "linear-gradient(180deg, rgba(42,32,96,0.94), rgba(20,16,48,0.94))" }}
+                  >
+                    <span className="text-[16px]" aria-hidden="true">📖</span>
+                    <span className="min-w-0 flex-1 text-[11px] font-bold leading-snug text-white/75">
+                      今天解對 {puzzleSolvedToday} 題：探險四項
+                      <span className="font-black text-[#7FE8A8]"> +{Math.round(puzzleBonus * 100)}%</span>
+                      （最多 +5%），多 {maxAttempts - DAILY_EXPLORE_ATTEMPTS} 次探險
+                    </span>
+                    <span className="shrink-0 text-[11px] font-black text-[#C9B6FF]">去解題 ›</span>
+                  </button>
+
                   {/* ---- 選小雞 ---- */}
                   <div className="rpg-panel mt-3 rounded-2xl px-3 py-3">
                     <p className="px-1 text-[12px] font-black text-white/70">派誰出戰（只能派 1 隻）</p>
@@ -715,7 +787,7 @@ function TowerContent() {
               playerUnits={setup.playerUnits}
               enemyUnits={setup.enemyUnits}
               visuals={setup.visuals}
-              result={setup.result}
+              engine={setup.engine}
               tower={towerNumber}
               title={`${theme.name}・第 ${setup.stage} 關`}
               playerLabel={setup.pet.name}
@@ -732,8 +804,8 @@ function TowerContent() {
           won={finished.won}
           surrendered={finished.surrendered}
           title={`${theme.name}・第 ${setup.stage} 關`}
-          durationSeconds={setup.result.durationSeconds}
-          defeated={setup.result.enemiesDefeated}
+          durationSeconds={finished.result.durationSeconds}
+          defeated={finished.result.enemiesDefeated}
           totalEnemies={setup.enemyUnits.length}
           drops={finished.drops}
           extraLines={[
@@ -886,6 +958,7 @@ function PetPickCard({ pet, selected, onSelect }: { pet: DeployablePet; selected
               <span key={kind} className="block h-[22px] w-[22px] rounded-[5px] border border-dashed border-white/25" />
             );
           })}
+          {pet.skillId ? <SkillIcon skillId={pet.skillId} size={22} boosted={pet.skillBoosted} /> : null}
         </div>
         {blocked ? (
           <span className="absolute inset-x-0 bottom-0 bg-[#B0102A] py-0.5 text-[9.5px] font-black text-white">{pet.blockReason}</span>

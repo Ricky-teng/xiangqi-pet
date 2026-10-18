@@ -21,7 +21,7 @@ import RequireAuth from "@/components/RequireAuth";
 import { useGameStore } from "@/stores/useGameStore";
 import BattleStage, { type BattleUnitVisual } from "@/components/battle/BattleStage";
 import BattleResultCard from "@/components/battle/BattleResultCard";
-import { simulateBattle, type BattleResult, type BattleUnit } from "@/lib/rpg/battle";
+import { BattleEngine, type BattleResult, type BattleUnit } from "@/lib/rpg/battle";
 import { getTeamDeployBlockReason } from "@/lib/rpg/equipment";
 import {
   DAILY_TEAM_ATTEMPTS,
@@ -62,7 +62,7 @@ interface BattleSetup {
   playerUnits: BattleUnit[];
   enemyUnits: BattleUnit[];
   visuals: BattleUnitVisual[];
-  result: BattleResult;
+  engine: BattleEngine;
   myPets: DeployablePet[];
 }
 
@@ -88,7 +88,7 @@ function TeamContent() {
   const [leaderboard, setLeaderboard] = useState<TeamDoc[] | null>(null);
   const [isLoadingBoard, setIsLoadingBoard] = useState(false);
   const [setup, setSetup] = useState<BattleSetup | null>(null);
-  const [finished, setFinished] = useState<{ won: boolean; surrendered: boolean; delta: number; newScore: number } | null>(null);
+  const [finished, setFinished] = useState<{ won: boolean; surrendered: boolean; delta: number; newScore: number; result: BattleResult } | null>(null);
 
   /** 目前上陣的三個站位（null = 空位） */
   const [slots, setSlots] = useState<(DeployablePet | null)[]>([null, null, null]);
@@ -249,7 +249,7 @@ function TeamContent() {
       ...onFieldPets.map((p, i) => toBattleVisual(p, `p${i}`)),
       ...enemyPets.map((p, i) => toBattleVisual(p, `e${i}`)),
     ];
-    const result = simulateBattle(playerUnits, enemyUnits, {
+    const engine = new BattleEngine(playerUnits, enemyUnits, {
       mode: "melee",
       seed: Date.now() % 1000000,
     });
@@ -262,13 +262,13 @@ function TeamContent() {
       playerUnits,
       enemyUnits,
       visuals,
-      result,
+      engine,
       myPets: onFieldPets,
     });
   }
 
   const handleBattleFinish = useCallback(
-    (outcome: { winner: string; surrendered: boolean }) => {
+    (outcome: { winner: string; surrendered: boolean; result: BattleResult }) => {
       if (!setup) return;
       if (finishHandledRef.current) return;
       finishHandledRef.current = true;
@@ -280,7 +280,7 @@ function TeamContent() {
         opponentRank: setup.opponentRank,
         memberPetIds: setup.myPets.filter((p) => !p.isLiving).map((p) => p.id),
       }).then((r) => {
-        setFinished({ won, surrendered: outcome.surrendered, delta: r.delta, newScore: r.newScore });
+        setFinished({ won, surrendered: outcome.surrendered, delta: r.delta, newScore: r.newScore, result: outcome.result });
       });
     },
     [finishTeamBattle, setup],
@@ -735,7 +735,7 @@ function TeamContent() {
               playerUnits={setup.playerUnits}
               enemyUnits={setup.enemyUnits}
               visuals={setup.visuals}
-              result={setup.result}
+              engine={setup.engine}
               title={`${team.teamName} vs ${setup.opponent.teamName}`}
               playerLabel={team.teamName}
               enemyLabel={setup.opponent.teamName}
@@ -751,8 +751,8 @@ function TeamContent() {
           won={finished.won}
           surrendered={finished.surrendered}
           title={`對手：${setup.opponent.teamName}（第 ${setup.opponentRank} 名）`}
-          durationSeconds={setup.result.durationSeconds}
-          defeated={setup.result.enemiesDefeated}
+          durationSeconds={finished.result.durationSeconds}
+          defeated={finished.result.enemiesDefeated}
           totalEnemies={setup.enemyUnits.length}
           extraLines={[
             finished.delta >= 0

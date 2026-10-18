@@ -63,6 +63,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { doc, getDoc, increment, setDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useGameStore } from "@/stores/useGameStore";
+import type { GemId } from "@/lib/rpg/gems";
 import type { PuzzleDoc, SolvedPuzzleRecord } from "@/types/database";
 import type { BoardGrid, SolverState } from "@/types/xiangqi";
 import { parseFen, toFen } from "@/lib/xiangqi/fen";
@@ -123,6 +124,13 @@ export type RewardOutcome =
       isRepeat: boolean;
       /** 這題順便升段的話帶新段位名稱（例如「七級」），沒升段是 null */
       rankLevelUp: string | null;
+      /** 解題 × RPG：掉的寶石、解開的封印、今天解了幾題（見 lib/rpg/chessLink.ts） */
+      rpg: {
+        gem: GemId | null;
+        sealTowers: number[];
+        sealGems: GemId[];
+        solvedToday: number;
+      };
     }
   | { status: "already_claimed" }
   | { status: "error"; message: string };
@@ -178,6 +186,7 @@ export function usePuzzleSolver(puzzle: PuzzleDoc): UsePuzzleSolverResult {
   const setPet = useGameStore((s) => s.setPet);
   const triggerSickness = useGameStore((s) => s.triggerSickness);
   const addChessLevelPoints = useGameStore((s) => s.addChessLevelPoints);
+  const recordPuzzleSolveForRpg = useGameStore((s) => s.recordPuzzleSolveForRpg);
 
   // ---- 規則引擎：偏離已知正解線時，判斷合法性/終局狀態要靠這個 ----
   const { engine } = useRulesEngine();
@@ -361,6 +370,9 @@ export function usePuzzleSolver(puzzle: PuzzleDoc): UsePuzzleSolverResult {
       );
       const rankResult = addChessLevelPoints(rankPoints);
 
+      // 解題 × RPG：今天的解題加成／換探險次數／掉寶石／封印殘局
+      const rpg = recordPuzzleSolveForRpg(puzzle.id);
+
       if (pet) {
         setPet({
           ...pet,
@@ -374,6 +386,7 @@ export function usePuzzleSolver(puzzle: PuzzleDoc): UsePuzzleSolverResult {
         earnedFood,
         isRepeat,
         rankLevelUp: rankResult.levelsGained > 0 ? rankResult.newRankLabel : null,
+        rpg,
       });
     } catch (error) {
       console.error("[usePuzzleSolver] 解題獎勵結算失敗：", error);
@@ -382,7 +395,7 @@ export function usePuzzleSolver(puzzle: PuzzleDoc): UsePuzzleSolverResult {
         message: error instanceof Error ? error.message : "結算獎勵時發生未知錯誤。",
       });
     }
-  }, [user, pet, puzzle.id, puzzle.level, setUser, setPet, addChessLevelPoints, solverState.totalWrongAttempts]);
+  }, [user, pet, puzzle.id, puzzle.level, setUser, setPet, addChessLevelPoints, recordPuzzleSolveForRpg, solverState.totalWrongAttempts]);
 
   /** 答錯共用處理：重置棋盤、累計連續答錯次數，達上限觸發生病 */
   const commitWrongAnswer = useCallback(

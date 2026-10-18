@@ -19,6 +19,7 @@
  * 真的裝備不夠，直接告訴他差在哪比較有用。
  */
 
+import { playSfx } from "@/lib/sound/sfx";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getEquipmentName, type EquipmentItem } from "@/lib/rpg/equipment";
 import { GEM_TABLE, type GemId } from "@/lib/rpg/gems";
@@ -116,10 +117,24 @@ export default function BattleResultCard({
     const timers: number[] = [];
     for (let index = 0; index < dropCount; index++) {
       const t = DROP_START_MS + index * DROP_GAP_MS;
-      timers.push(window.setTimeout(() => setLanded(index + 1), t));
-      timers.push(window.setTimeout(() => setFlipped(index + 1), t + FLIP_DELAY_MS));
+      timers.push(
+        window.setTimeout(() => {
+          setLanded(index + 1);
+          playSfx("drop");
+        }, t),
+      );
+      timers.push(
+        window.setTimeout(() => {
+          setFlipped(index + 1);
+          // 裝備在前、寶石在後；品質 +7% 以上的裝備用「稀有」的音效
+          const item = drops[index];
+          playSfx(item ? ((item.quality ?? 0) >= 0.07 ? "rare" : "cardFlip") : "gem");
+        }, t + FLIP_DELAY_MS),
+      );
     }
     return () => timers.forEach((id) => window.clearTimeout(id));
+    // 只在掉落數量決定時排一次；drops 是同一場的固定資料
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dropCount]);
 
   // 打開時把焦點放在主要按鈕，鍵盤使用者按 Enter 就能繼續

@@ -9,6 +9,7 @@
 
 "use client";
 
+import VolumeSetting from "@/components/sound/VolumeSetting";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { doc, updateDoc } from "firebase/firestore";
@@ -315,6 +316,9 @@ function SettingsContent() {
             </a>
           </div>
         </div>
+
+        {/* ---- 音效音量 ---- */}
+        <VolumeSetting />
 
         {/* ---- 開啟推播通知 ---- */}
         <button

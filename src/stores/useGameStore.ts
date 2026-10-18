@@ -1,6 +1,6 @@
 // src/stores/useGameStore.ts
 import { create } from "zustand";
-import { doc, setDoc, updateDoc } from "firebase/firestore";
+import { collection, doc, getDocs, query, setDoc, updateDoc, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { UserDoc, PetDoc, DailyTaskDoc } from "@/types/database";
 import { resolveStageForXp } from "@/lib/pet/petGrowth";
@@ -30,7 +30,17 @@ import {
   type EquipmentKind,
 } from "@/lib/rpg/equipment";
 import { GEM_TABLE, addGemsToBag, getGemCount, type GemId } from "@/lib/rpg/gems";
-import { addCollectedPetRecord, updateCollectedPetEquipment } from "@/lib/collectedPets";
+import { addCollectedPetRecord, updateCollectedPetEquipment, updateCollectedPetSkill } from "@/lib/collectedPets";
+import { SKILL_REROLL_COST, getSkill, isSkillId, rollSkill, type SkillId } from "@/lib/rpg/skills";
+import {
+  SEAL_PUZZLE_GEMS,
+  applyPuzzleSolve,
+  getSealPuzzleLevel,
+  getTodayPuzzleDaily,
+  pickSealPuzzleId,
+  type SealPuzzle,
+} from "@/lib/rpg/chessLink";
+import { rollGem } from "@/lib/rpg/gems";
 import {
   applyStageResult,
   fetchExploreProgress,
@@ -386,6 +396,26 @@ interface GameStoreState {
 
   /** 買一件第 1 階裝備（武器或防具），各 100 飼料 */
   buyEquipment: (kind: EquipmentKind) => { success: boolean; message: string };
+  /**
+   * 花 SKILL_REROLL_COST 飼料替一隻收藏小雞重抽技能（不會抽到一樣的）。
+   * 樂觀更新：畫面先換，Firestore 背景寫。
+   */
+  rerollPetSkill: (petId: string) => { success: boolean; message: string; skillId?: SkillId };
+  /**
+   * 解對一題之後呼叫（usePuzzleSolver 結算完飼料之後）：更新今天的解題
+   * 計數、擲解題掉寶石、檢查是不是某座塔的封印殘局。樂觀更新＋背景寫回。
+   */
+  recordPuzzleSolveForRpg: (puzzleId: string) => {
+    gem: GemId | null;
+    sealTowers: number[];
+    sealGems: GemId[];
+    solvedToday: number;
+  };
+  /**
+   * 替 Boss 已經首通、但還沒指定封印殘局的塔挑題目（依難度從題庫挑）。
+   * 探險頁載入時呼叫；技能上線前就打過 Boss 的人也會在這裡補上。
+   */
+  ensureSealPuzzles: (clearedTowers: number[]) => Promise<void>;
 
   /** 花 1000 飼料把背包 +20 格（無上限） */
   expandBag: () => { success: boolean; message: string };
@@ -586,7 +616,16 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
     if (collectedPetsLoaded && !force) return;
 
     try {
-      const pets = await fetchCollectedPets(user.uid);
+      const fetched = await fetchCollectedPets(user.uid);
+      // 技能上線前就收藏的小雞沒有技能：第一次載入時補一個（背景寫回）
+      const pets = fetched.map((p) => {
+        if (isSkillId(p.skillId)) return p;
+        const skillId = rollSkill(p.jobId);
+        updateCollectedPetSkill(user.uid, p.id, skillId).catch((error) => {
+          console.error("[useGameStore] 補發技能寫回失敗：", error);
+        });
+        return { ...p, skillId };
+      });
       set({ collectedPets: pets, collectedPetsLoaded: true });
     } catch (error) {
       console.error("[useGameStore] loadCollectedPets 失敗：", error);
@@ -2178,6 +2217,106 @@ export const useGameStore = create<GameStoreState>((set, get) => ({
   // ============================================================
   // RPG 擴充：裝備
   // ============================================================
+
+  recordPuzzleSolveForRpg: (puzzleId) => {
+    const { user } = get();
+    if (!user) return { gem: null, sealTowers: [], sealGems: [], solvedToday: 0 };
+    const today = getTaipeiDateString();
+    const { daily, gem } = applyPuzzleSolve(getTodayPuzzleDaily(user.puzzleRpgDaily, today));
+
+    // 封印殘局：這題是某座塔指定、還沒領過的，就送寶石
+    const seals: Record<string, SealPuzzle> = { ...(user.sealPuzzles ?? {}) };
+    const sealTowers: number[] = [];
+    const sealGems: GemId[] = [];
+    for (const [tower, seal] of Object.entries(seals)) {
+      if (seal.puzzleId !== puzzleId || seal.claimed) continue;
+      seals[tower] = { ...seal, claimed: true };
+      sealTowers.push(Number(tower));
+      for (let i = 0; i < SEAL_PUZZLE_GEMS; i++) sealGems.push(rollGem());
+    }
+
+    const gained = [...(gem ? [gem] : []), ...sealGems];
+    const gemBag = gained.length > 0 ? addGemsToBag(user.gemBag ?? {}, gained, 1) : user.gemBag ?? {};
+    const now = Date.now();
+    set({ user: { ...user, puzzleRpgDaily: daily, sealPuzzles: seals, gemBag, updatedAt: now } });
+
+    const payload: Record<string, unknown> = { puzzleRpgDaily: daily, updatedAt: now };
+    if (gained.length > 0) payload.gemBag = gemBag;
+    if (sealTowers.length > 0) payload.sealPuzzles = seals;
+    updateDoc(doc(db, "users", user.uid), payload).catch((error) => {
+      console.error("[useGameStore] recordPuzzleSolveForRpg 寫回失敗：", error);
+    });
+
+    return { gem, sealTowers, sealGems, solvedToday: daily.solved };
+  },
+
+  ensureSealPuzzles: async (clearedTowers) => {
+    const { user } = get();
+    if (!user) return;
+    const existing = user.sealPuzzles ?? {};
+    const missing = clearedTowers.filter((t) => !existing[String(t)]);
+    if (missing.length === 0) return;
+
+    const assigned: Record<string, SealPuzzle> = {};
+    for (const tower of missing) {
+      try {
+        const snapshot = await getDocs(
+          query(collection(db, "puzzles"), where("isPublished", "==", true), where("level", "==", getSealPuzzleLevel(tower))),
+        );
+        const id = pickSealPuzzleId(user.uid, tower, snapshot.docs.map((d) => d.id));
+        if (id) assigned[String(tower)] = { puzzleId: id, claimed: false };
+      } catch (error) {
+        console.error("[useGameStore] ensureSealPuzzles 讀題庫失敗：", error);
+      }
+    }
+    if (Object.keys(assigned).length === 0) return;
+
+    // 讀題庫的期間 user 可能變了，用最新的再合併
+    const latest = get().user;
+    if (!latest) return;
+    const merged = { ...(latest.sealPuzzles ?? {}), ...assigned };
+    set({ user: { ...latest, sealPuzzles: merged } });
+    updateDoc(doc(db, "users", latest.uid), { sealPuzzles: merged, updatedAt: Date.now() }).catch((error) => {
+      console.error("[useGameStore] ensureSealPuzzles 寫回失敗：", error);
+    });
+  },
+
+  rerollPetSkill: (petId) => {
+    const { user, collectedPets } = get();
+    if (!user) return { success: false, message: "找不到資料" };
+    const pet = collectedPets.find((p) => p.id === petId);
+    if (!pet) return { success: false, message: "找不到這隻小雞" };
+    if (user.foodCount < SKILL_REROLL_COST) {
+      return { success: false, message: `需要 ${SKILL_REROLL_COST} 飼料，飼料不夠喔！` };
+    }
+
+    const now = Date.now();
+    const current = isSkillId(pet.skillId) ? pet.skillId : null;
+    const skillId = rollSkill(pet.jobId, Math.random, current);
+    const updatedUser: UserDoc = {
+      ...user,
+      foodCount: user.foodCount - SKILL_REROLL_COST,
+      totalFoodSpent: (user.totalFoodSpent ?? 0) + SKILL_REROLL_COST,
+      updatedAt: now,
+    };
+    set({
+      user: updatedUser,
+      collectedPets: collectedPets.map((p) => (p.id === petId ? { ...p, skillId, updatedAt: now } : p)),
+    });
+
+    updateDoc(doc(db, "users", user.uid), {
+      foodCount: updatedUser.foodCount,
+      totalFoodSpent: updatedUser.totalFoodSpent,
+      updatedAt: now,
+    }).catch((error) => {
+      console.error("[useGameStore] rerollPetSkill 扣飼料寫回 Firestore 失敗：", error);
+    });
+    updateCollectedPetSkill(user.uid, petId, skillId).catch((error) => {
+      console.error("[useGameStore] rerollPetSkill 寫技能失敗：", error);
+    });
+
+    return { success: true, message: `學會了「${getSkill(skillId).name}」！`, skillId };
+  },
 
   buyEquipment: (kind) => {
     const { user } = get();

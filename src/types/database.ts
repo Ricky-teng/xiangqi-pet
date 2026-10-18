@@ -1,4 +1,5 @@
 // src/types/database.ts
+import type { PuzzleRpgDaily, SealPuzzle } from "@/lib/rpg/chessLink";
 import { PuzzleLevel, SolutionSequence } from "./xiangqi";
 import type { GemBag } from "@/lib/rpg/gems";
 import type { EquipmentItem } from "@/lib/rpg/equipment";
@@ -174,6 +175,18 @@ export interface UserDoc {
    * 鑲在裝備上的寶石不在這裡，存在那件裝備的 gems 欄位。
    */
   gemBag?: GemBag;
+
+  /**
+   * 解題 × RPG 的每日計數（見 lib/rpg/chessLink.ts）：今天解對幾題、
+   * 擲過幾次解題掉寶石。台北日期換日就當作 0，不用排程歸零。
+   */
+  puzzleRpgDaily?: PuzzleRpgDaily;
+
+  /**
+   * Boss 封印殘局：key 是塔號（"1"～"10"）。Boss 首通後才會指定題目；
+   * claimed = 已經解開領過 2 顆寶石。
+   */
+  sealPuzzles?: Record<string, SealPuzzle>;
 
   /**
    * 收藏小雞的總數。子集合的 count 沒辦法在排行榜查詢裡排序，

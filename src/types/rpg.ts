@@ -58,6 +58,13 @@ export interface CollectedPetDoc {
   /** 這隻的戰績，探險跟戰隊都會累加 */
   record: CollectedPetRecord;
 
+  /**
+   * 技能 id（見 lib/rpg/skills.ts）。收藏時隨機給；舊資料沒有這個欄位，
+   * 第一次載入收藏時補一個。存成 string 是為了容錯：之後技能改名或
+   * 刪掉，讀到不認得的 id 就當作沒有技能、重新補。
+   */
+  skillId?: string | null;
+
   /** 收藏時間戳（ms），列表預設依這個由新到舊排 */
   collectedAt: number;
   updatedAt: number;

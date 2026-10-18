@@ -46,6 +46,9 @@ import PetArt from "@/components/rpg/PetArt";
 import RpgHeader from "@/components/rpg/RpgHeader";
 import EquipmentIcon, { ItemFrame } from "@/components/rpg/EquipmentIcon";
 import { GemSocketSheet, ItemInfoLines, ItemTile } from "@/components/rpg/ItemDetail";
+import SkillPanel from "@/components/rpg/SkillPanel";
+import SkillIcon from "@/components/rpg/SkillIcon";
+import { isSkillBoosted, isSkillId } from "@/lib/rpg/skills";
 
 /** 特效字的 CSS 變數 */
 function fxStyle(fill: string, stroke: number, strokeColor: string): React.CSSProperties {
@@ -334,6 +337,8 @@ function PetDetail({
           </div>
           {/* 特殊效果合計（爆擊率含紫晶、護盾含月光石） */}
           <TraitSummary pet={pet} />
+          {/* ---- 技能（只有收藏小雞有） ---- */}
+          <SkillPanel petId={pet.id} jobId={pet.jobId} skillId={pet.skillId} isLiving={isLiving} />
           {equipMessage ? <p className="mt-2 rounded-xl bg-white/[0.06] px-3 py-1.5 text-center text-[11.5px] font-black text-[#FFE58A]">{equipMessage}</p> : null}
           {deployBlockReason ? (
             <p className="mt-2 rounded-xl bg-[#FF4D5E]/12 px-3 py-2 text-center text-[11.5px] font-black text-[#FF9AA6] ring-1 ring-[#FF4D5E]/35">
@@ -470,6 +475,12 @@ function PetCard({ pet, onClick, wide = false }: { pet: CollectedPetDoc; onClick
         <span className="absolute left-1.5 top-1.5 rounded-md px-1 py-0.5 text-[9px] font-black text-white" style={{ background: `${jobColor}DD` }}>
           {jobNameOf(pet.jobId)}
         </span>
+        {/* 技能小圖示（職業搭配的有金邊星星） */}
+        {isSkillId(pet.skillId) ? (
+          <span className="absolute left-1 top-[26px]">
+            <SkillIcon skillId={pet.skillId} size={22} boosted={isSkillBoosted(pet.skillId, pet.jobId)} />
+          </span>
+        ) : null}
         {/* 兩件裝備小圖 */}
         <span className="absolute right-1 top-1 flex flex-col gap-0.5">
           {(["weapon", "armor"] as const).map((kind) => {
